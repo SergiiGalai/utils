@@ -6,7 +6,8 @@ Param(
 	[switch]$debug
 )
 
-$localPathBase = "d:\Dropbox"
+$currentPath=Split-Path $PSCommandPath
+$localPathBase = "$currentPath\Files"
 
 function show_exception
 {
@@ -89,7 +90,7 @@ function test_path
 	Param ($path)
 	
 	if(-Not ($path | Test-Path) ){
-		throw "File or folder does not exist"
+		throw "'$path' folder does not exist"
 	}
 }
 function test_file_path
@@ -97,7 +98,7 @@ function test_file_path
 	Param ($path)
 	
 	if(-Not ($path | Test-Path -PathType Leaf) ){
-		throw "The Path argument must be a file. Folder paths are not allowed."
+		throw "'$path' must be a file"
 	}	
 }
 function read_token
