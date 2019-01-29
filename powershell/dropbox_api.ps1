@@ -6,7 +6,7 @@ Param(
 	[switch]$debug
 )
 
-$localPathBase = "d:\soft\Dropbox"
+$localPathBase = "d:\Dropbox"
 
 function show_exception
 {
