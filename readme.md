@@ -1,1 +1,2 @@
-This repo contains list of valuable scripts to automate daily routine
+This repo contains powershell scripts to automate daily routine:
+[Dropbox powershell simple client](dropbox_client/README.md)
