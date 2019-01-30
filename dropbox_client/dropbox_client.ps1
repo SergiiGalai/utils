@@ -121,10 +121,15 @@ elseif ($list)
 	if ($list -eq "/") {$list = ""}
 	list_folder $list
 }
-elseif ($download -and $to)
+elseif ($download)
 {
-	$fileName = Split-Path $download -leaf	
-	$localPathToDownload = "$localPathBase$to"
+	if ($to){
+		$localPathToDownload = "$localPathBase$to"
+	}else{
+		$localPathToDownload = $localPathBase
+	}
+	
+	$fileName = Split-Path $download -leaf
 	test_path $localPathToDownload
 	
 	$downloadResult = download_file $download "$localPathToDownload\$fileName"
@@ -133,7 +138,7 @@ elseif ($download -and $to)
 		ii $localPathToDownload
 	}	
 }
-elseif ($upload -and $to)
+elseif ($upload)
 {
 	$localPathToUpload = "$localPathBase$upload"
 	test_file_path $localPathToUpload
