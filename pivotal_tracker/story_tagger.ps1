@@ -5,10 +5,12 @@ param(
     [Parameter(Mandatory=$true)]
     [string] $apiToken,
 	[Parameter(Mandatory=$true)]
-	[string] $storyPrefix
+	[string] $storyPrefix,
+	[Parameter(Mandatory=$false)]
+	[string] $action
 )
-
 $projectUrl = "https://www.pivotaltracker.com/services/v5/projects/$projectId"
+$storyPrefixPattern = "\[$storyPrefix(\d+)\]"
 
 function getStories {
 	[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -19,44 +21,54 @@ function setStoryName([string] $id, [string] $name){
 	$data = @{ name = $name }
 	$body = $data | ConvertTo-Json;
 
-	write-host "setStoryName $id $name"
-	
 	[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 	$updateResponse = Invoke-RestMethod -Uri $projectUrl/stories/$id -Body $body -Method PUT -Headers $headers -ContentType "application/json"
 }
 
+function getMaxFoundStoryId($stories){
+	$maxFoundStoryId = 0
+
+	write-host "getMaxFoundStoryId"
+
+	foreach ($story in $stories) {
+		$match = [regex]::Match($story.name, $storyPrefixPattern)
+		if ( $match.Success ){
+			$foundId = [int]$match.Groups[1].Value
+			$maxFoundStoryId = [math]::max($maxFoundStoryId, $foundId)
+		}
+	}
+
+	return $maxFoundStoryId
+}
+
 class UpdateStoryResult {
 	[bool]$Match;
+	[int]$Id;
 	[string]$Name;
-	[string]$Id;
 	[string]$PivotalId;
 }
 
-function setStoryPrefixes($stories){
-	$newlyTaggedStoryCount = 0
-	$maxSeenStoryId = 0
+function setStoryPrefixes($stories, $maxSeenStoryId){
+	$newlyTaggedStoryCount = 0	
 
-	write-host "setStoryPrefixes"
-	
+	write-host "setStoryPrefixes maxSeenStoryId $maxSeenStoryId"
+
 	foreach ($story in $stories) {
 		$item = [UpdateStoryResult]::new()
 		$item.PivotalId = $story.id
 
-		$match = [regex]::Match($story.name, "\[$storyPrefix(\d+)\]" )
+		$match = [regex]::Match($story.name, "$storyPrefixPattern (.*)" )		
 		$item.Match = $match.Success
 
-		if ( $match.Success ){
-			$item.Id = $match.Groups[1].Value
+		if ($match.Success ){
+			$item.Id = [int]$match.Groups[1].Value			
 			$item.Name = $story.name
-			
-			$maxSeenStoryId = if ($maxSeenStoryId -lt $item.Id) {$item.Id} else {$maxSeenStoryId}			
 		}else{
 			$newlyTaggedStoryCount += 1
 			$maxSeenStoryId += 1
 
 			$item.Id = $maxSeenStoryId
-			$item.Name = "[$storyPrefix$maxSeenStoryId] - $($story.name)"
-
+			$item.Name = "[$storyPrefix$maxSeenStoryId] $($story.name)"
 			setStoryName $item.PivotalId $item.Name
 		}
 		$item
@@ -67,18 +79,18 @@ function setStoryPrefixes($stories){
 
 function removeStoryPrefixes($stories){
 	write-host "removeStoryPrefixes"
-	
+
 	foreach ($story in $stories) {
 		$item = [UpdateStoryResult]::new()
 		$item.PivotalId = $story.id
 
-		$match = [regex]::Match($story.name, "\[$storyPrefix(\d+)\] - (.*)" )
+		$match = [regex]::Match($story.name, "$storyPrefixPattern (.*)" )
 		$item.Match = $match.Success
 
 		if ( $match.Success ){
-			$item.Id = $match.Groups[1].Value
+			$item.Id = [int]$match.Groups[1].Value
 			$item.Name = $match.Groups[2].Value
-			
+
 			setStoryName $item.PivotalId $item.Name
 		}else{
 			$item.Id = -1
@@ -88,10 +100,16 @@ function removeStoryPrefixes($stories){
 	}
 }
 
-
 $headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
 $headers.Add("X-TrackerToken", $apiToken)
 
 $stories = getStories
-removeStoryPrefixes $stories
-#setStoryPrefixes $stories
+
+if ($action -eq "delete"){
+	removeStoryPrefixes $stories
+}elseif ($action -eq "update"){
+	$maxFoundId = getMaxFoundStoryId $stories
+	setStoryPrefixes $stories $maxFoundId
+}else{
+	$stories
+}
