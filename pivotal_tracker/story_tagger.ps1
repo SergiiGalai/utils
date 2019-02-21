@@ -1,9 +1,9 @@
 [CmdLetBinding()]
 param(
-    [Parameter(Mandatory=$true)]
-    [string] $projectId,
-    [Parameter(Mandatory=$true)]
-    [string] $apiToken,
+	[Parameter(Mandatory=$true)]
+	[string] $projectId,
+	[Parameter(Mandatory=$true)]
+	[string] $apiToken,
 	[Parameter(Mandatory=$true)]
 	[string] $storyPrefix,
 	[Parameter(Mandatory=$false)]
