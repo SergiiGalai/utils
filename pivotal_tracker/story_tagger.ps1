@@ -6,7 +6,7 @@ param(
 	[string] $apiToken,
 	[Parameter(Mandatory=$true)]
 	[string] $storyPrefix,
-	[Parameter(Mandatory=$false)]
+	[Parameter(Mandatory=$true)]
 	[string] $action
 )
 $projectUrl = "https://www.pivotaltracker.com/services/v5/projects/$projectId"
@@ -21,8 +21,16 @@ function setStoryName([string] $id, [string] $name){
 	$data = @{ name = $name }
 	$body = $data | ConvertTo-Json;
 
+	write-host "setStoryName $name $id"
 	[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 	$updateResponse = Invoke-RestMethod -Uri $projectUrl/stories/$id -Body $body -Method PUT -Headers $headers -ContentType "application/json"
+}
+
+function setStoryNames([UpdateStoryName[]] $updateStoryNames){
+	write-host "setStoryNames"
+	foreach ($updateStory in $updateStoryNames) {
+		setStoryName $updateStory.PivotalId $updateStory.Name
+	}
 }
 
 function getMaxFoundStoryId($stories){
@@ -41,62 +49,69 @@ function getMaxFoundStoryId($stories){
 	return $maxFoundStoryId
 }
 
-class UpdateStoryResult {
-	[bool]$Match;
+class UpdateStoryName {
 	[int]$Id;
 	[string]$Name;
 	[string]$PivotalId;
 }
 
-function setStoryPrefixes($stories, $maxSeenStoryId){
-	$newlyTaggedStoryCount = 0	
+function getStoriesToAddPrefixes($stories, $nextId){
+	write-host "Looking for stories to ADD prefixes ( nextId=$nextId )"
 
-	write-host "setStoryPrefixes maxSeenStoryId $maxSeenStoryId"
-
+	$result = @()
 	foreach ($story in $stories) {
-		$item = [UpdateStoryResult]::new()
-		$item.PivotalId = $story.id
+		$match = [regex]::Match($story.name, "$storyPrefixPattern (.*)" )
 
-		$match = [regex]::Match($story.name, "$storyPrefixPattern (.*)" )		
-		$item.Match = $match.Success
+		if ( -Not $match.Success ){
+			$nextId += 1
 
-		if ($match.Success ){
-			$item.Id = [int]$match.Groups[1].Value			
-			$item.Name = $story.name
-		}else{
-			$newlyTaggedStoryCount += 1
-			$maxSeenStoryId += 1
-
-			$item.Id = $maxSeenStoryId
-			$item.Name = "[$storyPrefix$maxSeenStoryId] $($story.name)"
-			setStoryName $item.PivotalId $item.Name
+			$item = [UpdateStoryName]::new()
+			$item.PivotalId = $story.id
+			$item.Id = $nextId
+			$item.Name = "[$storyPrefix$nextId] $($story.name)"
+			$result += $item
 		}
-		$item
 	}
 
-	write-host "Tagged $newlyTaggedStoryCount new stories out of $($stories.Length) total"
+	return $result
 }
 
-function removeStoryPrefixes($stories){
-	write-host "removeStoryPrefixes"
+function getStoriesToRemovePrefixes($stories){
+	write-host "Looking for stories to REMOVE prefixes"
 
+	$result = @()
 	foreach ($story in $stories) {
-		$item = [UpdateStoryResult]::new()
-		$item.PivotalId = $story.id
-
 		$match = [regex]::Match($story.name, "$storyPrefixPattern (.*)" )
-		$item.Match = $match.Success
 
 		if ( $match.Success ){
+			$item = [UpdateStoryName]::new()
+			$item.PivotalId = $story.id
 			$item.Id = [int]$match.Groups[1].Value
 			$item.Name = $match.Groups[2].Value
-
-			setStoryName $item.PivotalId $item.Name
-		}else{
-			$item.Id = -1
-			$item.Name = $story.name
+			$result += $item
 		}
-		$item
+	}
+
+	return $result
+}
+
+function showItems($items){
+	write-host "Found $($items.length) applicable stories:"
+	$items | Format-Table | Out-String
+}
+
+function Confirm {
+	$confirmation = Read-Host "Are you Sure You Want To Proceed [y/n] ?"
+	if ($confirmation -eq 'y') {
+		return $TRUE
+	}
+	return $FALSE
+}
+
+function processFilteredStories([UpdateStoryName[]]$updateStories){
+	showItems $updateStories
+	if (Confirm $updateStories){
+		setStoryNames $updateStories
 	}
 }
 
@@ -106,10 +121,12 @@ $headers.Add("X-TrackerToken", $apiToken)
 $stories = getStories
 
 if ($action -eq "delete"){
-	removeStoryPrefixes $stories
-}elseif ($action -eq "update"){
+	$updateStories = getStoriesToRemovePrefixes $stories
+	processFilteredStories $updateStories
+}elseif ($action -eq "add"){
 	$maxFoundId = getMaxFoundStoryId $stories
-	setStoryPrefixes $stories $maxFoundId
+	$updateStories = getStoriesToAddPrefixes $stories $maxFoundId
+	processFilteredStories $updateStories
 }else{
-	$stories
+	showItems $stories
 }
