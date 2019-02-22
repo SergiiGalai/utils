@@ -3,7 +3,7 @@ story_tagger
 A script to tag stories in Pivotal Tracker with sequential user-friendly short IDs (like in Jira).
 
 Run similar to 
-.\story_tagger.ps1 -projectId 123 -apiToken "123" -storyPrefix "UI-" -action update
+`.\story_tagger.ps1 -projectId 123 -apiToken "123" -storyPrefix "UI-" -action update`
 
 -projectId - Pivotal Tracker project id you can find by loggin in browser and opening project. Find it in the url
 -apiToken - Pivotal Tracker token. You can find or generate it in your Pivotal Tracker profile
