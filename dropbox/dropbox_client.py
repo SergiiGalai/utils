@@ -1,26 +1,3 @@
-"""dbox_sync.py
-One-way sync of local directory to Dropbox using Dropbox API V2 and python3.
-
-Dependencies:
-
-- dropbox (`pip3 install dropbox`)
-
-Minimal modifications from:
-https://github.com/dropbox/dropbox-sdk-python/blob/master/example/updown.py
-
-Example config.ini:
-
-```
-[DBOX_SYNC]
-DROPBOX_TOKEN = asdf
-LOCAL_DIR = /home/path/to/scans
-DBOX_DIR = /stuff/scans
-DRY_RUN = True
-ACTION = test
-```
-
-"""
-
 import argparse
 import contextlib
 import datetime

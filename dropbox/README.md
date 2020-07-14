@@ -12,8 +12,11 @@ To start working:
 1. Open created app https://www.dropbox.com/developers/apps
 1. Scroll down to ‘OAuth 2’ block and hit `Generate` button near ‘Generated access token’ text
 1. After the token is generated you’ll see a string of letters and numbers
-1. Copy `dbox_sync.py` to your local disk
-1. create `config.ini` file. Example config.ini:
+1. Copy `dropbox_client.py` to your local disk
+1. create `config.ini` file. You can choose other name.
+1. run `python d:\path\dropbox_client.py`. If your config has other name then `python d:\path\dropbox_client.py -c d:\path\to\config\other_name.ini`
+
+Example config.ini:
 ```
 [DBOX_SYNC]
 DROPBOX_TOKEN = token_recieved_on_dropbox_com
@@ -23,6 +26,5 @@ CLEAN_OLD = False
 DRY_RUN = False
 ACTION = sync [available actions: download|upload|sync]
 ```
-1. run `python d:\path\dbox_sync.py -c d:\path\config.ini`
 
 As a known issue client does not work properly with file modified dates so for now file differences in date/time are ignored during file comparison.
