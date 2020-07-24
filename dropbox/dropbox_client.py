@@ -10,6 +10,7 @@ import configparser
 import logging
 from posixpath import join as urljoin
 from dataclasses import dataclass
+from pathlib import Path
 
 logging.basicConfig(
     level=logging.INFO,
@@ -46,7 +47,7 @@ class Config:
 
 def get_config(args=None):
     logger.debug('get_config started. args={}'.format(args))
-    
+
     if args is None:
         args = {}
 
@@ -71,7 +72,7 @@ def get_config(args=None):
     # `0`; bool("0") == True
     token = args.token or config.get('DROPBOX_TOKEN')
     local_dir = args.source or config.get('LOCAL_DIR')
-    
+
     if local_dir.startswith('.'):
         current_path = os.path.abspath(local_dir)
         local_dir = current_path
@@ -91,11 +92,8 @@ def get_config(args=None):
 
     return Config(action, token, local_dir, dbox_dir, dry_run)
 
-def check_local_folder(local_path: str):
-    if not os.path.isdir(local_path):
-        logger.error('{} does not exist or is not a folder'.format(local_path))
-        sys.exit(1)
-    return
+def try_create_local_folder(path: str):
+    Path(path).mkdir(parents=True, exist_ok=True)
 
 def set_modification_time_from_dropbox(file_path: str, modified: datetime):
     mtime = modified.timestamp()
@@ -114,17 +112,20 @@ def save_binary_file(file_path: str, content):
             f.write(content)
         logger.info('saved file {}...'.format(file_path))
 
-def read_local_files(path: str):
+def read_local_folder(path: str):
     logger.debug('path={}'.format(path))
-    files = [unicodedata.normalize('NFC', f) for f in os.listdir(path)]
-    logger.debug('files={}'.format(files))
-    return files
 
-def read_dropbox_files(path: str):
+    root, dirs, files = next(os.walk(path))
+    normalizedFiles = [unicodedata.normalize('NFC', f) for f in files]
+    logger.debug('files={}'.format(normalizedFiles))
+
+    return root, dirs, normalizedFiles
+
+def read_dropbox_folder(path: str):
     logger.debug('path={}'.format(path))
-    files = list_dropbox_folder(dbx, path)
+    root, dirs, files = list_dropbox_folder(dbx, path)
     logger.debug('files={}'.format(files))
-    return files
+    return root, dirs, files
 
 def download_dropbox_to_local_folder(file_names: list):
     if file_names and yesno('=== Download files {}'.format(file_names), False):
@@ -149,13 +150,13 @@ def upload_local_files_to_dropbox(file_names: list):
     else:
         logger.info('=== upload files skipped')
 
-def get_files_for_download_upload(local_path: str, dbox_path: str):
+def get_files_to_download_and_upload(local_path: str, dbox_path: str):
     upload_list=[]
     download_list=[]
 
     logger.debug('local_path={}, dbox_path={}'.format(local_path, dbox_path))
-    local_files = read_local_files(local_path)
-    dbx_files = read_dropbox_files(dbox_path)
+    local_root, local_dirs, local_files = read_local_folder(local_path)
+    dbx_root, dbx_dirs, dbx_files = read_dropbox_folder(dbox_path)
 
     for filename in dbx_files:
         if filename in local_files:
@@ -194,23 +195,23 @@ def get_files_for_download_upload(local_path: str, dbox_path: str):
 
 def download_dropbox_to_local_folder_without_recurse(local_path: str, dbox_path: str):
     logger.info('local_path={}, dbox_path={}'.format(local_path, dbox_path))
-    check_local_folder(local_path)
+    try_create_local_folder(local_path)
 
-    todownload, toupload = get_files_for_download_upload(local_path, dbox_path)
+    todownload, toupload = get_files_to_download_and_upload(local_path, dbox_path)
     download_dropbox_to_local_folder(todownload)
 
 def upload_local_folder_to_dropbox_without_recurse(local_path: str, dbox_path: str):
     logger.info('local_path={}, dbox_path={}'.format(local_path, dbox_path))
-    check_local_folder(local_path)
+    try_create_local_folder(local_path)
 
-    todownload, toupload = get_files_for_download_upload(local_path, dbox_path)
+    todownload, toupload = get_files_to_download_and_upload(local_path, dbox_path)
     upload_local_files_to_dropbox(toupload)
 
 def sync_local_foler_with_dropbox_without_recurse(local_path: str, dbox_path: str):
     logger.info('local_path={}, dbox_path={}'.format(local_path, dbox_path))
-    check_local_folder(local_path)
+    try_create_local_folder(local_path)
 
-    todownload, toupload = get_files_for_download_upload(local_path, dbox_path)
+    todownload, toupload = get_files_to_download_and_upload(local_path, dbox_path)
     download_dropbox_to_local_folder(todownload)
     upload_local_files_to_dropbox(toupload)
 
@@ -223,14 +224,14 @@ def sync_local_folder_to_dropbox():
     mtime with the server.
     """
     logger.debug('sync_local_folder_to_dropbox started')
-    check_local_folder(conf.local_dir)
+    try_create_local_folder(conf.local_dir)
 
     logger.debug('Walking folder {}...'.format(conf.local_dir))
     for dirname, dirs, files in os.walk(conf.local_dir):
         subfolder = dirname[len(conf.local_dir):].strip(os.path.sep)
         logger.debug('Descending into {}...'.format(subfolder))
 
-        dbx_files = list_dropbox_folder(dbx, urljoin(conf.dbox_dir, subfolder))
+        dbx_root, dbx_dirs, dbx_files = list_dropbox_folder(dbx, urljoin(conf.dbox_dir, subfolder))
         logger.debug('loaded folder list from dropbox {}...'.format(dbx_files))
 
         # First do all the files.
@@ -295,13 +296,13 @@ def are_equal_by_date_size(file_path: str, dbox_file):
             logger.info('file={} not equal by size: local={}, remote={}'
             .format(os.path.basename(file_path), size, dbox_file.size))
             return False
-            
+
         are_equal_by_date = (mtime_dt == dbox_file.client_modified)
         if not are_equal_by_date:
             logger.info('file={} not equal by date: local={}, remote={}'
             .format(os.path.basename(file_path), mtime_dt, dbox_file.client_modified))
             return False
-            
+
         return True
     else:
         logger.warn('{} is not a dropbox file'.format(dbox_file))
@@ -310,14 +311,21 @@ def are_equal_by_date_size(file_path: str, dbox_file):
 
 def list_dropbox_folder(dbx, dbox_path):
     logger.debug('list path: {}'.format(dbox_path))
+    dirs=list()
+    files=list()
+
     try:
         with stopwatch('list_folder'):
             res = dbx.files_list_folder(dbox_path)
     except dropbox.exceptions.ApiError:
         logger.warning('Folder listing failed for {} -- assumed empty'.format(dbox_path))
-        return {}
     else:
-        return {entry.name: entry for entry in res.entries}
+        for entry in res.entries:
+            if isinstance(entry, dropbox.files.FileMetadata):
+                files.append(entry)
+            else:
+                dirs.append(entry)
+    return dbox_path, dirs, files
 
 
 def download_file(dbx, dbx_path):
