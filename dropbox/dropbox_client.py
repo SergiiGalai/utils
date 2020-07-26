@@ -93,7 +93,10 @@ def get_config(args=None):
     return Config(action, token, local_dir, dbox_dir, dry_run)
 
 def try_create_local_folder(path: str):
-    Path(path).mkdir(parents=True, exist_ok=True)
+    if conf.dry_run:
+        logger.info('Dry Run mode. path {}'.format(path))
+    else:
+        Path(path).mkdir(parents=True, exist_ok=True)
 
 def set_modification_time_from_dropbox(file_path: str, modified: datetime):
     mtime = modified.timestamp()
@@ -150,13 +153,10 @@ def upload_local_files_to_dropbox(file_names: list):
     else:
         logger.info('=== upload files skipped')
 
-def get_files_to_download_and_upload(local_path: str, dbox_path: str):
+
+def map_dropbox_files_to_local(local_path: str, dbox_path: str, dbx_files: list, local_files: list):
     upload_list=[]
     download_list=[]
-
-    logger.debug('local_path={}, dbox_path={}'.format(local_path, dbox_path))
-    local_root, local_dirs, local_files = read_local_folder(local_path)
-    dbx_root, dbx_dirs, dbx_files = read_dropbox_folder(dbox_path)
 
     for filename in dbx_files:
         if filename in local_files:
@@ -175,16 +175,24 @@ def get_files_to_download_and_upload(local_path: str, dbox_path: str):
                     localfile_modified = get_file_modified_time(local_file_path)
                     if localfile_modified > dbx_file.client_modified:
                         logger.info('file {} has changed since last sync (dbx={} < local={}) => upload list'
-                        .format(filename, dbx_file.client_modified, localfile_modified))
+                            .format(filename, dbx_file.client_modified, localfile_modified))
                         upload_list.append(filename)
                     else:
                         logger.info('file {} has changed since last sync (dbx={} > local={}) => download list'
-                        .format(filename, dbx_file.client_modified, localfile_modified))
+                            .format(filename, dbx_file.client_modified, localfile_modified))
                         download_list.append(filename)
         else:
             logger.info('file NOT found locally - {} => download list'.format(filename))
             download_list.append(filename)
 
+    return download_list, upload_list
+
+def get_files_to_download_and_upload(local_path: str, dbox_path: str):
+    logger.debug('local_path={}, dbox_path={}'.format(local_path, dbox_path))
+    local_root, local_dirs, local_files = read_local_folder(local_path)
+    dbx_root, dbx_dirs, dbx_files = read_dropbox_folder(dbox_path)
+
+    download_list, upload_list = map_dropbox_files_to_local(local_path, dbox_path, dbx_files, local_files)
     for filename in local_files:
         logger.debug('file {} is being compared with dropbox files'.format(filename))
         if filename not in dbx_files:
@@ -193,24 +201,22 @@ def get_files_to_download_and_upload(local_path: str, dbox_path: str):
 
     return download_list, upload_list
 
+
 def download_dropbox_to_local_folder_without_recurse(local_path: str, dbox_path: str):
     logger.info('local_path={}, dbox_path={}'.format(local_path, dbox_path))
     try_create_local_folder(local_path)
-
     todownload, toupload = get_files_to_download_and_upload(local_path, dbox_path)
     download_dropbox_to_local_folder(todownload)
 
 def upload_local_folder_to_dropbox_without_recurse(local_path: str, dbox_path: str):
     logger.info('local_path={}, dbox_path={}'.format(local_path, dbox_path))
     try_create_local_folder(local_path)
-
     todownload, toupload = get_files_to_download_and_upload(local_path, dbox_path)
     upload_local_files_to_dropbox(toupload)
 
 def sync_local_foler_with_dropbox_without_recurse(local_path: str, dbox_path: str):
     logger.info('local_path={}, dbox_path={}'.format(local_path, dbox_path))
     try_create_local_folder(local_path)
-
     todownload, toupload = get_files_to_download_and_upload(local_path, dbox_path)
     download_dropbox_to_local_folder(todownload)
     upload_local_files_to_dropbox(toupload)

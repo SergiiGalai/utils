@@ -22,9 +22,9 @@ Example config.ini:
 DROPBOX_TOKEN = token_recieved_on_dropbox_com
 LOCAL_DIR = ./db/scans
 DBOX_DIR = /remote/path/scans
-CLEAN_OLD = False
-DRY_RUN = False
-ACTION = sync [available actions: download|upload|sync]
+CLEAN_OLD = [False|True]
+DRY_RUN = [False|True]
+ACTION = [download|upload|sync]
 ```
 
 As a known issue client does not work properly with file modified dates so for now file differences in date/time are ignored during file comparison.
