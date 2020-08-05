@@ -99,9 +99,15 @@ def internal_sync(root_local_path: str, dbox_path: str, download: bool, upload: 
     logger.info('root_local_path={}, dbox_path={}'.format(root_local_path, dbox_path))
     local_path = get_local_path(root_local_path, dbox_path)
     try_create_local_folder(local_path)
-    todownload, toupload = get_files_to_download_and_upload(local_path, dbox_path)
-    if download: download_dropbox_to_local_folder(root_local_path, todownload)
-    if upload: upload_local_files_to_dropbox(root_local_path, toupload)
+
+    local_root, local_dirs, local_files = read_local_folder(local_path)
+    dbx_root, dbx_dirs, dbx_files = read_dropbox_folder(dbox_path)
+
+    download_files, upload_files = map_dropbox_files_to_local(local_root, local_files, dbx_root, dbx_files)
+    process_folders = map_dropbox_folders_to_local(local_root, local_dirs, dbx_root, dbx_dirs)
+
+    if download: download_dropbox_to_local_folder(root_local_path, download_files)
+    if upload: upload_local_files_to_dropbox(root_local_path, upload_files)
 
 def get_local_path(root_local_path: str, dbox_path: str):
     relative_db_path = dbox_path[1:] if dbox_path.startswith('/') else dbox_path
@@ -114,12 +120,6 @@ def try_create_local_folder(path: str):
         logger.info('Dry Run mode. path {}'.format(path))
     else:
         pathlib.Path(path).mkdir(parents=True, exist_ok=True)
-
-def get_files_to_download_and_upload(local_path: str, dbox_path: str):
-    logger.debug('local_path={}, dbox_path={}'.format(local_path, dbox_path))
-    local_root, local_dirs, local_files = read_local_folder(local_path)
-    dbx_root, dbx_dirs, dbx_files = read_dropbox_folder(dbox_path)
-    return map_dropbox_files_to_local(local_root, local_files, dbx_root, dbx_files)
 
 def read_local_folder(path: str):
     logger.debug('path={}'.format(path))
@@ -139,43 +139,64 @@ def read_dropbox_folder(path: str):
 def map_dropbox_files_to_local(local_root: str, local_files: list, dbx_root: str, dbx_files: list):
     upload_list = list()
     download_list = list()
-    for dbx_file_info in dbx_files:
-        filename = dbx_file_info.name
-        dbx_file_path = dbx_file_info.path_lower
-        if filename in local_files:
-            logger.debug('file found locally - {}'.format(filename))
-            local_file_path = os.path.join(local_root, filename)
 
-            if are_equal_by_date_size(local_file_path, dbx_file_info):
-                logger.info('file {} already synced [date/size]. Skip'.format(dbx_file_path))
+    for dbx_file in dbx_files:
+        name = dbx_file.name
+        dbx_path = dbx_file.path_lower
+
+        if name in local_files:
+            logger.debug('file found locally - {}'.format(name))
+            local_file_path = os.path.join(local_root, name)
+
+            if are_equal_by_date_size(local_file_path, dbx_file):
+                logger.info('file {} already synced [date/size]. Skip'.format(dbx_path))
             else:
-                logger.info('file {} exists with different stats. Downloading temporary'.format(dbx_file_path))
-                res, dbx_file = download_file(dbx, urljoin(dbx_root, filename))
-                if are_equal_by_content(local_file_path, res.content):
-                    logger.info('file {} already synced [content]. Skip'.format(dbx_file_path))
+                logger.info('file {} exists with different stats. Downloading temporary'.format(dbx_path))
+                response, meta_data = download_file(dbx, urljoin(dbx_root, name))
+                if are_equal_by_content(local_file_path, response.content):
+                    logger.info('file {} already synced [content]. Skip'.format(dbx_path))
                 else:
                     localfile_modified = get_file_modified_time(local_file_path)
                     if localfile_modified > dbx_file.client_modified:
                         logger.info('file {} has changed since last sync (dbx={} < local={}) => upload list'
                             .format(local_file_path, dbx_file.client_modified, localfile_modified))
-                        upload_list.append(dbx_file_path)
+                        upload_list.append(dbx_path)
                     else:
                         logger.info('file {} has changed since last sync (dbx={} > local={}) => download list'
-                            .format(dbx_file_path, dbx_file.client_modified, localfile_modified))
-                        download_list.append(dbx_file_path)
+                            .format(dbx_path, dbx_file.client_modified, localfile_modified))
+                        download_list.append(dbx_path)
         else:
-            logger.info('file NOT found locally - {} => download list'.format(dbx_file_path))
-            download_list.append(dbx_file_path)
+            logger.info('file NOT found locally - {} => download list'.format(dbx_path))
+            download_list.append(dbx_path)
 
-    for filename in local_files:
-        logger.debug('file {} is being compared with dropbox files'.format(filename))
-        if filename not in dbx_files:
-            local_file_path = pathlib.PurePath(local_root).joinpath(filename)
-            dbx_file_path = urljoin(dbx_root, filename)
-            logger.info('file NOT found on dropbox - {} => upload list'.format(local_file_path))
-            upload_list.append(dbx_file_path)
+    dbx_names = list(map(lambda f: f.name, dbx_files))
+    local_only = filter(lambda name: name not in dbx_names, local_files)
+    for name in local_only:
+        local_path = pathlib.PurePath(local_root).joinpath(name)
+        logger.info('file NOT found on dropbox - {} => upload list'.format(local_path))
+        dbx_path = urljoin(dbx_root, name)
+        upload_list.append(dbx_path)
 
     return download_list, upload_list
+
+def map_dropbox_folders_to_local(local_root: str, local_folders: list, dbx_root: str, dbx_folders: list):
+    symmetric_difference = list()
+
+    dropbox_only = filter(lambda f: f.name not in local_folders, dbx_folders)
+    for folder in dropbox_only:
+        dbx_path = folder.path_lower
+        logger.info('folder NOT found locally - {}'.format(dbx_path))
+        symmetric_difference.append(dbx_path)
+
+    dbx_names = list(map(lambda f: f.name, dbx_folders))
+    local_only = filter(lambda name: name not in dbx_names, local_folders)
+    for folder_name in local_only:
+        local_folder_path = pathlib.PurePath(local_root).joinpath(folder_name)
+        dbx_folder_path = urljoin(dbx_root, folder_name)
+        logger.info('folder NOT found on dropbox - {}'.format(local_folder_path))
+        symmetric_difference.append(dbx_folder_path)
+
+    return symmetric_difference
 
 def upload_local_files_to_dropbox(root_local_path:str, dbx_paths: list):
     if dbx_paths and yesno('=== Upload files {}'.format(dbx_paths), False):
@@ -331,12 +352,12 @@ def download_file(dbx, dbx_path):
     logger.debug('dbx_path={}'.format(dbx_path))
     with stopwatch('download'):
         try:
-            md, res = dbx.files_download(dbx_path)
+            meta_data, response = dbx.files_download(dbx_path)
         except dropbox.exceptions.HttpError:
             logger.exception("*** Dropbox HTTP Error")
             return None
-    logger.debug('{} bytes; md: {}'.format(len(res.content), md.name))
-    return res, md
+    logger.debug('{} bytes; md: {}'.format(len(response.content), meta_data.name))
+    return response, meta_data
 
 def upload_file(dbx, local_path, dbx_path, overwrite=False):
     logger.debug('local_path={}, dbx_path={}'.format(local_path, dbx_path))
