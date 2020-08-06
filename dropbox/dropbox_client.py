@@ -123,14 +123,13 @@ class FileStore:
 
     def set_modification_time(self, dbox_path: str, modified: datetime):
         file_path = self.get_absolute_path(dbox_path)
-        utcModified = self.__datetime_local_to_utc(modified)
 
         if self.dry_run:
-            logger.info('Dry Run mode. file_path {}, utcModified={}'.format(os.path.basename(file_path), utcModified))
+            logger.info('Dry Run mode. file_path {}, modified={}'.format(os.path.basename(file_path), modified))
         else:
-            logger.info('file_path={}, utcModified={}'.format(file_path, utcModified))
+            logger.info('file_path={}, modified={}'.format(file_path, modified))
             atime = os.stat(file_path).st_atime
-            mtime = utcModified.timestamp()
+            mtime = modified.timestamp()
             os.utime(file_path, times=(atime, mtime))
 
     def get_absolute_path(self, dbox_path: str) -> str:
@@ -274,23 +273,13 @@ def map_dropbox_files_to_local(local_root: str, local_files: list, dbx_root: str
     return download_list, upload_list
 
 def map_dropbox_folders_to_local(local_root: str, local_folders: list, dbx_root: str, dbx_folders: list):
-    symmetric_difference = list()
+    d1 = dict(map(lambda f: (f.path_lower, f.path_display), dbx_folders))
+    local_folder_paths = map(lambda name: urljoin(dbx_root, name), local_folders)
+    d2 = {v.lower(): v for v in local_folder_paths}
 
-    dropbox_only = filter(lambda f: f.name not in local_folders, dbx_folders)
-    for folder in dropbox_only:
-        dbx_path = folder.path_display
-        logger.info('folder NOT found locally - {}'.format(dbx_path))
-        symmetric_difference.append(dbx_path)
-
-    dbx_names = list(map(lambda f: f.name, dbx_folders))
-    local_only = filter(lambda name: name not in dbx_names, local_folders)
-    for folder_name in local_only:
-        local_folder_path = pathlib.PurePath(local_root).joinpath(folder_name)
-        dbx_folder_path = urljoin(dbx_root, folder_name)
-        logger.info('folder NOT found on dropbox - {}'.format(local_folder_path))
-        symmetric_difference.append(dbx_folder_path)
-
-    return symmetric_difference
+    union_keys = set(d1.keys()).union(d2.keys())
+    union_list = list(map(lambda key: d1[key] if key in d1 else d2[key], union_keys))
+    return union_list
 
 def upload_local_files_to_dropbox(dbx_paths: list):
     if dbx_paths:
