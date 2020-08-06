@@ -9,7 +9,7 @@ import configparser
 import logging
 import pathlib
 import calendar
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 from posixpath import join as urljoin
 from dataclasses import dataclass
 
@@ -117,19 +117,19 @@ class FileStore:
             logger.info('saved file {}...'.format(file_path))
 
     @staticmethod
-    def __datetime_local_to_utc(t) -> datetime:
-        timestamp1 = calendar.timegm(t.timetuple())
-        return datetime.utcfromtimestamp(timestamp1)
+    def __datetime_utc_to_local(utc_dt) -> datetime:
+        return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
 
     def set_modification_time(self, dbox_path: str, modified: datetime):
         file_path = self.get_absolute_path(dbox_path)
+        modified_local_time = self.__datetime_utc_to_local(modified)
 
         if self.dry_run:
-            logger.info('Dry Run mode. file_path {}, modified={}'.format(os.path.basename(file_path), modified))
+            logger.info('Dry Run mode. file_path {}, modified={}'.format(os.path.basename(file_path), modified_local_time))
         else:
-            logger.info('file_path={}, modified={}'.format(file_path, modified))
+            logger.info('file_path={}, modified={}'.format(file_path, modified_local_time))
             atime = os.stat(file_path).st_atime
-            mtime = modified.timestamp()
+            mtime = modified_local_time.timestamp()
             os.utime(file_path, times=(atime, mtime))
 
     def get_absolute_path(self, dbox_path: str) -> str:
