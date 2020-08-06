@@ -35,6 +35,7 @@ def parse_arguments():
     parser.add_argument('--default', '-d', action='store_true', help='Take default answer on all questions')
     parser.add_argument('--action', help='download|upload|sync files (sync if not exist)')
     parser.add_argument('--dryrun', help='Do not change files if True')
+    parser.add_argument('--subfolders', help='Do not change files if True')
     return parser.parse_args()
 
 @dataclass
@@ -44,6 +45,7 @@ class Config:
     local_dir: str
     dbox_dir: str
     dry_run: bool
+    subfolders: bool
 
 def get_config_file_location(path: str):
     if path:
@@ -70,18 +72,15 @@ def get_config(args=None):
     config = config['DBOX_SYNC']
 
     action = args.action or config.get('ACTION')
-    # args.foo should never be inappropriately falsey; even if directory named
-    # `0`; bool("0") == True
     token = args.token or config.get('DROPBOX_TOKEN')
+    dbox_dir = args.dest or config.get('DBOX_DIR') or ""
 
     local_dir = args.source or config.get('LOCAL_DIR') or ""
     if local_dir.startswith('.'):
         local_dir = os.path.abspath(local_dir)
 
-    # Use empty string instead of None to avoid getting cast to string which
-    # results in extra folders named "None", e.g. `"{}".format(None) == "None"`
-    dbox_dir = args.dest or config.get('DBOX_DIR') or ""
     dry_run = args.dryrun or config.getboolean('DRY_RUN')
+    subfolders = args.subfolders or config.getboolean('SUBFOLDERS')
 
     if sum([bool(b) for b in (args.yes, args.no, args.default)]) > 1:
         logger.error('At most one of --yes, --no, --default is allowed')
@@ -91,26 +90,25 @@ def get_config(args=None):
         logger.error('--token is mandatory')
         sys.exit(2)
 
-    return Config(action, token, local_dir, dbox_dir, dry_run)
+    return Config(action, token, local_dir, dbox_dir, dry_run, subfolders)
 
 def download_dropbox_to_local_folder_without_recurse(root_local_path: str, dbox_path: str): internal_sync(root_local_path, dbox_path, True, False)
 def upload_local_folder_to_dropbox_without_recurse(root_local_path: str, dbox_path: str): internal_sync(root_local_path, dbox_path, False, True)
 def sync_local_foler_with_dropbox_without_recurse(root_local_path: str, dbox_path: str): internal_sync(root_local_path, dbox_path, True, True)
 def internal_sync(root_local_path: str, dbox_path: str, download: bool, upload: bool):
     logger.info('root_local_path={}, dbox_path={}'.format(root_local_path, dbox_path))
-    local_path = get_local_path(root_local_path, dbox_path)
-    try_create_local_folder(local_path)
 
-    local_root, local_dirs, local_files = read_local_folder(local_path)
+    local_root, local_dirs, local_files = read_local_folder( get_absolute_local_path(root_local_path, dbox_path) )
     dbx_root, dbx_dirs, dbx_files = read_dropbox_folder(dbox_path)
 
     download_files, upload_files = map_dropbox_files_to_local(local_root, local_files, dbx_root, dbx_files)
-    process_folders = map_dropbox_folders_to_local(local_root, local_dirs, dbx_root, dbx_dirs)
+    if conf.subfolders:
+        process_folders = map_dropbox_folders_to_local(local_root, local_dirs, dbx_root, dbx_dirs)
 
     if download: download_dropbox_to_local_folder(root_local_path, download_files)
     if upload: upload_local_files_to_dropbox(root_local_path, upload_files)
 
-def get_local_path(root_local_path: str, dbox_path: str):
+def get_absolute_local_path(root_local_path: str, dbox_path: str):
     relative_db_path = dbox_path[1:] if dbox_path.startswith('/') else dbox_path
     result = pathlib.PurePath(root_local_path).joinpath(relative_db_path)
     logger.info('result={}'.format(result))
@@ -129,7 +127,7 @@ def read_local_folder(path: str):
         normalizedFiles = [unicodedata.normalize('NFC', f) for f in files]
         logger.debug('files={}'.format(normalizedFiles))
         return root, dirs, normalizedFiles
-    return root, [], []
+    return path, [], []
 
 def read_dropbox_folder(path: str):
     logger.debug('path={}'.format(path))
@@ -202,7 +200,7 @@ def map_dropbox_folders_to_local(local_root: str, local_folders: list, dbx_root:
 def upload_local_files_to_dropbox(root_local_path:str, dbx_paths: list):
     if dbx_paths and yesno('=== Upload files {}'.format(dbx_paths), False):
         for dbx_path in dbx_paths:
-            local_path = get_local_path(root_local_path, dbx_path)
+            local_path = get_absolute_local_path(root_local_path, dbx_path)
             logger.info('uploading {}=>{}...'.format(local_path, dbx_path))
             upload_file(dbx, local_path, dbx_path, overwrite=True)
     else:
@@ -211,12 +209,12 @@ def upload_local_files_to_dropbox(root_local_path:str, dbx_paths: list):
 def download_dropbox_to_local_folder(root_local_path:str, dbx_paths: list):
     if dbx_paths and yesno('=== Download files {}'.format(dbx_paths), False):
         for dbx_path in dbx_paths:
-            local_path = get_local_path(root_local_path, dbx_path)
-            logger.info('downloading {}=>{}...'.format(dbx_path, local_path))
+            file_local_path = get_absolute_local_path(root_local_path, dbx_path)
+            logger.info('downloading {}=>{}...'.format(dbx_path, file_local_path))
             res, dbx_file = download_file(dbx, dbx_path)
             logger.debug('downloaded file: {}'.format(dbx_file))
-            save_binary_file(local_path, res.content)
-            set_modification_time_from_dropbox(local_path, datetime_local_to_utc(dbx_file.client_modified))
+            save_binary_file(file_local_path, res.content)
+            set_modification_time_from_dropbox(file_local_path, datetime_local_to_utc(dbx_file.client_modified))
     else:
         logger.info('=== download files skipped')
 
@@ -224,6 +222,8 @@ def save_binary_file(file_path: str, content):
     if conf.dry_run:
         logger.info('dry run mode. Skip saving file {}'.format(file_path))
     else:
+        base_path = os.path.dirname(file_path)
+        try_create_local_folder(base_path)
         with open(file_path, 'wb') as f:
             f.write(content)
         logger.info('saved file {}...'.format(file_path))
