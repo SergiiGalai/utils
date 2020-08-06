@@ -44,14 +44,9 @@ class Config:
     dbox_dir: str
     dry_run: bool
 
-def get_config(args=None):
-    logger.debug('get_config started. args={}'.format(args))
-    
-    if args is None:
-        args = {}
-
-    if args.config:
-        config_location = args.config
+def get_config_file_location(path: str):
+    if path:
+        config_location = path
     else:
         config_location = [
                 'config.ini',
@@ -59,32 +54,38 @@ def get_config(args=None):
                 'instance/config.ini',
                 os.path.join(os.path.expanduser('~'), '.dbox_sync_config.ini')
                 ]
-    config = configparser.ConfigParser()
-    config.read(config_location)
-    if not config.has_section('DBOX_SYNC'):
-        config['DBOX_SYNC'] = {}
+    return config_location
 
+def get_config(args=None):
+    logger.debug('get_config started. args={}'.format(args))
+
+    if args is None: args = {}
+
+    config_location = get_config_file_location( args.config )
+    config = configparser.ConfigParser()
+    config.read( config_location )
+
+    if not config.has_section('DBOX_SYNC'): config['DBOX_SYNC'] = {}
     config = config['DBOX_SYNC']
 
     action = args.action or config.get('ACTION')
     # args.foo should never be inappropriately falsey; even if directory named
     # `0`; bool("0") == True
     token = args.token or config.get('DROPBOX_TOKEN')
-    local_dir = args.source or config.get('LOCAL_DIR')
-    
+
+    local_dir = args.source or config.get('LOCAL_DIR') or ""
     if local_dir.startswith('.'):
-        current_path = os.path.abspath(local_dir)
-        local_dir = current_path
+        local_dir = os.path.abspath(local_dir)
 
     # Use empty string instead of None to avoid getting cast to string which
     # results in extra folders named "None", e.g. `"{}".format(None) == "None"`
     dbox_dir = args.dest or config.get('DBOX_DIR') or ""
-
     dry_run = args.dryrun or config.getboolean('DRY_RUN')
 
     if sum([bool(b) for b in (args.yes, args.no, args.default)]) > 1:
         logger.error('At most one of --yes, --no, --default is allowed')
         sys.exit(2)
+
     if not token:
         logger.error('--token is mandatory')
         sys.exit(2)
@@ -295,13 +296,13 @@ def are_equal_by_date_size(file_path: str, dbox_file):
             logger.info('file={} not equal by size: local={}, remote={}'
             .format(os.path.basename(file_path), size, dbox_file.size))
             return False
-            
+
         are_equal_by_date = (mtime_dt == dbox_file.client_modified)
         if not are_equal_by_date:
             logger.info('file={} not equal by date: local={}, remote={}'
             .format(os.path.basename(file_path), mtime_dt, dbox_file.client_modified))
             return False
-            
+
         return True
     else:
         logger.warn('{} is not a dropbox file'.format(dbox_file))
