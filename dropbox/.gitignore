@@ -1,3 +1,4 @@
 *.ini
 *.log
-[Db]b/
+.vscode/
+[Dd]b/
