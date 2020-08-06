@@ -211,16 +211,22 @@ class DropboxStore:
                     logger.exception('*** API error')
                     return None
 
-def internal_sync(dbox_path: str, download: bool, upload: bool):
+def map_files_recursive(dbox_path: str):
     logger.info('dbox_path={}'.format(dbox_path))
-
     local_root, local_dirs, local_files = fileStore.list_folder(dbox_path)
     dbx_root, dbx_dirs, dbx_files = dboxStore.list_folder(dbox_path)
-
     download_files, upload_files = map_dropbox_files_to_local(local_root, local_files, dbx_root, dbx_files)
     if conf.subfolders:
         process_folders = map_dropbox_folders_to_local(local_root, local_dirs, dbx_root, dbx_dirs)
+        for dbox_folder in process_folders:
+            download_sub, upload_sub = map_files_recursive(dbox_folder)
+            download_files.extend(download_sub)
+            upload_files.extend(upload_sub)
+    return download_files, upload_files
 
+def internal_sync(dbox_path: str, download: bool, upload: bool):
+    logger.info('dbox_path={}'.format(dbox_path))
+    download_files, upload_files = map_files_recursive(dbox_path)
     if download: download_dropbox_to_local_folder(download_files)
     if upload: upload_local_files_to_dropbox(upload_files)
 
@@ -230,7 +236,7 @@ def map_dropbox_files_to_local(local_root: str, local_files: list, dbx_root: str
 
     for dbx_file in dbx_files:
         name = dbx_file.name
-        dbx_path = dbx_file.path_lower
+        dbx_path = dbx_file.path_display
 
         if name in local_files:
             logger.debug('file found locally - {}'.format(name))
@@ -272,7 +278,7 @@ def map_dropbox_folders_to_local(local_root: str, local_folders: list, dbx_root:
 
     dropbox_only = filter(lambda f: f.name not in local_folders, dbx_folders)
     for folder in dropbox_only:
-        dbx_path = folder.path_lower
+        dbx_path = folder.path_display
         logger.info('folder NOT found locally - {}'.format(dbx_path))
         symmetric_difference.append(dbx_path)
 
@@ -287,24 +293,32 @@ def map_dropbox_folders_to_local(local_root: str, local_folders: list, dbx_root:
     return symmetric_difference
 
 def upload_local_files_to_dropbox(dbx_paths: list):
-    if dbx_paths and yesno('=== Upload files {}'.format(dbx_paths), False):
-        for dbx_path in dbx_paths:
-            local_path = fileStore.get_absolute_path(dbx_path)
-            logger.info('uploading {}=>{}...'.format(local_path, dbx_path))
-            upload_file(local_path, dbx_path, overwrite=True)
+    if dbx_paths:
+        logger.info('=== Upload files\n - {}'.format('\n - '.join(map(str, dbx_paths))))
+        if yesno('Do you want to Upload files above from {}'.format(fileStore.get_absolute_path("/")), False):
+            for dbx_path in dbx_paths:
+                local_path = fileStore.get_absolute_path(dbx_path)
+                logger.info('uploading {} => {} ...'.format(local_path, dbx_path))
+                upload_file(local_path, dbx_path, overwrite=True)
+        else:
+            logger.info('=== upload files cancelled')
     else:
-        logger.info('=== upload files skipped')
+        logger.info('=== nothing to upload')
 
 def download_dropbox_to_local_folder(dbx_paths: list):
-    if dbx_paths and yesno('=== Download files {}'.format(dbx_paths), False):
-        for dbx_path in dbx_paths:
-            logger.info('downloading {}=>{}...'.format(dbx_path, fileStore.get_absolute_path(dbx_path)))
-            res, dbx_file = dboxStore.read(dbx_path)
-            logger.debug('downloaded file: {}'.format(dbx_file))
-            fileStore.save(dbx_path, res.content)
-            fileStore.set_modification_time(dbx_path, dbx_file.client_modified)
+    if dbx_paths:
+        logger.info('=== Download files\n - {}'.format('\n - '.join(map(str, dbx_paths))))
+        if yesno('Do you want to Download files above to {}'.format(fileStore.get_absolute_path("/")), False):
+            for dbx_path in dbx_paths:
+                logger.info('downloading {} => {} ...'.format(dbx_path, fileStore.get_absolute_path(dbx_path)))
+                res, dbx_file = dboxStore.read(dbx_path)
+                logger.debug('downloaded file: {}'.format(dbx_file))
+                fileStore.save(dbx_path, res.content)
+                fileStore.set_modification_time(dbx_path, dbx_file.client_modified)
+        else:
+            logger.info('=== download files cancelled')
     else:
-        logger.info('=== download files skipped')
+        logger.info('=== nothing to download')
 
 
 def sync_local_folder_to_dropbox():
