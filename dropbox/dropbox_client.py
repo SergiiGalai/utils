@@ -91,6 +91,8 @@ class ConfigProvider:
 
 @dataclass
 class Metadata:
+    name: str
+    path: str
     client_modified: datetime
     size: int
 
@@ -99,31 +101,26 @@ class FileStore:
         self.dry_run = conf.dry_run
         self.root_path = conf.local_dir
 
-    def try_create_local_folder(self, path: str):
-        if self.dry_run:
-            logger.info('Dry Run mode. path {}'.format(path))
-        else:
-            pathlib.Path(path).mkdir(parents=True, exist_ok=True)
-
     def save(self, dbox_path: str, content):
         file_path = self.get_absolute_path(dbox_path)
         if self.dry_run:
             logger.info('dry run mode. Skip saving file {}'.format(file_path))
         else:
             base_path = os.path.dirname(file_path)
-            self.try_create_local_folder(base_path)
+            self.__try_create_local_folder(base_path)
             with open(file_path, 'wb') as f:
                 f.write(content)
             logger.info('saved file {}...'.format(file_path))
 
-    @staticmethod
-    def __datetime_utc_to_local(utc_dt) -> datetime:
-        return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
+    def __try_create_local_folder(self, path: str):
+        if self.dry_run:
+            logger.info('Dry Run mode. path {}'.format(path))
+        else:
+            pathlib.Path(path).mkdir(parents=True, exist_ok=True)
 
     def set_modification_time(self, dbox_path: str, modified: datetime):
         file_path = self.get_absolute_path(dbox_path)
         modified_local_time = self.__datetime_utc_to_local(modified)
-
         if self.dry_run:
             logger.info('Dry Run mode. file_path {}, modified={}'.format(os.path.basename(file_path), modified_local_time))
         else:
@@ -138,6 +135,10 @@ class FileStore:
         logger.debug('result={}'.format(result))
         return str(result)
 
+    @staticmethod
+    def __datetime_utc_to_local(utc_dt) -> datetime:
+        return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
+
     def list_folder(self, dbox_path: str):
         path = self.get_absolute_path(dbox_path)
         logger.debug('path={}'.format(path))
@@ -148,22 +149,24 @@ class FileStore:
             return root, dirs, normalizedFiles
         return path, [], []
 
-    @staticmethod
-    def get_metadata(full_path: str) -> Metadata:
-        mtime = os.path.getmtime(full_path)
-        client_modified = datetime(*time.gmtime(mtime)[:6])
-        size = os.path.getsize(full_path)
-        return Metadata(client_modified, size)
-
     def read(self, full_path: str):
         md = self.get_metadata(full_path)
         with open(full_path, 'rb') as f:
             content = f.read()
         return content, md
 
+    @staticmethod
+    def get_metadata(full_path: str) -> Metadata:
+        name = os.path.basename(full_path)
+        mtime = os.path.getmtime(full_path)
+        client_modified = datetime(*time.gmtime(mtime)[:6])
+        size = os.path.getsize(full_path)
+        return Metadata(name, full_path, client_modified, size)
+
 class DropboxStore:
     def __init__(self, dbx, conf: Config):
         self.dbx = dbx
+        self.dry_run = conf.dry_run
 
     def list_folder(self, dbox_path):
         logger.debug('list path: {}'.format(dbox_path))
@@ -198,7 +201,7 @@ class DropboxStore:
         logger.debug('dbx_path={}'.format(dbx_path))
         write_mode = (dropbox.files.WriteMode.overwrite if overwrite else dropbox.files.WriteMode.add)
         with stopwatch('upload %d bytes' % len(content)):
-            if conf.dry_run:
+            if self.dry_run:
                 logger.info('Dry run mode. Skip uploading {} (modified:{}) using {}'
                     .format(dbx_path, metadata.client_modified, write_mode))
             else:
@@ -210,242 +213,198 @@ class DropboxStore:
                     logger.exception('*** API error')
                     return None
 
-def map_files_recursive(dbox_path: str):
-    logger.info('dbox_path={}'.format(dbox_path))
-    local_root, local_dirs, local_files = fileStore.list_folder(dbox_path)
-    dbx_root, dbx_dirs, dbx_files = dboxStore.list_folder(dbox_path)
-    download_files, upload_files = map_dropbox_files_to_local(local_root, local_files, dbx_root, dbx_files)
-    if conf.subfolders:
-        process_folders = map_dropbox_folders_to_local(local_root, local_dirs, dbx_root, dbx_dirs)
-        for dbox_folder in process_folders:
-            download_sub, upload_sub = map_files_recursive(dbox_folder)
-            download_files.extend(download_sub)
-            upload_files.extend(upload_sub)
-    return download_files, upload_files
+class FileMapper:
+    def __init__(self, fileStore, dboxStore, conf: Config):
+        self.fileStore = fileStore
+        self.dboxStore = dboxStore
+        self.subfolders = conf.subfolders
 
-def internal_sync(dbox_path: str, download: bool, upload: bool):
-    logger.info('dbox_path={}'.format(dbox_path))
-    download_files, upload_files = map_files_recursive(dbox_path)
-    if download: download_dropbox_to_local_folder(download_files)
-    if upload: upload_local_files_to_dropbox(upload_files)
+    def map_recursive(self, dbox_path: str):
+        logger.info('dbox_path={}'.format(dbox_path))
+        local_root, local_dirs, local_files = self.fileStore.list_folder(dbox_path)
+        dbx_root, dbx_dirs, dbx_files = self.dboxStore.list_folder(dbox_path)
+        download_files, upload_files = self.__map_dropbox_files_to_local(local_root, local_files, dbx_root, dbx_files)
+        if self.subfolders:
+            process_folders = self.__map_dropbox_folders_to_local(local_root, local_dirs, dbx_root, dbx_dirs)
+            for dbox_folder in process_folders:
+                download_sub, upload_sub = self.map_recursive(dbox_folder)
+                download_files.extend(download_sub)
+                upload_files.extend(upload_sub)
+        else:
+            logger.info('skipping subfolders because of configuration')
+        return download_files, upload_files
 
-def map_dropbox_files_to_local(local_root: str, local_files: list, dbx_root: str, dbx_files: list):
-    upload_list = list()
-    download_list = list()
+    def __map_dropbox_files_to_local(self, local_root: str, local_files: list, dbx_root: str, dbx_files: list):
+        upload_list = list()
+        download_list = list()
 
-    for dbx_file in dbx_files:
-        name = dbx_file.name
-        dbx_path = dbx_file.path_display
+        for dbx_file_md in dbx_files:
+            name = dbx_file_md.name
+            dbx_path = dbx_file_md.path_display
+            local_path = self.fileStore.get_absolute_path(dbx_path)
 
-        if name in local_files:
-            logger.debug('file found locally - {}'.format(name))
-            local_file_path = os.path.join(local_root, name)
-
-            if are_equal_by_date_size(local_file_path, dbx_file):
-                logger.info('file {} already synced [date/size]. Skip'.format(dbx_path))
-            else:
-                logger.info('file {} exists with different stats. Downloading temporary'.format(dbx_path))
-                response, meta_data = dboxStore.read(urljoin(dbx_root, name))
-                if are_equal_by_content(local_file_path, response.content):
-                    logger.info('file {} already synced [content]. Skip'.format(dbx_path))
+            if name in local_files:
+                logger.debug('file found locally - {}'.format(name))
+                local_md = self.fileStore.get_metadata(local_path)
+                if self.__are_equal_by_metadata(local_md, dbx_file_md):
+                    logger.info('file {} already synced [by metadata]. Skip'.format(dbx_path))
                 else:
-                    md = fileStore.get_metadata(local_file_path)
-                    if md.client_modified > dbx_file.client_modified:
-                        logger.info('file {} has changed since last sync (dbx={} < local={}) => upload list'
-                            .format(local_file_path, dbx_file.client_modified, md.client_modified))
-                        upload_list.append(dbx_path)
+                    logger.info('file {} exists with different stats. Downloading temporary'.format(dbx_path))
+                    if self.__are_equal_by_content(local_path, dbx_path):
+                        logger.info('file {} already synced [by content]. Skip'.format(dbx_path))
                     else:
-                        logger.info('file {} has changed since last sync (dbx={} > local={}) => download list'
-                            .format(dbx_path, dbx_file.client_modified, md.client_modified))
-                        download_list.append(dbx_path)
-        else:
-            logger.info('file NOT found locally - {} => download list'.format(dbx_path))
-            download_list.append(dbx_path)
-
-    dbx_names = list(map(lambda f: f.name, dbx_files))
-    local_only = filter(lambda name: name not in dbx_names, local_files)
-    for name in local_only:
-        local_path = pathlib.PurePath(local_root).joinpath(name)
-        logger.info('file NOT found on dropbox - {} => upload list'.format(local_path))
-        dbx_path = urljoin(dbx_root, name)
-        upload_list.append(dbx_path)
-
-    return download_list, upload_list
-
-def map_dropbox_folders_to_local(local_root: str, local_folders: list, dbx_root: str, dbx_folders: list):
-    d1 = dict(map(lambda f: (f.path_lower, f.path_display), dbx_folders))
-    local_folder_paths = map(lambda name: urljoin(dbx_root, name), local_folders)
-    d2 = {v.lower(): v for v in local_folder_paths}
-
-    union_keys = set(d1.keys()).union(d2.keys())
-    union_list = list(map(lambda key: d1[key] if key in d1 else d2[key], union_keys))
-    return union_list
-
-def upload_local_files_to_dropbox(dbx_paths: list):
-    if dbx_paths:
-        logger.info('=== Upload files\n - {}'.format('\n - '.join(map(str, dbx_paths))))
-        if yesno('Do you want to Upload files above from {}'.format(fileStore.get_absolute_path("/")), False):
-            for dbx_path in dbx_paths:
-                local_path = fileStore.get_absolute_path(dbx_path)
-                logger.info('uploading {} => {} ...'.format(local_path, dbx_path))
-                upload_file(local_path, dbx_path, overwrite=True)
-        else:
-            logger.info('=== upload files cancelled')
-    else:
-        logger.info('=== nothing to upload')
-
-def download_dropbox_to_local_folder(dbx_paths: list):
-    if dbx_paths:
-        logger.info('=== Download files\n - {}'.format('\n - '.join(map(str, dbx_paths))))
-        if yesno('Do you want to Download files above to {}'.format(fileStore.get_absolute_path("/")), False):
-            for dbx_path in dbx_paths:
-                logger.info('downloading {} => {} ...'.format(dbx_path, fileStore.get_absolute_path(dbx_path)))
-                res, dbx_file = dboxStore.read(dbx_path)
-                logger.debug('downloaded file: {}'.format(dbx_file))
-                fileStore.save(dbx_path, res.content)
-                fileStore.set_modification_time(dbx_path, dbx_file.client_modified)
-        else:
-            logger.info('=== download files cancelled')
-    else:
-        logger.info('=== nothing to download')
-
-
-def sync_local_folder_to_dropbox():
-    """
-    Parse command line, then iterate over files and directories under
-    rootdir and upload all files. Skips some temporary files and
-    directories, and avoids duplicate uploads by comparing size and
-    mtime with the server.
-    """
-    logger.debug('sync_local_folder_to_dropbox started')
-    fileStore.try_create_local_folder(conf.local_dir)
-
-    logger.debug('Walking folder {}...'.format(conf.local_dir))
-    for dirname, dirs, files in os.walk(conf.local_dir):
-        subfolder = dirname[len(conf.local_dir):].strip(os.path.sep)
-        logger.debug('Descending into {}...'.format(subfolder))
-
-        dbx_root, dbx_dirs, dbx_files = dboxStore.list_folder(urljoin(conf.dbox_dir, subfolder))
-        logger.debug('loaded folder list from dropbox {}...'.format(dbx_files))
-
-        # First do all the files.
-        for name in files:
-            local_path = os.path.join(dirname, name)
-            dbx_path = urljoin(conf.dbox_dir, subfolder, name)
-            nname = unicodedata.normalize('NFC', name)
-            logger.debug('processing local_path={}, nname={}, dbx_path={}'.format(local_path, nname, dbx_path))
-            clean_old = False
-
-            if nname in dbx_files:
-                md = dbx_files[nname]
-                if are_equal_by_date_size(local_path, md):
-                    logger.debug('{} is already synced [stats match]'.format(name))
-                    try_cleanup(local_path, clean_old)
-                else:
-                    logger.debug('{} exists with different stats, downloading'.format(name))
-                    res, md = dboxStore.read(dbx_path)
-                    if are_equal_by_content(local_path, res.content):
-                        logger.debug('{} is already synced [content match]'.format(name))
-                        try_cleanup(local_path, clean_old)
-                    else:
-                        logger.debug('{} has changed since last sync'.format(name))
-                        if yesno('Refresh {}'.format(name), False):
-                            upload_file(local_path, dbx_path, overwrite=True)
-            elif yesno('Upload {}'.format(name), True):
-                upload_file(local_path, dbx_path, overwrite=False)
-
-        # Then choose which subdirectories to traverse.
-        keep = []
-        for name in dirs:
-            if name.startswith('.'):
-                logger.debug('Skipping dot directory: {}'.format(name))
-            elif yesno('Descend into {}'.format(name), True):
-                logger.debug('Keeping directory: {}'.format(name))
-                keep.append(name)
+                        if local_md.client_modified > dbx_file_md.client_modified:
+                            logger.info('file {} has changed since last sync (dbx={} < local={}) => upload list'
+                                .format(local_path, dbx_file_md.client_modified, local_md.client_modified))
+                            upload_list.append(dbx_path)
+                        else:
+                            logger.info('file {} has changed since last sync (dbx={} > local={}) => download list'
+                                .format(dbx_path, dbx_file_md.client_modified, local_md.client_modified))
+                            download_list.append(dbx_path)
             else:
-                logger.debug('OK, skipping directory: {}'.format(name))
-        dirs[:] = keep
+                logger.info('file NOT found locally - {} => download list'.format(dbx_path))
+                download_list.append(dbx_path)
 
+        dbx_names = list(map(lambda f: f.name, dbx_files))
+        local_only = filter(lambda name: name not in dbx_names, local_files)
+        for name in local_only:
+            local_path = pathlib.PurePath(local_root).joinpath(name)
+            logger.info('file NOT found on dropbox - {} => upload list'.format(local_path))
+            dbx_path = urljoin(dbx_root, name)
+            upload_list.append(dbx_path)
 
-def try_cleanup(fullname, clean_old):
-    if clean_old:
-        os.remove(fullname)
+        return download_list, upload_list
 
-def are_equal_by_content(fullname: str, content_dbx):
-    content_local, md = fileStore.read(fullname)
-    return content_dbx == content_local
+    def __map_dropbox_folders_to_local(self, local_root: str, local_folders: list, dbx_root: str, dbx_folders: list):
+        dbx_dict = dict(map(lambda f: (f.path_lower, f.path_display), dbx_folders))
 
-def are_equal_by_date_size(file_path: str, dbox_file):
-    if isinstance(dbox_file, dropbox.files.FileMetadata):
-        md = fileStore.get_metadata(file_path)
-        are_equal_by_size = (md.size == dbox_file.size)
-        if not are_equal_by_size:
-            logger.info('file={} not equal by size: local={}, remote={}'
-            .format(os.path.basename(file_path), md.size, dbox_file.size))
+        local_folder_paths = map(lambda name: urljoin(dbx_root, name), local_folders)
+        local_folder_paths_filtered = filter(lambda name: not name.startswith('.'), local_folder_paths)
+        local_dict = {v.lower(): v for v in local_folder_paths_filtered}
+
+        union_keys = set(dbx_dict.keys()).union(local_dict.keys())
+        union_list = list(map(lambda key: dbx_dict[key] if key in dbx_dict else local_dict[key], union_keys))
+        return union_list
+
+    def __are_equal_by_metadata(self, local_md: Metadata, dbox_file_md: dropbox.files.FileMetadata):
+        equal_by_name = (local_md.name == dbox_file_md.name)
+        equal_by_size = (local_md.size == dbox_file_md.size)
+        equal_by_date = (local_md.client_modified == dbox_file_md.client_modified)
+        if not equal_by_name:
+            logger.info('files are not equal by name: local={}, remote={}'.format(local_md.name, dbox_file_md.name))
             return False
-
-        are_equal_by_date = (md.client_modified == dbox_file.client_modified)
-        if not are_equal_by_date:
-            logger.info('file={} not equal by date: local={}, remote={}'
-            .format(os.path.basename(file_path), md.client_modified, dbox_file.client_modified))
+        if not equal_by_size:
+            logger.info('file={} not equal by size: local={}, remote={}'.format(local_md.name, local_md.size, dbox_file_md.size))
             return False
-
+        if not equal_by_date:
+            logger.info('file={} not equal by date: local={}, remote={}'.format(local_md.name, local_md.client_modified, dbox_file_md.client_modified))
+            return False
         return True
-    else:
-        logger.warn('{} is not a dropbox file'.format(dbox_file))
-    return False
 
-def upload_file(local_path, dbx_path, overwrite):
-    logger.debug('local_path={}, dbx_path={}'.format(local_path, dbx_path))
-    content, md = fileStore.read(local_path)
-    dboxStore.save(dbx_path, content, md, overwrite)
+    def __are_equal_by_content(self, local_path: str, dbox_path: str):
+        content_local, local_md = self.fileStore.read(local_path)
+        response, dbox_md = self.dboxStore.read(dbox_path)
+        return response.content == content_local
 
-def yesno(message, default):
-    """Handy helper function to ask a yes/no question.
+class UI:
+    def message(self, message):
+        logger.info(message)
 
-    Command line arguments --yes or --no force the answer;
-    --default to force the default answer.
+    def confirm(self, message, default):
+        """Handy helper function to ask a yes/no question.
 
-    Otherwise a blank line returns the default, and answering
-    y/yes or n/no returns True or False.
+        Command line arguments --yes or --no force the answer;
+        --default to force the default answer.
 
-    Retry on unrecognized answer.
+        Otherwise a blank line returns the default, and answering
+        y/yes or n/no returns True or False.
 
-    Special answers:
-    - q or quit exits the program
-    - p or pdb invokes the debugger
-    """
-    if args.default:
-        logger.debug('{} ? [auto] {}'.format(message, 'Y' if default else 'N'))
-        return default
-    if args.yes:
-        logger.debug('{} ? [auto] YES'.format(message))
-        return True
-    if args.no:
-        logger.debug('{} ? [auto] NO'.format(message))
-        return False
-    if default:
-        message += '? [Y/n] '
-    else:
-        message += '? [N/y] '
-    while True:
-        logger.debug('--')
-        user_answer = input(message)
-        answer = user_answer.strip().lower() if user_answer else None
+        Retry on unrecognized answer.
 
-        if not answer:
+        Special answers:
+        - q or quit exits the program
+        - p or pdb invokes the debugger
+        """
+        if args.default:
+            logger.debug('{} [auto] {}'.format(message, 'Y' if default else 'N'))
             return default
-        if answer in ('y', 'yes'):
+        if args.yes:
+            logger.debug('{} [auto] YES'.format(message))
             return True
-        if answer in ('n', 'no'):
+        if args.no:
+            logger.debug('{} [auto] NO'.format(message))
             return False
-        if answer in ('q', 'quit'):
-            logger.warning('Exit')
-            raise SystemExit(0)
-        if answer in ('p', 'pdb'):
-            import pdb
-            pdb.set_trace()
-        logger.debug('Please answer YES or NO.')
+        if default:
+            message += ' [Y/n] '
+        else:
+            message += ' [N/y] '
+        while True:
+            logger.debug('--')
+            user_answer = input(message)
+            answer = user_answer.strip().lower() if user_answer else None
+
+            if not answer:
+                return default
+            if answer in ('y', 'yes'):
+                return True
+            if answer in ('n', 'no'):
+                return False
+            if answer in ('q', 'quit'):
+                logger.warning('Exit')
+                raise SystemExit(0)
+            if answer in ('p', 'pdb'):
+                import pdb
+                pdb.set_trace()
+            logger.debug('Please answer YES or NO.')
+
+class Controller:
+    def __init__(self, fileStore, dboxStore, fileMapper, ui):
+        self.fileStore = fileStore
+        self.dboxStore = dboxStore
+        self.fileMapper = fileMapper
+        self.ui = ui
+
+    def sync(self, dbox_path: str, download: bool, upload: bool):
+        ui.message('Synchronizing {} dropbox folder'.format(dbox_path))
+        ui.message('Download files {}'.format(download))
+        ui.message('Upload files {}'.format(upload))
+        download_files, upload_files = self.fileMapper.map_recursive(dbox_path)
+        if download: self.__download_dropbox_to_local_folder(download_files)
+        if upload: self.__upload_local_files_to_dropbox(upload_files)
+
+    def __upload_local_files_to_dropbox(self, dbx_paths: list):
+        if dbx_paths:
+            ui.message('=== Upload files\n - {}'.format('\n - '.join(map(str, dbx_paths))))
+            if ui.confirm('Do you want to Upload files above from {}?'.format(self.fileStore.get_absolute_path("/")), False):
+                for dbx_path in dbx_paths:
+                    local_path = self.fileStore.get_absolute_path(dbx_path)
+                    logger.info('uploading {} => {} ...'.format(local_path, dbx_path))
+                    self.__upload_file(local_path, dbx_path, overwrite=True)
+            else:
+                ui.message('=== upload files cancelled')
+        else:
+            ui.message('=== nothing to upload')
+
+    def __download_dropbox_to_local_folder(self, dbx_paths: list):
+        if dbx_paths:
+            ui.message('=== Download files\n - {}'.format('\n - '.join(map(str, dbx_paths))))
+            if ui.confirm('Do you want to Download files above to {}?'.format(self.fileStore.get_absolute_path("/")), False):
+                for dbx_path in dbx_paths:
+                    logger.info('downloading {} => {} ...'.format(dbx_path, self.fileStore.get_absolute_path(dbx_path)))
+                    res, dbx_file = self.dboxStore.read(dbx_path)
+                    logger.debug('downloaded file: {}'.format(dbx_file))
+                    self.fileStore.save(dbx_path, res.content)
+                    self.fileStore.set_modification_time(dbx_path, dbx_file.client_modified)
+            else:
+                ui.message('=== download files cancelled')
+        else:
+            ui.message('=== nothing to download')
+
+    def __upload_file(self, local_path, dbx_path, overwrite):
+        logger.debug('local_path={}, dbx_path={}'.format(local_path, dbx_path))
+        content, md = self.fileStore.read(local_path)
+        self.dboxStore.save(dbx_path, content, md, overwrite)
+
 
 @contextlib.contextmanager
 def stopwatch(message):
@@ -455,8 +414,7 @@ def stopwatch(message):
         yield
     finally:
         t1 = time.time()
-        logger.debug('Total elapsed time for {}: '
-                     '{:.3f}'.format(message, t1 - t0))
+        logger.debug('Total elapsed time for {}: {:.3f}'.format(message, t1 - t0))
 
 if __name__ == '__main__':
     args = parse_arguments()
@@ -464,7 +422,10 @@ if __name__ == '__main__':
     fileStore = FileStore(conf)
     dbx = dropbox.Dropbox(conf.token)
     dboxStore = DropboxStore(dbx, conf)
-    if conf.action == 'download': internal_sync(conf.dbox_dir, download=True, upload=False)
-    elif conf.action == 'upload': internal_sync(conf.dbox_dir, download=False, upload=True)
-    elif conf.action == 'sync':   internal_sync(conf.dbox_dir, download=True, upload=True)
+    fileMapper = FileMapper(fileStore, dboxStore, conf)
+    ui = UI()
+    controller = Controller(fileStore, dboxStore, fileMapper, ui)
+    if conf.action == 'download': controller.sync(conf.dbox_dir, download=True, upload=False)
+    elif conf.action == 'upload': controller.sync(conf.dbox_dir, download=False, upload=True)
+    elif conf.action == 'sync':   controller.sync(conf.dbox_dir, download=True, upload=True)
     else: logger.error('Unknown action in configuration')
