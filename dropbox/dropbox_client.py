@@ -375,7 +375,7 @@ class Controller:
     def __upload_local_files_to_dropbox(self, dbx_paths: list):
         if dbx_paths:
             ui.message('=== Upload files\n - {}'.format('\n - '.join(map(str, dbx_paths))))
-            if ui.confirm('Do you want to Upload files above from {}?'.format(self.fileStore.get_absolute_path("/")), False):
+            if ui.confirm('Do you want to Upload {} files above from {}?'.format(len(dbx_paths), self.fileStore.get_absolute_path("/")), True):
                 for dbx_path in dbx_paths:
                     local_path = self.fileStore.get_absolute_path(dbx_path)
                     logger.info('uploading {} => {} ...'.format(local_path, dbx_path))
@@ -388,7 +388,7 @@ class Controller:
     def __download_dropbox_to_local_folder(self, dbx_paths: list):
         if dbx_paths:
             ui.message('=== Download files\n - {}'.format('\n - '.join(map(str, dbx_paths))))
-            if ui.confirm('Do you want to Download files above to {}?'.format(self.fileStore.get_absolute_path("/")), False):
+            if ui.confirm('Do you want to Download {} files above to {}?'.format(len(dbx_paths), self.fileStore.get_absolute_path("/")), True):
                 for dbx_path in dbx_paths:
                     logger.info('downloading {} => {} ...'.format(dbx_path, self.fileStore.get_absolute_path(dbx_path)))
                     res, dbx_file = self.dboxStore.read(dbx_path)
