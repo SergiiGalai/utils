@@ -19,12 +19,12 @@ To start working:
 Example config.ini:
 ```
 [DBOX_SYNC]
-DROPBOX_TOKEN = token_recieved_on_dropbox_com
-LOCAL_DIR = ./db/scans
-DBOX_DIR = /remote/path/scans
-DRY_RUN = [False|True
-SUBFOLDERS = [False|True]
-ACTION = [download|upload|sync]
+DROPBOX_TOKEN = [token_recieved_on_dropbox_com]
+LOCAL_DIR = [path to database root folder (absolute or relative) e.g. ./db]
+DBOX_DIR = [path to folder on dropbox e.g. /documents]
+DRY_RUN = [False|True]
+SUBFOLDERS = [if true process also subfolders False|True]
+ACTION = [sync|download|upload]
 ```
 
 As a known issue client does not work properly with file modified dates so for now file differences in date/time are ignored during file comparison.
