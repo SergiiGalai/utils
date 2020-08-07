@@ -22,8 +22,8 @@ Example config.ini:
 DROPBOX_TOKEN = token_recieved_on_dropbox_com
 LOCAL_DIR = ./db/scans
 DBOX_DIR = /remote/path/scans
-CLEAN_OLD = [False|True]
-DRY_RUN = [False|True]
+DRY_RUN = [False|True
+SUBFOLDERS = [False|True]
 ACTION = [download|upload|sync]
 ```
 
