@@ -27,7 +27,9 @@ To start working:
 1. You have to have a Dropbox account
 1. Copy `dropbox_client.py` to your local disk
 1. Create `config.ini` or other file. Check its content below.
-1. Install python3. E.g. using Chocolatey `choco install -y python`
+1. Install python3. 
+1.1. For windows E.g. using Chocolatey `choco install -y python`
+1.1. For Ubunut `sudo apt install python-is-python3 python3-pip`   
 1. Install python dropbox dependency module `pip3 install dropbox`
 1. Create app on dropbox website. Read more https://docs.gravityforms.com/creating-a-custom-dropbox-app/
 1. Open created app https://www.dropbox.com/developers/apps

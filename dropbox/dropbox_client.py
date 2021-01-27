@@ -35,7 +35,7 @@ def parse_arguments():
     parser.add_argument('--default', '-d', action='store_true', help='Take default answer on all questions')
     parser.add_argument('--action', help='download|upload|sync files (sync if not exist)')
     parser.add_argument('--dryrun', help='Do not change files if True')
-    parser.add_argument('--subfolders', help='Do not change files if True')
+    parser.add_argument('--subfolders', help='process subfolders recursively if True')
     return parser.parse_args()
 
 @dataclass
