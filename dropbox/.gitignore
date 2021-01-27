@@ -1,4 +1,4 @@
-*.ini
 *.log
 .vscode/
+config.ini
 [Dd]b/
