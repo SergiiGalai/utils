@@ -348,7 +348,9 @@ def stopwatch(message):
         logger.debug('Total elapsed time for {}: {:.3f}'.format(message, t1 - t0))
 
 if __name__ == '__main__':
-    conf = ConfigProvider(logger).get_config()
+    configProvider = ConfigProvider(logger)
+    arguments = configProvider.parse_arguments()
+    conf = configProvider.get_config(arguments)
     print(conf)
     #fileStore = FileStore(conf)
     #dbx = dropbox.Dropbox(conf.token)

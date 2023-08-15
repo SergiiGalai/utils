@@ -1,4 +1,4 @@
-*.ini
+*.secret.ini
 *.log
 .vscode/
 __pycache__/

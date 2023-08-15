@@ -1,7 +1,7 @@
-import argparse
 import sys
 import os
 import configparser
+from argparse import ArgumentParser
 from logging import Logger
 from dataclasses import dataclass
 
@@ -33,10 +33,36 @@ class ConfigProvider:
          self.logger.error('At most one of --yes, --no, --default is allowed')
          sys.exit(2)
 
-   def __parse_arguments(self):
+   def __get_from_args_or_config(self, args, config):
+      self.logger.debug('__get_from_args_or_config started. args={}, config={}'.format(args, config))
+      action = args.action or config.get('ACTION')
+      token = args.token or config.get('TOKEN')
+      local_dir = args.local_dir or config.get('LOCAL_DIR') or ""
+      cloud_dir = args.cloud_dir or config.get('CLOUD_DIR') or ""
+      dry_run = args.dryrun or (args.dryrun is None and config.getboolean('DRY_RUN'))
+      recursive = args.recursive or (args.recursive is None and config.getboolean('RECURSIVE'))
+
+      self.__validate_booleans(args)
+      if local_dir.startswith('.'):
+         local_dir = os.path.abspath(local_dir)
+
+      return Config(action, token, local_dir, cloud_dir, dry_run, recursive)
+
+   def __get_storage(self, args, config):
+      if not config.has_section('GENERAL'): config['GENERAL'] = {}
+      storage = args.storage or config['GENERAL'].get('STORAGE')
+      match storage:
+         case 'GDRIVE' | 'gdrive': return 'GDRIVE'
+         case 'DROPBOX' | 'dropbox': return 'DROPBOX'
+         case _:
+               print('Not supported STORAGE value')
+               sys.exit(2)
+
+   def parse_arguments(self) -> ArgumentParser:
       self.logger.debug('parse_arguments started')
-      parser = argparse.ArgumentParser()
+      parser = ArgumentParser()
       parser.add_argument('-c', '--config', help='Config file')
+      parser.add_argument('--storage', help='dropbox|gdrive')
       parser.add_argument('--action', help='download|upload|sync files (sync if not exist)')
       parser.add_argument('--token', help='Access token')
       parser.add_argument('--local_dir', help='Local directory to upload')
@@ -48,38 +74,14 @@ class ConfigProvider:
       parser.add_argument('--recursive', help='Process subfolders if True')
       return parser.parse_args()
 
-   def __get_from_args_or_config(self, args, config):
-      self.logger.debug('__get_from_args_or_config started. args={}, config={}'.format(args, config))
-      action = args.action or config.get('ACTION')
-      token = args.token or config.get('TOKEN')
-      local_dir = args.local_dir or config.get('LOCAL_DIR') or ""
-      cloud_dir = args.cloud_dir or config.get('CLOUD_DIR') or ""
-      dry_run = args.dryrun or config.getboolean('DRY_RUN')
-      recursive = args.recursive or config.getboolean('RECURSIVE')
+   def get_config(self, args):
+      self.logger.debug('get_config started, args={}')
 
-      self.__validate_booleans(args)
-      if local_dir.startswith('.'):
-         local_dir = os.path.abspath(local_dir)
-
-      return Config(action, token, local_dir, cloud_dir, dry_run, recursive)
-
-   def get_config(self):
-      self.logger.debug('get_config started')
-
-      args = self.__parse_arguments()
-      config_location = self.__get_config_file_location( args.config )
+      config_location = self.__get_config_file_location(args.config)
       config = configparser.ConfigParser()
-      config.read( config_location )
+      config.read(config_location)
 
-      if not config.has_section('GENERAL'): config['GENERAL'] = {}
-
-      match config['GENERAL'].get('STORAGE'):
-         case 'GDRIVE': storage = 'GDRIVE'
-         case 'DROPBOX': storage = 'DROPBOX'
-         case _:
-               print('Not supported STORAGE value')
-               sys.exit(2)
-
+      storage = self.__get_storage(args, config)
       if not config.has_section(storage): config[storage] = {}
       storageConfig = config[storage]
 
