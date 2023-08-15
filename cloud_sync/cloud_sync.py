@@ -28,9 +28,9 @@ class Config:
     action: str
     token: str
     local_dir: str
-    dbox_dir: str
+    cloud_dir: str
     dry_run: bool
-    sub_folders: bool
+    recursive: bool
 
 class ConfigProvider:
     def __get_config_file_location(self, path: str):
@@ -43,39 +43,40 @@ class ConfigProvider:
                 os.path.join(os.path.expanduser('~'), '.cloud_sync_config.ini')
             ]
 
+    def __validate_booleans(self, args):
+        if sum([bool(b) for b in (args.yes, args.no, args.default)]) > 1:
+            logger.error('At most one of --yes, --no, --default is allowed')
+            sys.exit(2)
+
     def __parse_arguments(self):
         logger.debug('parse_arguments started')
         parser = argparse.ArgumentParser()
         parser.add_argument('-c', '--config', help='Config file')
-        parser.add_argument('--source', help='Local directory to upload')
-        parser.add_argument('--dest', help='Destination folder on your cloud storage')
+        parser.add_argument('--action', help='download|upload|sync files (sync if not exist)')
         parser.add_argument('--token', help='Access token')
+        parser.add_argument('--local_dir', help='Local directory to upload')
+        parser.add_argument('--cloud_dir', help='Destination folder on your cloud storage')
         parser.add_argument('--yes', '-y', action='store_true', help='Answer yes to all questions')
         parser.add_argument('--no', '-n', action='store_true', help='Answer no to all questions')
         parser.add_argument('--default', '-d', action='store_true', help='Take default answer on all questions')
-        parser.add_argument('--action', help='download|upload|sync files (sync if not exist)')
         parser.add_argument('--dryrun', help='Do not change files if True')
-        parser.add_argument('--subfolders', help='Do not change files if True')
+        parser.add_argument('--recursive', help='Process subfolders if True')
         return parser.parse_args()
 
     def __get_from_args_or_config(self, args, config):
         logger.debug('__get_from_args_or_config started. args={}, config={}'.format(args, config))
         action = args.action or config.get('ACTION')
-        dbox_dir = args.dest or config.get('CLOUD_DIR') or ""
+        token = args.token or config.get('TOKEN')
+        local_dir = args.local_dir or config.get('LOCAL_DIR') or ""
+        cloud_dir = args.cloud_dir or config.get('CLOUD_DIR') or ""
+        dry_run = args.dryrun or config.getboolean('DRY_RUN')
+        recursive = args.recursive or config.getboolean('RECURSIVE')
 
-        local_dir = args.source or config.get('LOCAL_DIR') or ""
+        self.__validate_booleans(args)
         if local_dir.startswith('.'):
             local_dir = os.path.abspath(local_dir)
 
-        dry_run = args.dryrun or config.getboolean('DRY_RUN')
-        sub_folders = args.subfolders or config.getboolean('SUBFOLDERS')
-
-        if sum([bool(b) for b in (args.yes, args.no, args.default)]) > 1:
-            logger.error('At most one of --yes, --no, --default is allowed')
-            sys.exit(2)
-
-        token = None
-        return Config(action, token, local_dir, dbox_dir, dry_run, sub_folders)
+        return Config(action, token, local_dir, cloud_dir, dry_run, recursive)
 
     def get_config(self):
         logger.debug('get_config started')
@@ -85,10 +86,19 @@ class ConfigProvider:
         config = configparser.ConfigParser()
         config.read( config_location )
 
-        if not config.has_section('GDRIVE'): config['GDRIVE'] = {}
-        gdriveConfig = config['GDRIVE']
+        if not config.has_section('GENERAL'): config['GENERAL'] = {}
 
-        return self.__get_from_args_or_config(args, gdriveConfig)
+        match config['GENERAL'].get('STORAGE'):
+            case 'GDRIVE': storage = 'GDRIVE'
+            case 'DROPBOX': storage = 'DROPBOX'
+            case _:
+                print('Not supported STORAGE value')
+                sys.exit(2)
+
+        if not config.has_section(storage): config[storage] = {}
+        storageConfig = config[storage]
+
+        return self.__get_from_args_or_config(args, storageConfig)
 
 @dataclass
 class FileMetadata:
@@ -217,14 +227,14 @@ class FileMapper:
     def __init__(self, fileStore: FileStore, dboxStore: DropboxStore, conf: Config):
         self.fileStore = fileStore
         self.dboxStore = dboxStore
-        self.subfolders = conf.sub_folders
+        self.recursive = conf.recursive
 
     def map_recursive(self, dbox_path: str):
         logger.info('dbox_path={}'.format(dbox_path))
         local_root, local_dirs, local_files = self.fileStore.list_folder(dbox_path)
         dbx_root, dbx_dirs, dbx_files = self.dboxStore.list_folder(dbox_path)
         download_files, upload_files = self.__map_dropbox_files_to_local(local_root, local_files, dbx_root, dbx_files)
-        if self.subfolders:
+        if self.recursive:
             process_folders = self.__map_dropbox_folders_to_local(local_dirs, dbx_root, dbx_dirs)
             for dbox_folder in process_folders:
                 download_sub, upload_sub = self.map_recursive(dbox_folder)
@@ -424,7 +434,7 @@ if __name__ == '__main__':
     #fileMapper = FileMapper(fileStore, dboxStore, conf)
     #ui = UI()
     #controller = Controller(fileStore, dboxStore, fileMapper, ui)
-    #if conf.action == 'download': controller.sync(conf.dbox_dir, download=True, upload=False)
-    #elif conf.action == 'upload': controller.sync(conf.dbox_dir, download=False, upload=True)
-    #elif conf.action == 'sync':   controller.sync(conf.dbox_dir, download=True, upload=True)
+    #if conf.action == 'download': controller.sync(conf.cloud_dir, download=True, upload=False)
+    #elif conf.action == 'upload': controller.sync(conf.cloud_dir, download=False, upload=True)
+    #elif conf.action == 'sync':   controller.sync(conf.cloud_dir, download=True, upload=True)
     #else: logger.error('Unknown action in configuration')
