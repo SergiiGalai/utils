@@ -1,11 +1,15 @@
+#must include logger_colorer to add log highlighting
+import logs.logger_colorer
+import logs.logger as logger
 import logging
-import logger
-from config import ConfigProvider
-from dropbox_store import FileStore, DropboxStore, FileMapper
-from ui import UI
-from controller import Controller
+from configs.config import ConfigProvider
+from files.file_store import FileStore
+from files.file_mapper import FileMapper
+from stores.dropbox_store import DropboxStore
+from clients.ui import UI
+from clients.controller import Controller
 
-log = logger.setupLogger(logging.WARNING)
+log = logger.setupLogger(logging.DEBUG)
 if __name__ == '__main__':
     configProvider = ConfigProvider(log)
     arguments = configProvider.parse_arguments()

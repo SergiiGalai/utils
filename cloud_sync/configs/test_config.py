@@ -1,7 +1,7 @@
 import unittest
-from unittest.mock import Mock, MagicMock
+from unittest.mock import Mock
 import logging
-from config import ConfigProvider, Config
+from configs.config import ConfigProvider
 
 class ConfigProviderTests(unittest.TestCase):
 

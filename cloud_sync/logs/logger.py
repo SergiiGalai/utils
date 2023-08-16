@@ -1,5 +1,4 @@
 import logging
-import logger_colorer
 
 def setupLogger(level):
    logging.basicConfig(

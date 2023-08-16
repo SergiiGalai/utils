@@ -30,7 +30,7 @@ Normally we install the Google Drive client on our system which takes care of al
 1. Open created app https://www.dropbox.com/developers/apps
 1. Scroll down to ‘OAuth 2’ block and hit `Generate` button near `Generated access token` text
 1. After the token is generated copy it to `TOKEN` field in `config.ini`
-1. run `python d:\path\cloud_sync.py`
+1. run `python d:\path\cloud_sync\main.py`
 
 ### Dropbox
 1. You have to have a Dropbox account
@@ -39,12 +39,12 @@ Normally we install the Google Drive client on our system which takes care of al
 1. Open created app https://www.dropbox.com/developers/apps
 1. Scroll down to ‘OAuth 2’ block and hit `Generate` button near `Generated access token` text
 1. After the token is generated copy it to `TOKEN` field in `config.ini`
-1. run `python d:\path\cloud_sync.py`
+1. run `python d:\path\cloud_sync\main.py`
 
 ### Examples
-`python d:\path\cloud_sync.py -h` - get help
-`python d:\path\cloud_sync.py`
-`python d:\path\cloud_sync.py -c d:\path\to\config\other_name.ini`
+`python d:\path\cloud_sync\main.py -h` - get help
+`python d:\path\cloud_sync\main.py`
+`python d:\path\cloud_sync\main.py -c d:\path\to\config\other_name.ini`
 
 ### Config file
 
