@@ -1,8 +1,8 @@
 from logging import Logger
-from clients.ui import UI
-from files.file_store import FileStore
-from files.file_mapper import FileMapper
-from stores.dropbox_store import DropboxStore
+from code.clients.ui import UI
+from code.files.file_store import FileStore
+from code.files.file_mapper import FileMapper
+from code.stores.dropbox_store import DropboxStore
 
 class Controller:
     def __init__(self, fileStore: FileStore, dboxStore: DropboxStore, fileMapper: FileMapper, ui: UI, logger: Logger):

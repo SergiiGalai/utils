@@ -2,9 +2,9 @@ import pathlib
 import dropbox
 from posixpath import join as urljoin
 from logging import Logger
-from configs.config import Config
-from stores.dropbox_store import DropboxStore
-from files.file_store import FileStore, FileMetadata
+from code.configs.config import Config
+from code.stores.dropbox_store import DropboxStore
+from code.files.file_store import FileStore, FileMetadata
 
 class FileMapper:
     def __init__(self, fileStore: FileStore, dboxStore: DropboxStore, conf: Config, logger: Logger):
