@@ -13,22 +13,22 @@ class FileMapper:
         self.recursive = conf.recursive
         self.logger = logger
 
-    def map_recursive(self, dbox_path: str):
-        self.logger.info('dbox_path={}'.format(dbox_path))
-        local_root, local_dirs, local_files = self.fileStore.list_folder(dbox_path)
-        dbx_root, dbx_dirs, dbx_files = self.dboxStore.list_folder(dbox_path)
+    def map_recursive(self, cloud_path: str):
+        self.logger.info('cloud_path={}'.format(cloud_path))
+        local_root, local_dirs, local_files = self.fileStore.list_folder(cloud_path)
+        dbx_root, dbx_dirs, dbx_files = self.dboxStore.list_folder(cloud_path)
         download_files, upload_files = self.__map_dropbox_files_to_local(local_root, local_files, dbx_root, dbx_files)
         if self.recursive:
-            process_folders = self.__map_dropbox_folders_to_local(local_dirs, dbx_root, dbx_dirs)
-            for dbox_folder in process_folders:
-                download_sub, upload_sub = self.map_recursive(dbox_folder)
+            process_cloud_folders = self.__map_cloud_folders_to_local(local_dirs, dbx_root, dbx_dirs)
+            for cloud_folder in process_cloud_folders:
+                download_sub, upload_sub = self.map_recursive(cloud_folder)
                 download_files.extend(download_sub)
                 upload_files.extend(upload_sub)
         else:
             self.logger.info('skipping subfolders because of configuration')
         return download_files, upload_files
 
-    def __map_dropbox_files_to_local(self, local_root: str, local_files: list, dbx_root: str, dbx_files: list):
+    def __map_dropbox_files_to_local(self, local_root: str, local_files: list, cloud_root: str, dbx_files: list):
         upload_list = list()
         download_list = list()
 
@@ -64,20 +64,20 @@ class FileMapper:
         for name in local_only:
             local_path = pathlib.PurePath(local_root).joinpath(name)
             self.logger.info('file NOT found on dropbox - {} => upload list'.format(local_path))
-            dbx_path = urljoin(dbx_root, name)
+            dbx_path = urljoin(cloud_root, name)
             upload_list.append(dbx_path)
 
         return download_list, upload_list
 
-    def __map_dropbox_folders_to_local(self, local_folders: list, dbx_root: str, dbx_folders: list):
-        dbx_dict = dict(map(lambda f: (f.path_lower, f.path_display), dbx_folders))
+    def __map_cloud_folders_to_local(self, local_folders: list, cloud_root: str, cloud_folders: list):
+        cloud_dict = dict(map(lambda f: (f.path_lower, f.path_display), cloud_folders))
 
-        local_folder_paths = map(lambda name: urljoin(dbx_root, name), local_folders)
+        local_folder_paths = map(lambda name: urljoin(cloud_root, name), local_folders)
         local_folder_paths_filtered = filter(lambda name: not name.startswith('.'), local_folder_paths)
         local_dict = {v.lower(): v for v in local_folder_paths_filtered}
 
-        union_keys = set(dbx_dict.keys()).union(local_dict.keys())
-        union_list = list(map(lambda key: dbx_dict[key] if key in dbx_dict else local_dict[key], union_keys))
+        union_keys = set(cloud_dict.keys()).union(local_dict.keys())
+        union_list = list(map(lambda key: cloud_dict[key] if key in cloud_dict else local_dict[key], union_keys))
         return union_list
 
     def __are_equal_by_metadata(self, local_md: FileMetadata, dbox_file_md: dropbox.files.FileMetadata):
@@ -95,7 +95,7 @@ class FileMapper:
             return False
         return True
 
-    def __are_equal_by_content(self, local_path: str, dbox_path: str):
+    def __are_equal_by_content(self, local_path: str, cloud_path: str):
         content_local, local_md = self.fileStore.read(local_path)
-        response, dbox_md = self.dboxStore.read(dbox_path)
+        response, dbox_md = self.dboxStore.read(cloud_path)
         return response.content == content_local

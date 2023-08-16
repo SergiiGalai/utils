@@ -20,8 +20,8 @@ class FileStore:
         self.root_path = conf.local_dir
         self.logger = logger
 
-    def save(self, dbox_path: str, content, client_modified):
-        file_path = self.get_absolute_path(dbox_path)
+    def save(self, cloud_path: str, content, client_modified):
+        file_path = self.get_absolute_path(cloud_path)
         if self.dry_run:
             self.logger.info('dry run mode. Skip saving file {}'.format(file_path))
         else:
@@ -47,8 +47,8 @@ class FileStore:
             mtime = modified.timestamp()
             os.utime(file_path, times=(atime, mtime))
 
-    def get_absolute_path(self, dbox_path: str) -> str:
-        relative_db_path = dbox_path[1:] if dbox_path.startswith('/') else dbox_path
+    def get_absolute_path(self, cloud_path: str) -> str:
+        relative_db_path = cloud_path[1:] if cloud_path.startswith('/') else cloud_path
         result = pathlib.PurePath( self.root_path ).joinpath( relative_db_path )
         self.logger.debug('result={}'.format(result))
         return str(result)
@@ -57,8 +57,8 @@ class FileStore:
     def __datetime_utc_to_local(utc_dt) -> datetime:
         return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
 
-    def list_folder(self, dbox_path: str):
-        path = self.get_absolute_path(dbox_path)
+    def list_folder(self, cloud_path: str):
+        path = self.get_absolute_path(cloud_path)
         self.logger.debug('path={}'.format(path))
         if pathlib.Path(path).exists():
             root, dirs, files = next(os.walk(path))
