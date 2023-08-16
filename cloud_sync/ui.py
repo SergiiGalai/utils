@@ -41,4 +41,3 @@ class UI:
                 import pdb
                 pdb.set_trace()
             self.logger.debug('Please answer YES or NO.')
-
