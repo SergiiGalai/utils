@@ -1,6 +1,8 @@
 from logging import Logger
 from ui import UI
-from dropbox_store import FileStore, DropboxStore, FileMapper
+from file_store import FileStore
+from file_mapper import FileMapper
+from dropbox_store import DropboxStore
 
 class Controller:
     def __init__(self, fileStore: FileStore, dboxStore: DropboxStore, fileMapper: FileMapper, ui: UI, logger: Logger):
@@ -39,7 +41,7 @@ class Controller:
                     self.logger.info('downloading {} => {} ...'.format(dbox_path, self.fileStore.get_absolute_path(dbox_path)))
                     res, dbox_md = self.dboxStore.read(dbox_path)
                     self.logger.debug('downloaded file: {}'.format(dbox_md))
-                    self.fileStore.save(dbox_path, res.content, dbox_md)
+                    self.fileStore.save(dbox_path, res.content, dbox_md.client_modified)
             else:
                 self.ui.message('=== download files cancelled')
         else:

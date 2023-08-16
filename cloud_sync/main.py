@@ -1,11 +1,13 @@
 import logging
 import logger
 from config import ConfigProvider
-from dropbox_store import FileStore, DropboxStore, FileMapper
+from file_store import FileStore
+from file_mapper import FileMapper
+from dropbox_store import DropboxStore
 from ui import UI
 from controller import Controller
 
-log = logger.setupLogger(logging.WARNING)
+log = logger.setupLogger(logging.DEBUG)
 if __name__ == '__main__':
     configProvider = ConfigProvider(log)
     arguments = configProvider.parse_arguments()
