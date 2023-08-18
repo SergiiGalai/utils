@@ -3,6 +3,7 @@ import time
 import dropbox
 from logging import Logger
 from src.configs.config import Config
+from src.stores.models import CloudFileMetadata, CloudFolderMetadata
 from src.stores.local_file_store import LocalFileMetadata
 
 class DropboxStore:
@@ -11,10 +12,18 @@ class DropboxStore:
         self.dry_run = conf.dry_run
         self.logger = logger
 
+    def __to_CloudFileMetadata(self, dbx_md: dropbox.files.FileMetadata)-> CloudFileMetadata:
+        #self.logger.debug('file: {}'.format(dbx_md))
+        return CloudFileMetadata(dbx_md.name, dbx_md.path_display, dbx_md.client_modified, dbx_md.size)
+
+    def __to_CloudFolderMetadata(self, dbx_dir)-> CloudFolderMetadata:
+        #self.logger.debug('folder: {}'.format(dbx_dir))
+        return CloudFolderMetadata(dbx_dir.path_lower, dbx_dir.path_display)
+
     def list_folder(self, cloud_path):
         self.logger.debug('list path: {}'.format(cloud_path))
-        dbx_dirs = list()
-        dbx_files = list()
+        cloud_dirs = list()
+        cloud_files = list()
         try:
             with stopwatch('list_folder', self.logger):
                 res = self.dbx.files_list_folder(cloud_path)
@@ -23,22 +32,23 @@ class DropboxStore:
         else:
             for entry in res.entries:
                 if isinstance(entry, dropbox.files.FileMetadata):
-                    dbx_files.append(entry)
+                    cloud_files.append(self.__to_CloudFileMetadata(entry))
                 else:
-                    dbx_dirs.append(entry)
-        self.logger.debug('files={}'.format(dbx_files))
-        return cloud_path, dbx_dirs, dbx_files
+                    cloud_dirs.append(self.__to_CloudFolderMetadata(entry))
+        self.logger.debug('files={}'.format(cloud_files))
+        return cloud_path, cloud_dirs, cloud_files
 
-    def read(self, cloud_path):
+    def read(self, cloud_path: str):
         self.logger.debug('cloud_path={}'.format(cloud_path))
         with stopwatch('download', self.logger):
             try:
-                meta_data, response = self.dbx.files_download(cloud_path)
+                dbx_md, response = self.dbx.files_download(cloud_path)
+                cloud_file_md = self.__to_CloudFileMetadata(dbx_md)
+                self.logger.debug('{} bytes; md: {}'.format(len(response.content), cloud_file_md.name))
+                return response, cloud_file_md
             except dropbox.exceptions.HttpError:
                 self.logger.exception("*** Dropbox HTTP Error")
                 return None
-        self.logger.debug('{} bytes; md: {}'.format(len(response.content), meta_data.name))
-        return response, meta_data
 
     def save(self, cloud_path: str, content, metadata: LocalFileMetadata, overwrite: bool):
         self.logger.debug('cloud_path={}'.format(cloud_path))
