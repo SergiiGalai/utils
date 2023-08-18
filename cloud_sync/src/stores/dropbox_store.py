@@ -2,8 +2,8 @@ import contextlib
 import time
 import dropbox
 from logging import Logger
-from code.configs.config import Config
-from code.files.file_store import FileMetadata
+from src.configs.config import Config
+from src.files.file_store import FileMetadata
 
 class DropboxStore:
     def __init__(self, conf: Config, logger: Logger):

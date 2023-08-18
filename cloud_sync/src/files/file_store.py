@@ -5,7 +5,7 @@ import unicodedata
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from logging import Logger
-from code.configs.config import Config
+from src.configs.config import Config
 
 @dataclass
 class FileMetadata:
