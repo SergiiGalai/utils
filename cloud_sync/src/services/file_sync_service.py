@@ -4,19 +4,19 @@ from posixpath import join as urljoin
 from logging import Logger
 from src.configs.config import Config
 from src.stores.dropbox_store import DropboxStore
-from src.files.file_store import FileStore, FileMetadata
+from src.stores.local_file_store import LocalFileStore, LocalFileMetadata
 
-class FileMapper:
-    def __init__(self, fileStore: FileStore, dboxStore: DropboxStore, conf: Config, logger: Logger):
-        self.fileStore = fileStore
-        self.dboxStore = dboxStore
+class FileSyncronizationService:
+    def __init__(self, localStore: LocalFileStore, dboxStore: DropboxStore, conf: Config, logger: Logger):
+        self.localFileStore = localStore
+        self.dboxFileStore = dboxStore
         self.recursive = conf.recursive
         self.logger = logger
 
     def map_recursive(self, cloud_path: str):
         self.logger.info('cloud_path={}'.format(cloud_path))
-        local_root, local_dirs, local_files = self.fileStore.list_folder(cloud_path)
-        dbx_root, dbx_dirs, dbx_files = self.dboxStore.list_folder(cloud_path)
+        local_root, local_dirs, local_files = self.localFileStore.list_folder(cloud_path)
+        dbx_root, dbx_dirs, dbx_files = self.dboxFileStore.list_folder(cloud_path)
         download_files, upload_files = self.__map_dropbox_files_to_local(local_root, local_files, dbx_root, dbx_files)
         if self.recursive:
             process_cloud_folders = self.__map_cloud_folders_to_local(local_dirs, dbx_root, dbx_dirs)
@@ -35,11 +35,11 @@ class FileMapper:
         for dbx_file_md in dbx_files:
             name = dbx_file_md.name
             dbx_path = dbx_file_md.path_display
-            local_path = self.fileStore.get_absolute_path(dbx_path)
+            local_path = self.localFileStore.get_absolute_path(dbx_path)
 
             if name in local_files:
                 self.logger.debug('file found locally - {}'.format(name))
-                local_md = self.fileStore.get_metadata(local_path)
+                local_md = self.localFileStore.get_file_metadata(local_path)
                 if self.__are_equal_by_metadata(local_md, dbx_file_md):
                     self.logger.info('file {} already synced [by metadata]. Skip'.format(dbx_path))
                 else:
@@ -80,7 +80,7 @@ class FileMapper:
         union_list = list(map(lambda key: cloud_dict[key] if key in cloud_dict else local_dict[key], union_keys))
         return union_list
 
-    def __are_equal_by_metadata(self, local_md: FileMetadata, dbox_file_md: dropbox.files.FileMetadata):
+    def __are_equal_by_metadata(self, local_md: LocalFileMetadata, dbox_file_md: dropbox.files.FileMetadata):
         equal_by_name = (local_md.name == dbox_file_md.name)
         equal_by_size = (local_md.size == dbox_file_md.size)
         equal_by_date = (local_md.client_modified == dbox_file_md.client_modified)
@@ -96,6 +96,6 @@ class FileMapper:
         return True
 
     def __are_equal_by_content(self, local_path: str, cloud_path: str):
-        content_local, local_md = self.fileStore.read(local_path)
-        response, dbox_md = self.dboxStore.read(cloud_path)
+        content_local, local_md = self.localFileStore.read(local_path)
+        response, dbox_md = self.dboxFileStore.read(cloud_path)
         return response.content == content_local

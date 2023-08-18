@@ -3,7 +3,7 @@ import time
 import dropbox
 from logging import Logger
 from src.configs.config import Config
-from src.files.file_store import FileMetadata
+from src.stores.local_file_store import LocalFileMetadata
 
 class DropboxStore:
     def __init__(self, conf: Config, logger: Logger):
@@ -13,8 +13,8 @@ class DropboxStore:
 
     def list_folder(self, cloud_path):
         self.logger.debug('list path: {}'.format(cloud_path))
-        dirs = list()
-        files = list()
+        dbx_dirs = list()
+        dbx_files = list()
         try:
             with stopwatch('list_folder', self.logger):
                 res = self.dbx.files_list_folder(cloud_path)
@@ -23,11 +23,11 @@ class DropboxStore:
         else:
             for entry in res.entries:
                 if isinstance(entry, dropbox.files.FileMetadata):
-                    files.append(entry)
+                    dbx_files.append(entry)
                 else:
-                    dirs.append(entry)
-        self.logger.debug('files={}'.format(files))
-        return cloud_path, dirs, files
+                    dbx_dirs.append(entry)
+        self.logger.debug('files={}'.format(dbx_files))
+        return cloud_path, dbx_dirs, dbx_files
 
     def read(self, cloud_path):
         self.logger.debug('cloud_path={}'.format(cloud_path))
@@ -40,7 +40,7 @@ class DropboxStore:
         self.logger.debug('{} bytes; md: {}'.format(len(response.content), meta_data.name))
         return response, meta_data
 
-    def save(self, cloud_path: str, content, metadata: FileMetadata, overwrite: bool):
+    def save(self, cloud_path: str, content, metadata: LocalFileMetadata, overwrite: bool):
         self.logger.debug('cloud_path={}'.format(cloud_path))
         write_mode = (dropbox.files.WriteMode.overwrite if overwrite else dropbox.files.WriteMode.add)
         with stopwatch('upload %d bytes' % len(content), self.logger):

@@ -1,26 +1,28 @@
-#must include logger_colorer to add log highlighting
-import src.logs.logger_colorer
+import src.logs.logger_colorer  #add log highlighting
 import src.logs.logger as logger
 import logging
-from src.configs.config import ConfigProvider
-from src.files.file_store import FileStore
-from src.files.file_mapper import FileMapper
+from src.configs.config import ConfigProvider, Config
+from src.command import CommandRunner
+from src.services.file_sync_service import FileSyncronizationService
+from src.stores.local_file_store import LocalFileStore
 from src.stores.dropbox_store import DropboxStore
 from src.clients.ui import UI
-from src.clients.controller import Controller
 
 log = logger.setupLogger(logging.DEBUG)
-if __name__ == '__main__':
-    configProvider = ConfigProvider(log)
+
+def create_configuration(logger: logging.Logger):
+    configProvider = ConfigProvider(logger)
     arguments = configProvider.parse_arguments()
-    conf = configProvider.get_config(arguments)
-    fileStore = FileStore(conf, log)
-    dboxStore = DropboxStore(conf, log)
-    fileMapper = FileMapper(fileStore, dboxStore, conf, log)
-    ui = UI(log)
-    controller = Controller(fileStore, dboxStore, fileMapper, ui, log)
-    match conf.action:
-        case 'download': controller.sync(conf.cloud_dir, download=True, upload=False)
-        case 'upload': controller.sync(conf.cloud_dir, download=False, upload=True)
-        case 'sync':   controller.sync(conf.cloud_dir, download=True, upload=True)
-        case _: log.error('Unknown action in configuration')
+    return configProvider.get_config(arguments)
+
+def create_command_runner(config: Config, logger: logging.Logger) -> CommandRunner:
+    localStore = LocalFileStore(config, logger)
+    dboxStore = DropboxStore(config, logger)
+    fileService = FileSyncronizationService(localStore, dboxStore, config, logger)
+    ui = UI(logger)
+    return CommandRunner(localStore, dboxStore, fileService, ui, logger)
+
+if __name__ == '__main__':
+    conf = create_configuration(log)
+    commandRunner = create_command_runner(conf, log)
+    commandRunner.run(conf.action, conf.cloud_dir)
