@@ -1,5 +1,6 @@
 *.secret.ini
 *.log
+client_secrets.json
 .vscode/
 __pycache__/
 [Dd]b/

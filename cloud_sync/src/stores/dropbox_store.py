@@ -12,14 +12,6 @@ class DropboxStore:
         self.dry_run = conf.dry_run
         self.logger = logger
 
-    def __to_CloudFileMetadata(self, dbx_md: dropbox.files.FileMetadata)-> CloudFileMetadata:
-        #self.logger.debug('file: {}'.format(dbx_md))
-        return CloudFileMetadata(dbx_md.name, dbx_md.path_display, dbx_md.client_modified, dbx_md.size)
-
-    def __to_CloudFolderMetadata(self, dbx_dir)-> CloudFolderMetadata:
-        #self.logger.debug('folder: {}'.format(dbx_dir))
-        return CloudFolderMetadata(dbx_dir.path_lower, dbx_dir.path_display)
-
     def list_folder(self, cloud_path):
         self.logger.debug('list path: {}'.format(cloud_path))
         cloud_dirs = list()
@@ -31,13 +23,24 @@ class DropboxStore:
             self.logger.warning('Folder listing failed for {} -- assumed empty'.format(cloud_path))
         else:
             for entry in res.entries:
-                if isinstance(entry, dropbox.files.FileMetadata):
+                self.logger.debug("entry path_display=`{}`".format(entry.path_display))
+                if self.__isFile(entry):
                     cloud_files.append(self.__to_CloudFileMetadata(entry))
                 else:
                     cloud_dirs.append(self.__to_CloudFolderMetadata(entry))
-        self.logger.debug('files={}'.format(cloud_files))
         return cloud_path, cloud_dirs, cloud_files
 
+    def __isFile(self, entry):
+        return isinstance(entry, dropbox.files.FileMetadata)
+
+    def __to_CloudFileMetadata(self, dbx_md: dropbox.files.FileMetadata)-> CloudFileMetadata:
+        #self.logger.debug('file: {}'.format(dbx_md))
+        return CloudFileMetadata(dbx_md.name, dbx_md.path_display, dbx_md.client_modified, dbx_md.size)
+
+    def __to_CloudFolderMetadata(self, dbx_dir)-> CloudFolderMetadata:
+        #self.logger.debug('folder: {}'.format(dbx_dir))
+        return CloudFolderMetadata(dbx_dir.path_lower, dbx_dir.path_display)
+    
     def read(self, cloud_path: str):
         self.logger.debug('cloud_path={}'.format(cloud_path))
         with stopwatch('download', self.logger):
@@ -50,16 +53,16 @@ class DropboxStore:
                 self.logger.exception("*** Dropbox HTTP Error")
                 return None
 
-    def save(self, cloud_path: str, content, metadata: LocalFileMetadata, overwrite: bool):
+    def save(self, cloud_path: str, content, local_md: LocalFileMetadata, overwrite: bool):
         self.logger.debug('cloud_path={}'.format(cloud_path))
         write_mode = (dropbox.files.WriteMode.overwrite if overwrite else dropbox.files.WriteMode.add)
         with stopwatch('upload %d bytes' % len(content), self.logger):
             if self.dry_run:
                 self.logger.info('Dry run mode. Skip uploading {} (modified:{}) using {}'
-                    .format(cloud_path, metadata.client_modified, write_mode))
+                    .format(cloud_path, local_md.client_modified, write_mode))
             else:
                 try:
-                    res = self.dbx.files_upload(content, cloud_path, write_mode, client_modified=metadata.client_modified, mute=True)
+                    res = self.dbx.files_upload(content, cloud_path, write_mode, client_modified=local_md.client_modified, mute=True)
                     self.logger.debug('Uploaded as {}'.format(res.name))
                     return res
                 except dropbox.exceptions.ApiError:

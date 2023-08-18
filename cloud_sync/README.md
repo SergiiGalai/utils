@@ -25,18 +25,15 @@ Normally we install the Google Drive client on our system which takes care of al
 
 ### Google Drive
 1. You have to have a Dropbox account
-1. Install python dropbox dependency module `pip3 install dropbox`
-1. Create app on dropbox website. Read more https://docs.gravityforms.com/creating-a-custom-dropbox-app/
-1. Open created app https://www.dropbox.com/developers/apps
-1. Scroll down to ‘OAuth 2’ block and hit `Generate` button near `Generated access token` text
-1. After the token is generated copy it to `TOKEN` field in `config.ini`
+1. Install python dropbox dependency module `pip install pydrive`
+1. Perform [Authentication steps](https://pythonhosted.org/PyDrive/quickstart.html#authentication)	allowing to access google drive in the scopes
 1. run `python d:\path\cloud_sync\main.py`
 
 ### Dropbox
 1. You have to have a Dropbox account
 1. Install python dropbox dependency module `pip3 install dropbox`
-1. Create app on dropbox website. Read more https://docs.gravityforms.com/creating-a-custom-dropbox-app/
-1. Open created app https://www.dropbox.com/developers/apps
+1. Create the app on the [Dropbox website](https://docs.gravityforms.com/creating-a-custom-dropbox-app/).
+1. Open [created Dropbox app](https://www.dropbox.com/developers/apps)
 1. Scroll down to ‘OAuth 2’ block and hit `Generate` button near `Generated access token` text
 1. After the token is generated copy it to `TOKEN` field in `config.ini`
 1. run `python d:\path\cloud_sync\main.py`

@@ -8,7 +8,7 @@ class CommandRunner:
     def __init__(self, localStore: LocalFileStore, cloudStore: DropboxStore, fileService: FileSyncronizationService, ui: UI, logger: Logger):
         self.localStore = localStore
         self.cloudStore = cloudStore
-        self.fileMapper = fileService
+        self.fileService = fileService
         self.ui = ui
         self.logger = logger
 
@@ -23,7 +23,8 @@ class CommandRunner:
         self.ui.message('Synchronizing {} cloud folder'.format(cloud_path))
         self.ui.message('Download files {}'.format(download))
         self.ui.message('Upload files {}'.format(upload))
-        download_files, upload_files = self.fileMapper.map_recursive(cloud_path)
+
+        download_files, upload_files = self.fileService.map_recursive(cloud_path)
         if download: self.__download_from_cloud(download_files)
         if upload: self.__upload_to_cloud(upload_files)
 
