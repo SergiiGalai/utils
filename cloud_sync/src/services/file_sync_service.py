@@ -14,19 +14,13 @@ class FileSyncronizationService:
         self._logger = logger
         self._logger.debug(config)
 
-    def __list_from_cloud(self, cloud_path):
-        cloud_root, cloud_dirs, cloud_files = self._cloudStore.list_folder(cloud_path)
-        self._logger.debug('files={}'.format(cloud_files))
-        self._logger.debug('folders={}'.format(cloud_dirs))
-        return cloud_root, cloud_dirs, cloud_files
-
     def map_recursive(self, cloud_path: str):
         self._logger.info('cloud_path={}'.format(cloud_path))
 
         local_root, local_dirs, local_files = self._localStore.list_folder(cloud_path)
-        cloud_root, cloud_dirs, cloud_files = self.__list_from_cloud(cloud_path)
+        cloud_root, cloud_dirs, cloud_files = self._cloudStore.list_folder(cloud_path)
         return None, None
-
+    
         download_files, upload_files = self.__map_cloud_files_to_local(local_root, local_files, cloud_root, cloud_files)
         if self._recursive:
             process_cloud_folders = self.__map_cloud_folders_to_local(local_dirs, cloud_root, cloud_dirs)
@@ -38,11 +32,11 @@ class FileSyncronizationService:
             self._logger.info('skipping subfolders because of configuration')
         return download_files, upload_files
 
-    def __map_cloud_files_to_local(self, local_root: str, local_files: list, cloud_root: str, cloud_filemetadatas: list):
+    def __map_cloud_files_to_local(self, local_root: str, local_files: list, cloud_root: str, cloud_files: list):
         upload_list = list()
         download_list = list()
 
-        for cloud_file_md in cloud_filemetadatas:
+        for cloud_file_md in cloud_files:
             name = cloud_file_md.name
             cloud_path = cloud_file_md.path_display
             local_path = self._localStore.get_absolute_path(cloud_path)
@@ -69,7 +63,7 @@ class FileSyncronizationService:
                 self._logger.info('file NOT found locally - {} => download list'.format(cloud_path))
                 download_list.append(cloud_path)
 
-        cloud_names = list(map(lambda f: f.name, cloud_filemetadatas))
+        cloud_names = list(map(lambda f: f.name, cloud_files))
         local_only = filter(lambda name: name not in cloud_names, local_files)
         for name in local_only:
             local_path = pathlib.PurePath(local_root).joinpath(name)

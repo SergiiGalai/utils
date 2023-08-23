@@ -23,11 +23,14 @@ class LocalFileStore:
     def list_folder(self, cloud_path: str):
         path = self.get_absolute_path(cloud_path)
         self._logger.debug('path={}'.format(path))
+
         if pathlib.Path(path).exists():
             root, dirs, files = next(os.walk(path))
             normalizedFiles = [unicodedata.normalize('NFC', f) for f in files]
             self._logger.debug('files={}'.format(normalizedFiles))
             return root, dirs, normalizedFiles
+
+        self._logger.warn('path `{}` does not exist'.format(path))
         return path, [], []
 
     def read(self, full_path: str):

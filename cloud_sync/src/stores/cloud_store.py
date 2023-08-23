@@ -8,7 +8,7 @@ class CloudStore(Protocol):
    def list_folder(self, cloud_path): raise NotImplementedError
 
    @abstractmethod
-   def read(self, cloud_path: str): raise NotImplementedError
+   def read(self, id: str): raise NotImplementedError
 
    @abstractmethod
    def save(self, cloud_path: str, content, local_md: LocalFileMetadata, overwrite: bool): raise NotImplementedError
