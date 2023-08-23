@@ -2,14 +2,14 @@ from pydrive.drive import GoogleDrive, GoogleDriveFile, GoogleDriveFileList
 from pydrive.auth import GoogleAuth
 from logging import Logger
 from src.configs.config import StorageConfig
+from src.stores.cloud_store import CloudStore
 from src.stores.models import CloudFileMetadata, CloudFolderMetadata
 from src.stores.local_file_store import LocalFileMetadata
 
-class GdriveStore:
+class GdriveStore(CloudStore):
    def __init__(self, conf: StorageConfig, logger: Logger):
       self.dry_run = conf.dry_run
       self.logger = logger
-      self.gdrive = self.__get_gdrive()
 
    def __get_gdrive(self):
       # Authenticate request
@@ -17,8 +17,13 @@ class GdriveStore:
       gauth.LocalWebserverAuth()
       return GoogleDrive(gauth)
 
+   def __setup_gdrive(self):
+      if self.gdrive is None:
+         self.gdrive == self.__get_gdrive()
+
    def list_folder(self, cloud_path):
       self.logger.debug('list path: {}'.format(cloud_path))
+      self.__setup_gdrive()
       cloud_dirs = list()
       cloud_files = list()
 
@@ -47,6 +52,8 @@ class GdriveStore:
    
    def read(self, cloud_path: str):
       self.logger.debug('cloud_path={}'.format(cloud_path))
+      self.__setup_gdrive()
 
    def save(self, cloud_path: str, content, local_md: LocalFileMetadata, overwrite: bool):
       self.logger.debug('cloud_path={}'.format(cloud_path))
+      self.__setup_gdrive()

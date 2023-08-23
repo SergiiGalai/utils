@@ -1,14 +1,14 @@
 from logging import Logger
 from src.clients.ui import UI
 from src.services.file_sync_service import FileSyncronizationService
+from src.stores.cloud_store import CloudStore
 from src.stores.local_file_store import LocalFileStore
-from src.stores.dropbox_store import DropboxStore
 
 class CommandRunner:
-    def __init__(self, localStore: LocalFileStore, cloudStore: DropboxStore, fileService: FileSyncronizationService, ui: UI, logger: Logger):
+    def __init__(self, localStore: LocalFileStore, cloudStore: CloudStore, syncService: FileSyncronizationService, ui: UI, logger: Logger):
         self.localStore = localStore
         self.cloudStore = cloudStore
-        self.fileService = fileService
+        self.syncService = syncService
         self.ui = ui
         self.logger = logger
 
@@ -17,14 +17,16 @@ class CommandRunner:
             case 'download': self.__sync(cloud_path, download=True, upload=False)
             case 'upload': self.__sync(cloud_path, download=False, upload=True)
             case 'sync': self.__sync(cloud_path, download=True, upload=True)
-            case _: self.logger.error('Unknown action in configuration')
+            case _:
+                self.logger.error('Unknown action in configuration')
+                raise NotImplementedError
 
     def __sync(self, cloud_path: str, download: bool, upload: bool):
         self.ui.message('Synchronizing {} cloud folder'.format(cloud_path))
         self.ui.message('Download files {}'.format(download))
         self.ui.message('Upload files {}'.format(upload))
 
-        download_files, upload_files = self.fileService.map_recursive(cloud_path)
+        download_files, upload_files = self.syncService.map_recursive(cloud_path)
         if download: self.__download_from_cloud(download_files)
         if upload: self.__upload_to_cloud(upload_files)
 

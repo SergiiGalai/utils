@@ -2,23 +2,20 @@ import pathlib
 from posixpath import join as urljoin
 from logging import Logger
 from src.configs.config import StorageConfig
-from src.stores.dropbox_store import DropboxStore
-from src.stores.gdrive_store import GdriveStore
+from src.stores.cloud_store import CloudStore
 from src.stores.local_file_store import LocalFileStore, LocalFileMetadata
 from src.stores.models import CloudFileMetadata
 
 class FileSyncronizationService:
-    def __init__(self, localStore: LocalFileStore, dboxStore: DropboxStore, gdriveStore: GdriveStore, conf: StorageConfig, logger: Logger):
+    def __init__(self, localStore: LocalFileStore, cloudStore: CloudStore, config: StorageConfig, logger: Logger):
         self.localFileStore = localStore
-        self.dboxFileStore = dboxStore
-        self.gdriveFileStore = gdriveStore
-        self.recursive = conf.recursive
+        self.cloudFileStore = cloudStore
+        self.recursive = config.recursive
         self.logger = logger
-        self.logger.debug(conf)
+        self.logger.debug(config)
 
     def __list_from_cloud(self, cloud_path):
-        cloud_root, cloud_dirs, cloud_files = self.dboxFileStore.list_folder(cloud_path)
-        #cloud_root, cloud_dirs, cloud_files = self.gdriveFileStore.list_folder(cloud_path)
+        cloud_root, cloud_dirs, cloud_files = self.cloudFileStore.list_folder(cloud_path)
         self.logger.debug('files={}'.format(cloud_files))
         self.logger.debug('folders={}'.format(cloud_dirs))
         return cloud_root, cloud_dirs, cloud_files
@@ -110,5 +107,5 @@ class FileSyncronizationService:
 
     def __are_equal_by_content(self, local_path: str, cloud_path: str):
         content_local, local_md = self.localFileStore.read(local_path)
-        response, cloud_md = self.dboxFileStore.read(cloud_path)
+        response, cloud_md = self.cloudFileStore.read(cloud_path)
         return response.content == content_local
