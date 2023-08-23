@@ -4,8 +4,11 @@ class UI:
     def __init__(self, logger: Logger):
         self._logger = logger
 
-    def message(self, message):
+    def output(self, message):
         self._logger.info(message)
+
+    def message(self, message):
+        print('=== ' + message)
 
     def confirm(self, message, default):
         """Handy helper function to ask a yes/no question.
