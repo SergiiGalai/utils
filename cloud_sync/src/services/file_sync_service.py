@@ -1,14 +1,14 @@
 import pathlib
 from posixpath import join as urljoin
 from logging import Logger
-from src.configs.config import Config
+from src.configs.config import StorageConfig
 from src.stores.dropbox_store import DropboxStore
 from src.stores.gdrive_store import GdriveStore
 from src.stores.local_file_store import LocalFileStore, LocalFileMetadata
 from src.stores.models import CloudFileMetadata
 
 class FileSyncronizationService:
-    def __init__(self, localStore: LocalFileStore, dboxStore: DropboxStore, gdriveStore: GdriveStore, conf: Config, logger: Logger):
+    def __init__(self, localStore: LocalFileStore, dboxStore: DropboxStore, gdriveStore: GdriveStore, conf: StorageConfig, logger: Logger):
         self.localFileStore = localStore
         self.dboxFileStore = dboxStore
         self.gdriveFileStore = gdriveStore
@@ -25,9 +25,11 @@ class FileSyncronizationService:
 
     def map_recursive(self, cloud_path: str):
         self.logger.info('cloud_path={}'.format(cloud_path))
+        return None, None
+
         local_root, local_dirs, local_files = self.localFileStore.list_folder(cloud_path)
         cloud_root, cloud_dirs, cloud_files = self.__list_from_cloud(cloud_path)
-        return None, None
+
         download_files, upload_files = self.__map_cloud_files_to_local(local_root, local_files, cloud_root, cloud_files)
         if self.recursive:
             process_cloud_folders = self.__map_cloud_folders_to_local(local_dirs, cloud_root, cloud_dirs)

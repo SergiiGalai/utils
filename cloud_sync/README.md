@@ -3,7 +3,7 @@ Sync local directory to Google Drive or Dropbox
 ## Problem
 Normally we install the Google Drive client on our system which takes care of all the syncing. So you can keep editing your files locally inside the Google Drive Folder without worrying about them getting synced with your google account because the client will take care of it. However, due to certain restrictions on my system the Google Drive client cannot be installed. 
 
-### What it can:
+### What it can do:
 - synchronize files in your local folder and folder on dropbox account per script run
 - track files inside the directory
 - track subfolders and their content inside the directory
@@ -12,7 +12,7 @@ Normally we install the Google Drive client on our system which takes care of al
 - open source command line tool so your files belong to you (and Dropbox :) )
 - no need to install (except python runtime and dependency module)
 
-### What it cannot:
+### What it cannot do:
 - cannot live in memory (not a realtime client)
 - cannot track your file changes in realtime
 - cannot track your dropbox changes in realtime
@@ -22,6 +22,7 @@ Normally we install the Google Drive client on our system which takes care of al
 1. Copy the content of this folder to your local disk
 1. Create `config.ini` or other file. Check its content below.
 1. Install python3. E.g. using Chocolatey `choco install -y python`
+1. Run unit tests `python -m unittest discover`
 
 ### Google Drive
 1. You have to have a Dropbox account

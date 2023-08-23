@@ -2,12 +2,12 @@ import contextlib
 import time
 import dropbox
 from logging import Logger
-from src.configs.config import Config
+from src.configs.config import StorageConfig
 from src.stores.models import CloudFileMetadata, CloudFolderMetadata
 from src.stores.local_file_store import LocalFileMetadata
 
 class DropboxStore:
-    def __init__(self, conf: Config, logger: Logger):
+    def __init__(self, conf: StorageConfig, logger: Logger):
         self.dbx = dropbox.Dropbox(conf.token)
         self.dry_run = conf.dry_run
         self.logger = logger

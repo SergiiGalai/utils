@@ -5,7 +5,7 @@ import unicodedata
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from logging import Logger
-from src.configs.config import Config
+from src.configs.config import StorageConfig
 
 @dataclass
 class LocalFileMetadata:
@@ -15,7 +15,7 @@ class LocalFileMetadata:
     size: int
 
 class LocalFileStore:
-    def __init__(self, conf: Config, logger: Logger):
+    def __init__(self, conf: StorageConfig, logger: Logger):
         self.dry_run = conf.dry_run
         self.root_path = conf.local_dir
         self.logger = logger

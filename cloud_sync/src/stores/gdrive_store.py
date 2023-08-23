@@ -1,12 +1,12 @@
 from pydrive.drive import GoogleDrive, GoogleDriveFile, GoogleDriveFileList
 from pydrive.auth import GoogleAuth
 from logging import Logger
-from src.configs.config import Config
+from src.configs.config import StorageConfig
 from src.stores.models import CloudFileMetadata, CloudFolderMetadata
 from src.stores.local_file_store import LocalFileMetadata
 
 class GdriveStore:
-   def __init__(self, conf: Config, logger: Logger):
+   def __init__(self, conf: StorageConfig, logger: Logger):
       self.dry_run = conf.dry_run
       self.logger = logger
       self.gdrive = self.__get_gdrive()
