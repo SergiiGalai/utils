@@ -16,17 +16,17 @@ class LocalFileMetadata:
 
 class LocalFileStore:
     def __init__(self, conf: StorageConfig, logger: Logger):
-        self.dry_run = conf.dry_run
-        self.root_path = conf.local_dir
-        self.logger = logger
+        self._dry_run = conf.dry_run
+        self._root_path = conf.local_dir
+        self._logger = logger
 
     def list_folder(self, cloud_path: str):
         path = self.get_absolute_path(cloud_path)
-        self.logger.debug('path={}'.format(path))
+        self._logger.debug('path={}'.format(path))
         if pathlib.Path(path).exists():
             root, dirs, files = next(os.walk(path))
             normalizedFiles = [unicodedata.normalize('NFC', f) for f in files]
-            self.logger.debug('files={}'.format(normalizedFiles))
+            self._logger.debug('files={}'.format(normalizedFiles))
             return root, dirs, normalizedFiles
         return path, [], []
 
@@ -46,33 +46,33 @@ class LocalFileStore:
 
     def get_absolute_path(self, cloud_path: str) -> str:
         relative_db_path = cloud_path[1:] if cloud_path.startswith('/') else cloud_path
-        result = pathlib.PurePath( self.root_path ).joinpath( relative_db_path )
-        self.logger.debug('result={}'.format(result))
+        result = pathlib.PurePath( self._root_path ).joinpath( relative_db_path )
+        self._logger.debug('result={}'.format(result))
         return str(result)
     
     def save(self, cloud_path: str, content, client_modified):
         file_path = self.get_absolute_path(cloud_path)
-        if self.dry_run:
-            self.logger.info('dry run mode. Skip saving file {}'.format(file_path))
+        if self._dry_run:
+            self._logger.info('dry run mode. Skip saving file {}'.format(file_path))
         else:
             base_path = os.path.dirname(file_path)
             self.__try_create_local_folder(base_path)
             with open(file_path, 'wb') as f:
                 f.write(content)
             self.__set_modification_time(file_path, self.__datetime_utc_to_local(client_modified))
-            self.logger.debug('saved file {}...'.format(file_path))
+            self._logger.debug('saved file {}...'.format(file_path))
 
     def __try_create_local_folder(self, path: str):
-        if self.dry_run:
-            self.logger.info('Dry Run mode. path {}'.format(path))
+        if self._dry_run:
+            self._logger.info('Dry Run mode. path {}'.format(path))
         else:
             pathlib.Path(path).mkdir(parents=True, exist_ok=True)
 
     def __set_modification_time(self, file_path: str, modified: datetime):
-        if self.dry_run:
-            self.logger.info('Dry Run mode. file_path {}, modified={}'.format(os.path.basename(file_path), modified))
+        if self._dry_run:
+            self._logger.info('Dry Run mode. file_path {}, modified={}'.format(os.path.basename(file_path), modified))
         else:
-            self.logger.debug('file_path={}, modified={}'.format(file_path, modified))
+            self._logger.debug('file_path={}, modified={}'.format(file_path, modified))
             atime = os.stat(file_path).st_atime
             mtime = modified.timestamp()
             os.utime(file_path, times=(atime, mtime))

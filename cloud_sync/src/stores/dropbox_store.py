@@ -9,22 +9,22 @@ from src.stores.local_file_store import LocalFileMetadata
 
 class DropboxStore(CloudStore):
     def __init__(self, conf: StorageConfig, logger: Logger):
-        self.dbx = dropbox.Dropbox(conf.token)
-        self.dry_run = conf.dry_run
-        self.logger = logger
+        self._dbx = dropbox.Dropbox(conf.token)
+        self._dry_run = conf.dry_run
+        self._logger = logger
 
     def list_folder(self, cloud_path):
-        self.logger.debug('list path: {}'.format(cloud_path))
+        self._logger.debug('list path: {}'.format(cloud_path))
         cloud_dirs = list()
         cloud_files = list()
         try:
-            with stopwatch('list_folder', self.logger):
-                res = self.dbx.files_list_folder(cloud_path)
+            with stopwatch('list_folder', self._logger):
+                res = self._dbx.files_list_folder(cloud_path)
         except dropbox.exceptions.ApiError:
-            self.logger.warning('Folder listing failed for {} -- assumed empty'.format(cloud_path))
+            self._logger.warning('Folder listing failed for {} -- assumed empty'.format(cloud_path))
         else:
             for entry in res.entries:
-                self.logger.debug("entry path_display=`{}`".format(entry.path_display))
+                self._logger.debug("entry path_display=`{}`".format(entry.path_display))
                 if self.__isFile(entry):
                     cloud_files.append(self.__to_CloudFileMetadata(entry))
                 else:
@@ -43,31 +43,31 @@ class DropboxStore(CloudStore):
         return CloudFolderMetadata(dbx_dir.path_lower, dbx_dir.path_display)
     
     def read(self, cloud_path: str):
-        self.logger.debug('cloud_path={}'.format(cloud_path))
-        with stopwatch('download', self.logger):
+        self._logger.debug('cloud_path={}'.format(cloud_path))
+        with stopwatch('download', self._logger):
             try:
-                dbx_md, response = self.dbx.files_download(cloud_path)
+                dbx_md, response = self._dbx.files_download(cloud_path)
                 cloud_file_md = self.__to_CloudFileMetadata(dbx_md)
-                self.logger.debug('{} bytes; md: {}'.format(len(response.content), cloud_file_md.name))
+                self._logger.debug('{} bytes; md: {}'.format(len(response.content), cloud_file_md.name))
                 return response, cloud_file_md
             except dropbox.exceptions.HttpError:
-                self.logger.exception("*** Dropbox HTTP Error")
+                self._logger.exception("*** Dropbox HTTP Error")
                 return None
 
     def save(self, cloud_path: str, content, local_md: LocalFileMetadata, overwrite: bool):
-        self.logger.debug('cloud_path={}'.format(cloud_path))
+        self._logger.debug('cloud_path={}'.format(cloud_path))
         write_mode = (dropbox.files.WriteMode.overwrite if overwrite else dropbox.files.WriteMode.add)
-        with stopwatch('upload %d bytes' % len(content), self.logger):
-            if self.dry_run:
-                self.logger.info('Dry run mode. Skip uploading {} (modified:{}) using {}'
+        with stopwatch('upload %d bytes' % len(content), self._logger):
+            if self._dry_run:
+                self._logger.info('Dry run mode. Skip uploading {} (modified:{}) using {}'
                     .format(cloud_path, local_md.client_modified, write_mode))
             else:
                 try:
-                    res = self.dbx.files_upload(content, cloud_path, write_mode, client_modified=local_md.client_modified, mute=True)
-                    self.logger.debug('Uploaded as {}'.format(res.name))
+                    res = self._dbx.files_upload(content, cloud_path, write_mode, client_modified=local_md.client_modified, mute=True)
+                    self._logger.debug('Uploaded as {}'.format(res.name))
                     return res
                 except dropbox.exceptions.ApiError:
-                    self.logger.exception('*** API error')
+                    self._logger.exception('*** API error')
                     return None
 
 @contextlib.contextmanager

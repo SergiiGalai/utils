@@ -8,8 +8,9 @@ from src.stores.local_file_store import LocalFileMetadata
 
 class GdriveStore(CloudStore):
    def __init__(self, conf: StorageConfig, logger: Logger):
-      self.dry_run = conf.dry_run
-      self.logger = logger
+      self._dry_run = conf.dry_run
+      self._logger = logger
+      self._gdrive = None
 
    def __get_gdrive(self):
       # Authenticate request
@@ -18,20 +19,20 @@ class GdriveStore(CloudStore):
       return GoogleDrive(gauth)
 
    def __setup_gdrive(self):
-      if self.gdrive is None:
-         self.gdrive == self.__get_gdrive()
+      if self._gdrive == None:
+         self._gdrive = self.__get_gdrive()
 
    def list_folder(self, cloud_path):
-      self.logger.debug('list path: {}'.format(cloud_path))
+      self._logger.debug('list path: {}'.format(cloud_path))
       self.__setup_gdrive()
       cloud_dirs = list()
       cloud_files = list()
 
       queryString = "'root' in parents and trashed=false"
       #queryString = "parents in title='Docs'"
-      file_list = self.gdrive.ListFile({'q': queryString}).GetList()
+      file_list = self._gdrive.ListFile({'q': queryString}).GetList()
       for entry in file_list:
-         self.logger.debug("title=`{}` type=`{}` id=`{}`".format(entry['title'], entry['mimeType'], entry['id']))
+         self._logger.debug("title=`{}` type=`{}` id=`{}`".format(entry['title'], entry['mimeType'], entry['id']))
          if self.__isFolder(entry):
             cloud_dirs.append(self.__to_CloudFolderMetadata(entry))
          else:
@@ -51,9 +52,9 @@ class GdriveStore(CloudStore):
       return CloudFolderMetadata(gFolder['id'], gFolder['title'])
    
    def read(self, cloud_path: str):
-      self.logger.debug('cloud_path={}'.format(cloud_path))
+      self._logger.debug('cloud_path={}'.format(cloud_path))
       self.__setup_gdrive()
 
    def save(self, cloud_path: str, content, local_md: LocalFileMetadata, overwrite: bool):
-      self.logger.debug('cloud_path={}'.format(cloud_path))
+      self._logger.debug('cloud_path={}'.format(cloud_path))
       self.__setup_gdrive()

@@ -17,10 +17,10 @@ class StorageConfig:
 
 class StorageConfigProvider:
    def __init__(self, logger: Logger):
-      self.logger = logger
+      self._logger = logger
 
    def parse_arguments(self) -> ArgumentParser:
-      self.logger.debug('parse_arguments started')
+      self._logger.debug('parse_arguments started')
       parser = ArgumentParser()
       parser.add_argument('-c', '--config', help='Config file')
       parser.add_argument('--storage', help='dropbox|gdrive')
@@ -38,7 +38,7 @@ class StorageConfigProvider:
       return namespace
 
    def get_config(self, args: Namespace):
-      self.logger.debug('args={}')
+      self._logger.debug('args={}')
       configFilePaths = self.__get_config_file_locations(args.config)
 
       defaultConfigParser = self.__get_config_parser(configFilePaths)
@@ -82,7 +82,7 @@ class StorageConfigProvider:
       return config
 
    def __get_config_from_args_or_file(self, storageName, args: Namespace, config: SectionProxy) -> StorageConfig:
-      self.logger.debug('storageName={}, config={}, args={}'.format(storageName, config, args))
+      self._logger.debug('storageName={}, config={}, args={}'.format(storageName, config, args))
 
       action = args.action or config.get('ACTION')
       token = args.token or config.get('TOKEN')
@@ -98,7 +98,7 @@ class StorageConfigProvider:
 
    def __validate_args_defaults(self, args: Namespace):
       if sum([bool(b) for b in (args.yes, args.no, args.default)]) > 1:
-         self.logger.error('At most one of --yes, --no, --default is allowed')
+         self._logger.error('At most one of --yes, --no, --default is allowed')
          sys.exit(2)
 
    def __merge_configs(self, default: StorageConfig, override: StorageConfig):
