@@ -4,7 +4,6 @@ import logging
 from argparse import Namespace
 from src.configs.config import StorageConfigProvider
 
-
 class StorageConfigProviderTests(unittest.TestCase):
 
     def __createArgs(self):
@@ -75,6 +74,3 @@ class StorageConfigProviderTests(unittest.TestCase):
         actual = sut.get_config(args)
 
         self.assertFalse(actual.local_dir.startswith('.'))
-
-if __name__ == '__main__':
-    unittest.main()

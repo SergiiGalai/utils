@@ -22,7 +22,7 @@ Normally we install the Google Drive client on our system which takes care of al
 1. Copy the content of this folder to your local disk
 1. Create `config.ini` or other file. Check its content below.
 1. Install python3. E.g. using Chocolatey `choco install -y python`
-1. Run unit tests `python -m unittest discover`
+1. Run unit tests `python -m unittest`
 
 ### Google Drive
 1. You have to have a Dropbox account

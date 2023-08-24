@@ -1,8 +1,9 @@
-from pydrive.drive import GoogleDrive, GoogleDriveFile, GoogleDriveFileList
+from pydrive.drive import GoogleDrive, GoogleDriveFile
 from pydrive.auth import GoogleAuth
 from logging import Logger
 from src.configs.config import StorageConfig
 from src.stores.cloud_store import CloudStore
+from src.stores.file_mapper import FileMapper
 from src.stores.models import CloudFileMetadata, CloudFolderMetadata
 from src.stores.local_file_store import LocalFileMetadata
 
@@ -11,6 +12,7 @@ class GdriveStore(CloudStore):
       self._dry_run = conf.dry_run
       self._logger = logger
       self._gdrive = None
+      self._mapper = FileMapper(logger)
 
    def list_folder(self, cloud_path):
       self._logger.debug('cloud_path={}'.format(cloud_path))
@@ -38,12 +40,13 @@ class GdriveStore(CloudStore):
 
       file_list = self._gdrive.ListFile({'q': query}).GetList()
       for entry in file_list:
+         entry:GoogleDriveFile = entry
          self._logger.debug("title=`{}` type=`{}` id=`{}`".format(entry['title'], entry['mimeType'], entry['id']))
          if self.__isFolder(entry):
-            folder = self.__to_CloudFolderMetadata(entry)
+            folder = self._mapper.convert_GoogleDriveFile_to_CloudFolderMetadata(entry)
             cloud_dirs.append(folder)
          else:
-            file = self.__to_CloudFileMetadata(entry)
+            file = self._mapper.convert_GoogleDriveFile_to_CloudFileMetadata(entry)
             cloud_files.append(file)
       return cloud_dirs, cloud_files
 
@@ -65,15 +68,6 @@ class GdriveStore(CloudStore):
    def __isFolder(self, entry):
       return entry['mimeType'] == 'application/vnd.google-apps.folder'
 
-   def __to_CloudFileMetadata(self, gFile: GoogleDriveFile)-> CloudFileMetadata:
-      #self.logger.debug('file: {}'.format(gFile))
-      fileSize = None if gFile['mimeType'] == 'application/vnd.google-apps.shortcut' else gFile['fileSize']
-      return CloudFileMetadata(gFile['id'], gFile['title'], gFile['title'], gFile['modifiedDate'], fileSize)
-
-   def __to_CloudFolderMetadata(self, gFolder: GoogleDriveFile)-> CloudFolderMetadata:
-      #self.logger.debug('folder: {}'.format(gFolder))
-      return CloudFolderMetadata(gFolder['id'], gFolder['title'], gFolder['id'], gFolder['title'])
-   
    def read(self, id: str):
       self._logger.debug('id={}'.format(id))
       self.__setup_gdrive()

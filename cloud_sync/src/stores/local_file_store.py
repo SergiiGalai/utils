@@ -15,9 +15,9 @@ class LocalFileMetadata:
     size: int
 
 class LocalFileStore:
-    def __init__(self, conf: StorageConfig, logger: Logger):
-        self._dry_run = conf.dry_run
-        self._root_path = conf.local_dir
+    def __init__(self, config: StorageConfig, logger: Logger):
+        self._dry_run = config.dry_run
+        self._root_path = config.local_dir
         self._logger = logger
 
     def list_folder(self, cloud_path: str):
