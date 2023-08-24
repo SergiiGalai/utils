@@ -19,8 +19,7 @@ class FileSyncronizationService:
 
         local_root, local_dirs, local_files = self._localStore.list_folder(cloud_path)
         cloud_root, cloud_dirs, cloud_files = self._cloudStore.list_folder(cloud_path)
-        return None, None
-    
+
         download_files, upload_files = self.__map_cloud_files_to_local(local_root, local_files, cloud_root, cloud_files)
         if self._recursive:
             process_cloud_folders = self.__map_cloud_folders_to_local(local_dirs, cloud_root, cloud_dirs)
@@ -33,9 +32,11 @@ class FileSyncronizationService:
         return download_files, upload_files
 
     def __map_cloud_files_to_local(self, local_root: str, local_files: list, cloud_root: str, cloud_files: list):
-        upload_list = list()
-        download_list = list()
+        upload_list = []
+        download_list = []
 
+        return download_list, upload_list
+    
         for cloud_file_md in cloud_files:
             name = cloud_file_md.name
             cloud_path = cloud_file_md.path_display

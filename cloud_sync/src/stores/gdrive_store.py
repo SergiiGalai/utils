@@ -3,7 +3,7 @@ from pydrive.auth import GoogleAuth
 from logging import Logger
 from src.configs.config import StorageConfig
 from src.stores.cloud_store import CloudStore
-from src.stores.file_mapper import FileMapper
+from src.stores.file_mappers import GoogleDriveFileMapper
 from src.stores.models import CloudFileMetadata, CloudFolderMetadata
 from src.stores.local_file_store import LocalFileMetadata
 
@@ -12,7 +12,7 @@ class GdriveStore(CloudStore):
       self._dry_run = conf.dry_run
       self._logger = logger
       self._gdrive = None
-      self._mapper = FileMapper(logger)
+      self._mapper = GoogleDriveFileMapper(logger)
 
    def list_folder(self, cloud_path):
       self._logger.debug('cloud_path={}'.format(cloud_path))
@@ -40,13 +40,13 @@ class GdriveStore(CloudStore):
 
       file_list = self._gdrive.ListFile({'q': query}).GetList()
       for entry in file_list:
-         entry:GoogleDriveFile = entry
+         entry: GoogleDriveFile = entry
          self._logger.debug("title=`{}` type=`{}` id=`{}`".format(entry['title'], entry['mimeType'], entry['id']))
          if self.__isFolder(entry):
-            folder = self._mapper.convert_GoogleDriveFile_to_CloudFolderMetadata(entry)
+            folder: CloudFolderMetadata = self._mapper.convert_GoogleDriveFile_to_CloudFolderMetadata(entry)
             cloud_dirs.append(folder)
          else:
-            file = self._mapper.convert_GoogleDriveFile_to_CloudFileMetadata(entry)
+            file: CloudFileMetadata = self._mapper.convert_GoogleDriveFile_to_CloudFileMetadata(entry)
             cloud_files.append(file)
       return cloud_dirs, cloud_files
 

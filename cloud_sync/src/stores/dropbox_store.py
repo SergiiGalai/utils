@@ -4,6 +4,7 @@ import dropbox
 from logging import Logger
 from src.configs.config import StorageConfig
 from src.stores.cloud_store import CloudStore
+from src.stores.file_mappers import DropboxFileMapper
 from src.stores.models import CloudFileMetadata, CloudFolderMetadata
 from src.stores.local_file_store import LocalFileMetadata
 
@@ -12,6 +13,7 @@ class DropboxStore(CloudStore):
         self._dbx = dropbox.Dropbox(conf.token)
         self._dry_run = conf.dry_run
         self._logger = logger
+        self._mapper = DropboxFileMapper(logger)
 
     def list_folder(self, cloud_path):
         self._logger.debug('list path: {}'.format(cloud_path))
@@ -24,30 +26,24 @@ class DropboxStore(CloudStore):
             self._logger.warning('Folder listing failed for {} -- assumed empty'.format(cloud_path))
         else:
             for entry in res.entries:
-                self._logger.debug("entry path_display=`{}`".format(entry.path_display))
+                self._logger.debug("entry path_display=`{}`, name={}".format(entry.path_display, entry.name))
                 if self.__isFile(entry):
-                    cloud_files.append(self.__to_CloudFileMetadata(entry))
+                    cloud_file: CloudFileMetadata = self._mapper.convert_DropboxFileMetadata_to_CloudFileMetadata(entry)
+                    cloud_files.append(cloud_file)
                 else:
-                    cloud_dirs.append(self.__to_CloudFolderMetadata(entry))
+                    cloud_dir: CloudFolderMetadata = self._mapper.convert_DropboxFolderMetadata_to_CloudFolderMetadata(entry)
+                    cloud_dirs.append(cloud_dir)
         return cloud_path, cloud_dirs, cloud_files
 
     def __isFile(self, entry):
         return isinstance(entry, dropbox.files.FileMetadata)
 
-    def __to_CloudFileMetadata(self, dbx_md: dropbox.files.FileMetadata)-> CloudFileMetadata:
-        #self.logger.debug('file: {}'.format(dbx_md))
-        return CloudFileMetadata(dbx_md.path_display, dbx_md.name, dbx_md.path_display, dbx_md.client_modified, dbx_md.size)
-
-    def __to_CloudFolderMetadata(self, dbx_dir)-> CloudFolderMetadata:
-        #self.logger.debug('folder: {}'.format(dbx_dir))
-        return CloudFolderMetadata(dbx_dir.path_display, dbx_dir.name, dbx_dir.path_lower, dbx_dir.path_display)
-    
     def read(self, cloud_path: str):
         self._logger.debug('cloud_path={}'.format(cloud_path))
         with stopwatch('download', self._logger):
             try:
                 dbx_md, response = self._dbx.files_download(cloud_path)
-                cloud_file_md = self.__to_CloudFileMetadata(dbx_md)
+                cloud_file_md = self._mapper.convert_DropboxFileMetadata_to_CloudFileMetadata(dbx_md)
                 self._logger.debug('{} bytes; md: {}'.format(len(response.content), cloud_file_md.name))
                 return response, cloud_file_md
             except dropbox.exceptions.HttpError:
