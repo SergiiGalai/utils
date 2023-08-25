@@ -6,24 +6,27 @@ from src.configs.config import StorageConfigProvider
 
 class StorageConfigProviderTests(unittest.TestCase):
 
-    def __createArgs(self):
+    @staticmethod
+    def _createArgs(config=None, storage=None, local_dir=None):
         args = Namespace()
-        args.config = None
-        args.storage = None
+        args.config = config
+        args.storage = storage
         args.action = None
         args.token = None
-        args.local_dir = None
+        args.local_dir = local_dir
         args.cloud_dir = None
         args.dryrun = None
         args.recursive = None
         return args
 
-    def test_gets_dropbox_configuration_by_default(self):
+    def setUp(self):
         logger = Mock(logging.Logger)
-        sut = StorageConfigProvider(logger)
-        args = self.__createArgs()
+        self.sut = StorageConfigProvider(logger)
 
-        actual = sut.get_config(args)
+    def test_gets_dropbox_configuration_by_default(self):
+        args = self._createArgs()
+
+        actual = self.sut.get_config(args)
 
         self.assertEqual(actual.storage_name, 'DROPBOX')
         self.assertEqual(actual.action, 'sync')
@@ -37,11 +40,8 @@ class StorageConfigProviderTests(unittest.TestCase):
         self.assertTrue(actual.dry_run)
 
     def test_gets_gdrive_configuration_when_passing_gdrive_storage(self):
-        logger = Mock(logging.Logger)
-        sut = StorageConfigProvider(logger)
-        args = Mock(config = 'config.ini', storage='GDRIVE', yes=None, no=None, default=None, action=None, token=None, local_dir=None, cloud_dir=None, dry_run=None, recursive=None)
-
-        actual = sut.get_config(args)
+        args = self._createArgs(config = 'config.ini', storage='GDRIVE')
+        actual = self.sut.get_config(args)
 
         self.assertEqual(actual.storage_name, 'GDRIVE')
         self.assertEqual(actual.action, 'sync')
@@ -53,11 +53,9 @@ class StorageConfigProviderTests(unittest.TestCase):
         self.assertIsNone(actual.token)
 
     def test_gets_overridden_configuration_values(self):
-        logger = Mock(logging.Logger)
-        sut = StorageConfigProvider(logger)
         args = Mock(config = 'anotherconfig.ini', storage='DROPBOX', yes=None, no=None, default=None, action='upload', token='12345', local_dir='d:\\another.ini', cloud_dir='/system', dry_run=True, recursive=False)
 
-        actual = sut.get_config(args)
+        actual = self.sut.get_config(args)
 
         self.assertEqual(actual.action, 'upload')
         self.assertEqual(actual.local_dir, 'd:\\another.ini')
@@ -67,10 +65,8 @@ class StorageConfigProviderTests(unittest.TestCase):
         self.assertEqual(actual.token, '12345')
 
     def test_gets_absolute_local_directory_path_when_passed_relative(self):
-        logger = Mock(logging.Logger)
-        sut = StorageConfigProvider(logger)
-        args = Mock(config = 'config.ini', storage='GDRIVE', yes=None, no=None, default=None, action=None, token=None, local_dir='.\\another.ini', cloud_dir=None, dry_run=None, recursive=None)
+        args = self._createArgs(config = 'config.ini', storage='GDRIVE', local_dir='.\\another.ini')
 
-        actual = sut.get_config(args)
+        actual = self.sut.get_config(args)
 
         self.assertFalse(actual.local_dir.startswith('.'))
