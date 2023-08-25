@@ -19,7 +19,7 @@ class StorageConfigProvider:
    def __init__(self, logger: Logger):
       self._logger = logger
 
-   def parse_arguments(self) -> ArgumentParser:
+   def parse_arguments(self) -> Namespace:
       self._logger.debug('parse_arguments started')
       parser = ArgumentParser()
       parser.add_argument('-c', '--config', help='Config file')

@@ -37,7 +37,7 @@ class GoogleDriveFileMapperTests(unittest.TestCase):
       self.assertIsNone(actual.size)
 
    def test_CloudFolderMetadata_when_gFolder_passed(self):
-      gFile = {'id':'1C7Vb', 'title':'Settings', 'mimeType':'application/vnd.google-apps.folder'}
+      gFile = GoogleDriveFile(metadata={'id':'1C7Vb', 'title':'Settings', 'mimeType':'application/vnd.google-apps.folder'})
 
       actual : CloudFolderMetadata = self.sut.convert_GoogleDriveFile_to_CloudFolderMetadata(gFile)
 
