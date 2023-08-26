@@ -1,4 +1,5 @@
 import dropbox
+import datetime
 from pydrive.drive import GoogleDriveFile
 from logging import Logger
 
@@ -10,8 +11,9 @@ class GoogleDriveFileMapper:
 
    def convert_GoogleDriveFile_to_CloudFileMetadata(self, gFile: GoogleDriveFile) -> CloudFileMetadata:
       #self.logger.debug('file: {}'.format(gFile))
-      fileSize = None if gFile['mimeType'] == 'application/vnd.google-apps.shortcut' else gFile['fileSize']
-      return CloudFileMetadata(gFile['id'], gFile['title'], gFile['title'], gFile['modifiedDate'], fileSize)
+      fileSize = 0 if gFile['mimeType'] == 'application/vnd.google-apps.shortcut' else int(gFile['fileSize'])
+      modified = datetime.datetime.strptime(gFile['modifiedDate'], '%Y-%m-%dT%H:%M:%S.%fZ')
+      return CloudFileMetadata(gFile['id'], gFile['title'], gFile['title'], modified, fileSize)
 
    def convert_GoogleDriveFile_to_CloudFolderMetadata(self, gFile: GoogleDriveFile) -> CloudFolderMetadata:
       #self.logger.debug('file: {}'.format(gFile))

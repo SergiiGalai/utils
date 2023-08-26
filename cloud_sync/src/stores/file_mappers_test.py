@@ -25,16 +25,16 @@ class GoogleDriveFileMapperTests(unittest.TestCase):
 
       self.assertEqual(actual.id, '1C7Vb')
       self.assertEqual(actual.name, 'File1.pdf')
-      self.assertEqual(actual.client_modified, '2023-08-15T14:27:44.000Z')
+      self.assertEqual(actual.client_modified, datetime.datetime(2023, 8, 15, 14, 27, 44))
       self.assertEqual(actual.path_display, 'File1.pdf')
-      self.assertEqual(actual.size, '12345')
+      self.assertEqual(actual.size, 12345)
 
    def test_CloudFileMetadata_with_null_file_size_when_gfile_is_a_shortcut(self):
       gFile = self._createGoogleDriveFile('application/vnd.google-apps.shortcut')
 
       actual : CloudFileMetadata = self.sut.convert_GoogleDriveFile_to_CloudFileMetadata(gFile)
 
-      self.assertIsNone(actual.size)
+      self.assertEqual(actual.size, 0)
 
    def test_CloudFolderMetadata_when_gFolder_passed(self):
       gFile = GoogleDriveFile(metadata={'id':'1C7Vb', 'title':'Settings', 'mimeType':'application/vnd.google-apps.folder'})
