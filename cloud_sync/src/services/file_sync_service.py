@@ -14,7 +14,7 @@ class FileSyncronizationService:
         self._logger = logger
         self._logger.debug(config)
 
-    def map_recursive(self, cloud_path: str):
+    def map_files(self, cloud_path: str):
         self._logger.info('cloud_path={}'.format(cloud_path))
 
         local_root, local_dirs, local_files = self._localStore.list_folder(cloud_path)
@@ -24,7 +24,7 @@ class FileSyncronizationService:
         if self._recursive:
             process_cloud_folders = self.__map_cloud_folders_to_local(local_dirs, cloud_root, cloud_dirs)
             for cloud_folder in process_cloud_folders:
-                download_sub, upload_sub = self.map_recursive(cloud_folder)
+                download_sub, upload_sub = self.map_files(cloud_folder)
                 download_files.extend(download_sub)
                 upload_files.extend(upload_sub)
         else:
@@ -35,7 +35,7 @@ class FileSyncronizationService:
         upload_list = []
         download_list = []
 
-        return download_list, upload_list
+        #return download_list, upload_list
     
         for cloud_file_md in cloud_files:
             name = cloud_file_md.name

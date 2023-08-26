@@ -26,7 +26,7 @@ class CommandRunner:
         self._ui.output('Download files {}'.format(download))
         self._ui.output('Upload files {}'.format(upload))
 
-        download_files, upload_files = self._syncService.map_recursive(cloud_path)
+        download_files, upload_files = self._syncService.map_files(cloud_path)
         if download: self.__download_from_cloud(download_files)
         if upload: self.__upload_to_cloud(upload_files)
 
