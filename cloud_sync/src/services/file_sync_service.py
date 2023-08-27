@@ -99,6 +99,6 @@ class FileSyncronizationService:
         return True
 
     def __are_equal_by_content(self, local_path: str, cloud_path: str):
-        content_local, local_md = self._localStore.read(local_path)
-        response, cloud_md = self._cloudStore.read(cloud_path)
-        return response.content == content_local
+        local_content, local_md = self._localStore.read(local_path)
+        cloud_content, cloud_md = self._cloudStore.read(cloud_path)
+        return cloud_content == local_content

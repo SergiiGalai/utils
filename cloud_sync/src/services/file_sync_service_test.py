@@ -136,9 +136,7 @@ class FileSyncronizationServiceTests(unittest.TestCase):
       self.localStore.get_absolute_path = Mock(return_value= self._LOCAL_FILE_PATH)
 
    def _mock_cloud_read(self, file: CloudFileMetadata, content = _FILE_CONTENT):
-      cloudReadResponse=Mock()
-      cloudReadResponse.content = content
-      self.cloudStore.read = Mock(return_value=(cloudReadResponse, file))
+      self.cloudStore.read = Mock(return_value=(content, file))
 
    def _mock_local_read(self, file: LocalFileMetadata, content = _FILE_CONTENT):
       self.localStore.get_file_metadata = Mock(return_value= file)

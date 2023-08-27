@@ -9,9 +9,9 @@ class CloudStore(Protocol):
    def list_folder(self, cloud_path: str) -> tuple[str, list[CloudFolderMetadata], list[CloudFileMetadata]]: raise NotImplementedError
 
    @abstractmethod
-   def read(self, id: str) -> tuple[object, CloudFileMetadata]: raise NotImplementedError
+   def read(self, id: str) -> tuple[bytes, CloudFileMetadata]: raise NotImplementedError
 
    @abstractmethod
-   def save(self, cloud_path: str, content, local_md: LocalFileMetadata, overwrite: bool) -> object: raise NotImplementedError
+   def save(self, cloud_path: str, content: bytes, local_md: LocalFileMetadata, overwrite: bool): raise NotImplementedError
 
 

@@ -68,10 +68,10 @@ class GdriveStore(CloudStore):
    def __isFolder(self, entry):
       return entry['mimeType'] == 'application/vnd.google-apps.folder'
 
-   def read(self, id: str) -> tuple[object, CloudFileMetadata]:
+   def read(self, id: str) -> tuple[bytes, CloudFileMetadata]:
       self._logger.debug('id={}'.format(id))
       self.__setup_gdrive()
 
-   def save(self, cloud_path: str, content, local_md: LocalFileMetadata, overwrite: bool) -> object:
+   def save(self, cloud_path: str, content: bytes, local_md: LocalFileMetadata, overwrite: bool):
       self._logger.debug('cloud_path={}'.format(cloud_path))
       self.__setup_gdrive()

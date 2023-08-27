@@ -66,7 +66,7 @@ class LocalFileStore:
         self._logger.debug('result={}'.format(result))
         return str(result)
     
-    def save(self, cloud_path: str, content, client_modified):
+    def save(self, cloud_path: str, content: bytes, client_modified: datetime):
         file_path = self.get_absolute_path(cloud_path)
         if self._dry_run:
             self._logger.info('dry run mode. Skip saving file {}'.format(file_path))

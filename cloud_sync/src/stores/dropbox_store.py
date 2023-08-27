@@ -38,19 +38,19 @@ class DropboxStore(CloudStore):
     def __isFile(self, entry):
         return isinstance(entry, dropbox.files.FileMetadata)
 
-    def read(self, cloud_path: str) -> tuple[object, CloudFileMetadata]:
+    def read(self, cloud_path: str) -> tuple[bytes, CloudFileMetadata]:
         self._logger.debug('cloud_path={}'.format(cloud_path))
         with stopwatch('download', self._logger):
             try:
                 dbx_md, response = self._dbx.files_download(cloud_path)
                 cloud_file_md = self._mapper.convert_DropboxFileMetadata_to_CloudFileMetadata(dbx_md)
                 self._logger.debug('{} bytes; md: {}'.format(len(response.content), cloud_file_md.name))
-                return response, cloud_file_md
+                return response.content, cloud_file_md
             except dropbox.exceptions.HttpError:
                 self._logger.exception("*** Dropbox HTTP Error")
-                return None
+                return None, None
 
-    def save(self, cloud_path: str, content, local_md: LocalFileMetadata, overwrite: bool) -> object:
+    def save(self, cloud_path: str, content: bytes, local_md: LocalFileMetadata, overwrite: bool):
         self._logger.debug('cloud_path={}'.format(cloud_path))
         write_mode = (dropbox.files.WriteMode.overwrite if overwrite else dropbox.files.WriteMode.add)
         with stopwatch('upload %d bytes' % len(content), self._logger):
@@ -61,10 +61,8 @@ class DropboxStore(CloudStore):
                 try:
                     res = self._dbx.files_upload(content, cloud_path, write_mode, client_modified=local_md.client_modified, mute=True)
                     self._logger.debug('Uploaded as {}'.format(res.name))
-                    return res
                 except dropbox.exceptions.ApiError:
                     self._logger.exception('*** API error')
-                    return None
 
 @contextlib.contextmanager
 def stopwatch(message: str, logger: Logger):

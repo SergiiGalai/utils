@@ -49,9 +49,9 @@ class CommandRunner:
             if self._ui.confirm('Do you want to Download {} files above to {}?'.format(len(cloud_paths), self._localStore.get_absolute_path("/")), True):
                 for cloud_path in cloud_paths:
                     self._logger.info('downloading {} => {} ...'.format(cloud_path, self._localStore.get_absolute_path(cloud_path)))
-                    res, cloud_md = self._cloudStore.read(cloud_path)
+                    cloud_content, cloud_md = self._cloudStore.read(cloud_path)
                     self._logger.debug('downloaded file: {}'.format(cloud_md))
-                    self._localStore.save(cloud_path, res.content, cloud_md.client_modified)
+                    self._localStore.save(cloud_path, cloud_content, cloud_md.client_modified)
             else:
                 self._ui.message('download files cancelled')
         else:
