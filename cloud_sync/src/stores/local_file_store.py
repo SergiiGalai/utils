@@ -20,20 +20,33 @@ class LocalFileStore:
         self._root_path = config.local_dir
         self._logger = logger
 
-    def list_folder(self, cloud_path: str):
-        path = self.get_absolute_path(cloud_path)
-        self._logger.debug('path={}'.format(path))
+    def list_folder(self, cloud_path: str) -> tuple[str, list[str], list[str]]:
+        full_folder_path = self.get_absolute_path(cloud_path)
+        self._logger.debug('path={}'.format(full_folder_path))
 
-        if pathlib.Path(path).exists():
-            root, dirs, files = next(os.walk(path))
-            normalizedFiles = [unicodedata.normalize('NFC', f) for f in files]
-            self._logger.debug('files={}'.format(normalizedFiles))
-            return root, dirs, normalizedFiles
+        if pathlib.Path(full_folder_path).exists():
+            root, dirNames, fileNames = next(os.walk(full_folder_path))
+            normalizedFileNames = [unicodedata.normalize('NFC', f) for f in fileNames]
+            self._logger.debug('files={}'.format(normalizedFileNames))
+            return root, dirNames, normalizedFileNames
 
-        self._logger.warn('path `{}` does not exist'.format(path))
-        return path, [], []
+        self._logger.warn('path `{}` does not exist'.format(full_folder_path))
+        return full_folder_path, [], []
 
-    def read(self, full_path: str):
+    def list_folder_full(self, cloud_path: str) -> tuple[str, list, list[LocalFileMetadata]]:
+        full_folder_path = self.get_absolute_path(cloud_path)
+        self._logger.debug('path={}'.format(full_folder_path))
+
+        if pathlib.Path(full_folder_path).exists():
+            root, dirNames, fileNames = next(os.walk(full_folder_path))
+            normalizedFileNames = [unicodedata.normalize('NFC', f) for f in fileNames]
+            self._logger.debug('files={}'.format(normalizedFileNames))
+            return root, dirNames, normalizedFileNames
+
+        self._logger.warn('path `{}` does not exist'.format(full_folder_path))
+        return full_folder_path, [], []
+
+    def read(self, full_path: str) -> tuple[bytes, LocalFileMetadata]:
         md = self.get_file_metadata(full_path)
         with open(full_path, 'rb') as f:
             content = f.read()

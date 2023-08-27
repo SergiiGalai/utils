@@ -14,7 +14,7 @@ class GdriveStore(CloudStore):
       self._gdrive = None
       self._mapper = GoogleDriveFileMapper(logger)
 
-   def list_folder(self, cloud_path):
+   def list_folder(self, cloud_path: str) -> tuple[str, list[CloudFolderMetadata], list[CloudFileMetadata]]:
       self._logger.debug('cloud_path={}'.format(cloud_path))
       self.__setup_gdrive()
 
@@ -33,10 +33,10 @@ class GdriveStore(CloudStore):
 
       return cloud_path, cloud_dirs, cloud_files
 
-   def __list_folder(self, folder_id):
+   def __list_folder(self, folder_id) -> tuple[list[CloudFolderMetadata], list[CloudFileMetadata]]:
       query = "'root' in parents and trashed=false" if folder_id == '' else "parents in '{}' and trashed=false".format(folder_id)
-      cloud_dirs = []
-      cloud_files = []
+      cloud_dirs = list[CloudFolderMetadata]()
+      cloud_files = list[CloudFileMetadata]()
 
       file_list = self._gdrive.ListFile({'q': query}).GetList()
       for entry in file_list:
@@ -50,7 +50,7 @@ class GdriveStore(CloudStore):
             cloud_files.append(file)
       return cloud_dirs, cloud_files
 
-   def __split_path(self, path) -> list:
+   def __split_path(self, path: str) -> list[str]:
       parts = path.split('/')
       self._logger.debug(parts)
       return parts
@@ -59,7 +59,7 @@ class GdriveStore(CloudStore):
       if self._gdrive == None:
          self._gdrive = self.__get_gdrive()
 
-   def __get_gdrive(self):
+   def __get_gdrive(self) -> GoogleDrive:
       # Authenticate request
       gauth = GoogleAuth()
       gauth.LocalWebserverAuth()
@@ -68,10 +68,10 @@ class GdriveStore(CloudStore):
    def __isFolder(self, entry):
       return entry['mimeType'] == 'application/vnd.google-apps.folder'
 
-   def read(self, id: str):
+   def read(self, id: str) -> tuple[object, CloudFileMetadata]:
       self._logger.debug('id={}'.format(id))
       self.__setup_gdrive()
 
-   def save(self, cloud_path: str, content, local_md: LocalFileMetadata, overwrite: bool):
+   def save(self, cloud_path: str, content, local_md: LocalFileMetadata, overwrite: bool) -> object:
       self._logger.debug('cloud_path={}'.format(cloud_path))
       self.__setup_gdrive()

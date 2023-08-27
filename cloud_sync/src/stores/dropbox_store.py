@@ -15,10 +15,10 @@ class DropboxStore(CloudStore):
         self._logger = logger
         self._mapper = DropboxFileMapper(logger)
 
-    def list_folder(self, cloud_path):
+    def list_folder(self, cloud_path: str) -> tuple[str, list[CloudFolderMetadata], list[CloudFileMetadata]]:
         self._logger.debug('list path: {}'.format(cloud_path))
-        cloud_dirs = list()
-        cloud_files = list()
+        cloud_dirs = list[CloudFolderMetadata]()
+        cloud_files = list[CloudFileMetadata]()
         try:
             with stopwatch('list_folder', self._logger):
                 res = self._dbx.files_list_folder(cloud_path)
@@ -38,7 +38,7 @@ class DropboxStore(CloudStore):
     def __isFile(self, entry):
         return isinstance(entry, dropbox.files.FileMetadata)
 
-    def read(self, cloud_path: str):
+    def read(self, cloud_path: str) -> tuple[object, CloudFileMetadata]:
         self._logger.debug('cloud_path={}'.format(cloud_path))
         with stopwatch('download', self._logger):
             try:
@@ -50,7 +50,7 @@ class DropboxStore(CloudStore):
                 self._logger.exception("*** Dropbox HTTP Error")
                 return None
 
-    def save(self, cloud_path: str, content, local_md: LocalFileMetadata, overwrite: bool):
+    def save(self, cloud_path: str, content, local_md: LocalFileMetadata, overwrite: bool) -> object:
         self._logger.debug('cloud_path={}'.format(cloud_path))
         write_mode = (dropbox.files.WriteMode.overwrite if overwrite else dropbox.files.WriteMode.add)
         with stopwatch('upload %d bytes' % len(content), self._logger):

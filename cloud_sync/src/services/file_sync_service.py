@@ -4,7 +4,7 @@ from logging import Logger
 from src.configs.config import StorageConfig
 from src.stores.cloud_store import CloudStore
 from src.stores.local_file_store import LocalFileStore, LocalFileMetadata
-from src.stores.models import CloudFileMetadata
+from src.stores.models import CloudFileMetadata, CloudFolderMetadata
 
 class FileSyncronizationService:
     def __init__(self, localStore: LocalFileStore, cloudStore: CloudStore, config: StorageConfig, logger: Logger):
@@ -31,12 +31,10 @@ class FileSyncronizationService:
             self._logger.info('skipping subfolders because of configuration')
         return download_files, upload_files
 
-    def __map_cloud_files_to_local(self, local_root: str, local_files: list, cloud_root: str, cloud_files: list):
+    def __map_cloud_files_to_local(self, local_root: str, local_files: list[str], cloud_root: str, cloud_files: list[CloudFileMetadata]):
         upload_list = []
         download_list = []
 
-        #return download_list, upload_list
-    
         for cloud_file_md in cloud_files:
             name = cloud_file_md.name
             cloud_path = cloud_file_md.path_display
@@ -74,7 +72,7 @@ class FileSyncronizationService:
 
         return download_list, upload_list
 
-    def __map_cloud_folders_to_local(self, local_folders: list, cloud_root: str, cloud_folders: list):
+    def __map_cloud_folders_to_local(self, local_folders: list[str], cloud_root: str, cloud_folders: list[CloudFolderMetadata]):
         cloud_dict = dict(map(lambda f: (f.path_lower, f.path_display), cloud_folders))
 
         local_folder_paths = map(lambda name: urljoin(cloud_root, name), local_folders)
