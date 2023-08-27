@@ -10,10 +10,6 @@ from src.stores.models import CloudFileMetadata, CloudFolderMetadata
 
 class GoogleDriveFileMapperTests(unittest.TestCase):
 
-   @staticmethod
-   def _createGoogleDriveFile(mimeType):
-      return GoogleDriveFile(metadata={'id':'1C7Vb', 'title':'File1.pdf', 'modifiedDate':'2023-08-15T14:27:44.000Z', 'mimeType':mimeType, 'fileSize': '12345'})
-
    def setUp(self):
       logger = Mock(logging.Logger)
       self.sut = GoogleDriveFileMapper(logger)
@@ -46,6 +42,10 @@ class GoogleDriveFileMapperTests(unittest.TestCase):
       self.assertEqual(actual.path_lower, '1C7Vb')
       self.assertEqual(actual.path_display, 'Settings')
 
+   @staticmethod
+   def _createGoogleDriveFile(mimeType):
+      return GoogleDriveFile(metadata={'id':'1C7Vb', 'title':'File1.pdf', 'modifiedDate':'2023-08-15T14:27:44.000Z', 'mimeType':mimeType, 'fileSize': '12345'})
+
 
 class DropboxFileMapperTests(unittest.TestCase):
 
@@ -63,7 +63,7 @@ class DropboxFileMapperTests(unittest.TestCase):
 
       actual : CloudFileMetadata = self.sut.convert_DropboxFileMetadata_to_CloudFileMetadata(dbx_md)
 
-      self.assertEqual(actual.id, '/Path/File1.pdf')
+      self.assertEqual(actual.id, '/path/file1.pdf')
       self.assertEqual(actual.name, 'File1.pdf')
       self.assertEqual(actual.path_display, '/Path/File1.pdf')
       self.assertEqual(actual.client_modified, datetime.datetime(2017, 6, 13, 20, 16, 8))
@@ -78,7 +78,7 @@ class DropboxFileMapperTests(unittest.TestCase):
 
       actual : CloudFolderMetadata = self.sut.convert_DropboxFolderMetadata_to_CloudFolderMetadata(dbx_dir)
 
-      self.assertEqual(actual.id, '/Path/SubPath')
+      self.assertEqual(actual.id, '/path/subpath')
       self.assertEqual(actual.name, 'SubPath')
       self.assertEqual(actual.path_lower, '/path/subpath')
       self.assertEqual(actual.path_display, '/Path/SubPath')

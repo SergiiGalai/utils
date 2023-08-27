@@ -25,8 +25,8 @@ class DropboxFileMapper:
 
    def convert_DropboxFileMetadata_to_CloudFileMetadata(self, dbx_md: dropbox.files.FileMetadata) -> CloudFileMetadata:
       #self.logger.debug('file: {}'.format(dbx_md))
-      return CloudFileMetadata(dbx_md.path_display, dbx_md.name, dbx_md.path_display, dbx_md.client_modified, dbx_md.size)
+      return CloudFileMetadata(dbx_md.path_display.lower(), dbx_md.name, dbx_md.path_display, dbx_md.client_modified, dbx_md.size)
 
    def convert_DropboxFolderMetadata_to_CloudFolderMetadata(self, dbx_dir: dropbox.files.FolderMetadata) -> CloudFolderMetadata:
       #self.logger.debug('folder: {}'.format(dbx_dir))
-      return CloudFolderMetadata(dbx_dir.path_display, dbx_dir.name, dbx_dir.path_lower, dbx_dir.path_display)
+      return CloudFolderMetadata(dbx_dir.path_display.lower(), dbx_dir.name, dbx_dir.path_lower, dbx_dir.path_display)
