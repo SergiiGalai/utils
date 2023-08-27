@@ -4,8 +4,7 @@ from logging import Logger
 from src.configs.config import StorageConfig
 from src.stores.cloud_store import CloudStore
 from src.stores.file_mappers import GoogleDriveFileMapper
-from src.stores.models import CloudFileMetadata, CloudFolderMetadata
-from src.stores.local_file_store import LocalFileMetadata
+from src.stores.models import CloudFileMetadata, CloudFolderMetadata, LocalFileMetadata
 
 class GdriveStore(CloudStore):
    def __init__(self, conf: StorageConfig, logger: Logger):
@@ -14,7 +13,7 @@ class GdriveStore(CloudStore):
       self._gdrive = None
       self._mapper = GoogleDriveFileMapper(logger)
 
-   def list_folder(self, cloud_path: str) -> tuple[str, list[CloudFolderMetadata], list[CloudFileMetadata]]:
+   def list_folder(self, cloud_path: str) -> tuple[list[CloudFolderMetadata], list[CloudFileMetadata]]:
       self._logger.debug('cloud_path={}'.format(cloud_path))
       self.__setup_gdrive()
 
@@ -31,7 +30,7 @@ class GdriveStore(CloudStore):
             cloud_dirs, cloud_files = self.__list_folder(cloudFolder.id)
             folder_dict = {dir.path_display.lower(): dir for dir in cloud_dirs}
 
-      return cloud_path, cloud_dirs, cloud_files
+      return cloud_dirs, cloud_files
 
    def __list_folder(self, folder_id) -> tuple[list[CloudFolderMetadata], list[CloudFileMetadata]]:
       query = "'root' in parents and trashed=false" if folder_id == '' else "parents in '{}' and trashed=false".format(folder_id)

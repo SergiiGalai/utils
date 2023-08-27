@@ -5,8 +5,7 @@ from logging import Logger
 from src.configs.config import StorageConfig
 from src.stores.cloud_store import CloudStore
 from src.stores.file_mappers import DropboxFileMapper
-from src.stores.models import CloudFileMetadata, CloudFolderMetadata
-from src.stores.local_file_store import LocalFileMetadata
+from src.stores.models import CloudFileMetadata, CloudFolderMetadata, LocalFileMetadata
 
 class DropboxStore(CloudStore):
     def __init__(self, conf: StorageConfig, logger: Logger):
@@ -15,7 +14,7 @@ class DropboxStore(CloudStore):
         self._logger = logger
         self._mapper = DropboxFileMapper(logger)
 
-    def list_folder(self, cloud_path: str) -> tuple[str, list[CloudFolderMetadata], list[CloudFileMetadata]]:
+    def list_folder(self, cloud_path: str) -> tuple[list[CloudFolderMetadata], list[CloudFileMetadata]]:
         self._logger.debug('list path: {}'.format(cloud_path))
         cloud_dirs = list[CloudFolderMetadata]()
         cloud_files = list[CloudFileMetadata]()
@@ -33,7 +32,7 @@ class DropboxStore(CloudStore):
                 else:
                     cloud_dir: CloudFolderMetadata = self._mapper.convert_DropboxFolderMetadata_to_CloudFolderMetadata(entry)
                     cloud_dirs.append(cloud_dir)
-        return cloud_path, cloud_dirs, cloud_files
+        return cloud_dirs, cloud_files
 
     def __isFile(self, entry):
         return isinstance(entry, dropbox.files.FileMetadata)
