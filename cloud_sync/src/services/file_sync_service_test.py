@@ -92,6 +92,28 @@ class FileSyncronizationServiceTests(unittest.TestCase):
       self.assertListEqual(actual_download, [self._CLOUD_FILE_PATH])
       self.assertListEqual(actual_upload, [])
 
+   def test_files_to_download_when_local_files_with_the_same_name_in_different_folders_do_not_exist(self):
+      self._mock_local_list([])
+      cloud_file_root = self._createCloudFile()
+      cloud_file_subfolder = self._createCloudFile(cloud_file_path='/sub/2/f.txt')
+      self._mock_cloud_list([cloud_file_root, cloud_file_subfolder])
+
+      actual_download, actual_upload = self.sut.map_files(self._CLOUD_FOLDER_PATH)
+
+      self.assertListEqual(actual_download, [self._CLOUD_FILE_PATH, '/sub/2/f.txt'])
+      self.assertListEqual(actual_upload, [])
+
+   def test_files_to_upload_when_cloud_files_with_the_same_name_in_different_folders_do_not_exist(self):
+      local_file_root = self._createLocalFile()
+      local_file_subfolder = self._createLocalFile(cloud_file_path='/sub/2/f.txt', local_file_path='c:\\path\\sub\\2\\f.txt')
+      self._mock_local_list([local_file_root, local_file_subfolder])
+      self._mock_cloud_list([])
+
+      actual_download, actual_upload = self.sut.map_files(self._CLOUD_FOLDER_PATH)
+
+      self.assertListEqual(actual_download, [])
+      self.assertListEqual(actual_upload, [self._CLOUD_FILE_PATH, '/sub/2/f.txt'])
+
    def test_file_to_upload_when_local_file_is_newer_and_different_by_content(self):
       local_file = self._createLocalFile(4)
       self._mock_local_list([local_file])
@@ -120,18 +142,17 @@ class FileSyncronizationServiceTests(unittest.TestCase):
    def _createConfig(name='stub', local_dir = 'c:\\path', cloud_dir = _CLOUD_FOLDER_PATH, recursive = False):
       return StorageConfig(name, 'sync', '123456', local_dir, cloud_dir, True, recursive)
 
-   def _createLocalFile(self, modified_day = 1, size=2000):
-      return LocalFileMetadata(self._FILE_NAME, self._LOCAL_FILE_PATH, datetime.datetime(2023, 8, modified_day, 20, 14, 14), size )
+   def _createLocalFile(self, modified_day = 1, size=2000, cloud_file_path = _CLOUD_FILE_PATH, local_file_path = _LOCAL_FILE_PATH):
+      return LocalFileMetadata(self._FILE_NAME, cloud_file_path, local_file_path, datetime.datetime(2023, 8, modified_day, 20, 14, 14), size )
 
-   def _createCloudFile(self, modified_day = 1, size=2000):
-      return CloudFileMetadata(self._CLOUD_FILE_PATH, self._FILE_NAME, self._CLOUD_FILE_PATH, datetime.datetime(2023, 8, modified_day, 20, 14, 14), size )
+   def _createCloudFile(self, modified_day = 1, size=2000, cloud_file_path = _CLOUD_FILE_PATH):
+      return CloudFileMetadata(cloud_file_path, self._FILE_NAME, cloud_file_path, datetime.datetime(2023, 8, modified_day, 20, 14, 14), size )
 
    def _mock_cloud_list(self, files: list[CloudFileMetadata]):
       self.cloudStore.list_folder = Mock(return_value=([], files))
 
    def _mock_local_list(self, files: list[LocalFileMetadata]):
-      file_dict = {f.name: f for f in files}
-      self.localStore.list_folder = Mock(return_value=([], file_dict))
+      self.localStore.list_folder = Mock(return_value=([], files))
 
    def _mock_cloud_read(self, file: CloudFileMetadata, content = _FILE_CONTENT):
       self.cloudStore.read = Mock(return_value=(content, file))

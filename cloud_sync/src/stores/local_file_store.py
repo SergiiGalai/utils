@@ -13,34 +13,33 @@ class LocalFileStore:
         self._root_path = config.local_dir
         self._logger = logger
 
-    def list_folder(self, cloud_path: str) -> tuple[list, dict[str, LocalFileMetadata]]:
+    def list_folder(self, cloud_path: str) -> tuple[list, list[LocalFileMetadata]]:
         full_folder_path = self.get_absolute_path(cloud_path)
         self._logger.debug('path={}'.format(full_folder_path))
 
         if pathlib.Path(full_folder_path).exists():
             _, dir_names, file_names = next(os.walk(full_folder_path))
-            file_paths = [self._join_path(full_folder_path, unicodedata.normalize('NFC', f)) for f in file_names]
+            file_paths = [self._join_path(cloud_path, unicodedata.normalize('NFC', f)) for f in file_names] #list
             list_md = [self._get_file_metadata(f) for f in file_paths] #list
-            dict_md = {md.name: md for md in list_md} #dict
-            self._logger.debug('dict_md={}'.format(dict_md))
-            return dir_names, dict_md
+            self._logger.debug('list_md={}'.format(list_md))
+            return dir_names, list_md
 
         self._logger.warn('path `{}` does not exist'.format(full_folder_path))
-        return [], {}
+        return [], []
 
-    def read(self, full_path: str) -> tuple[bytes, LocalFileMetadata]:
-        md = self._get_file_metadata(full_path)
-        with open(full_path, 'rb') as f:
+    def read(self, cloud_path: str) -> tuple[bytes, LocalFileMetadata]:
+        md = self._get_file_metadata(cloud_path)
+        with open(md.full_path, 'rb') as f:
             content = f.read()
         return content, md
 
-    @staticmethod
-    def _get_file_metadata(full_path: str) -> LocalFileMetadata:
+    def _get_file_metadata(self, cloud_path: str) -> LocalFileMetadata:
+        full_path = self.get_absolute_path(cloud_path)
         name = os.path.basename(full_path)
         mtime = os.path.getmtime(full_path)
         client_modified = datetime(*time.gmtime(mtime)[:6])
         size = os.path.getsize(full_path)
-        return LocalFileMetadata(name, full_path, client_modified, size)
+        return LocalFileMetadata(name, cloud_path, full_path, client_modified, size)
 
     def get_absolute_path(self, cloud_path: str) -> str:
         return self._join_path(self._root_path, cloud_path)

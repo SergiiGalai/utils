@@ -19,6 +19,7 @@ class CloudFileMetadata:
 @dataclass
 class LocalFileMetadata:
     name: str
-    path: str
+    cloud_path: str
+    full_path: str
     client_modified: datetime
     size: int

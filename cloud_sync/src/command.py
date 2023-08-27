@@ -37,7 +37,7 @@ class CommandRunner:
                 for cloud_path in cloud_paths:
                     local_path = self._localStore.get_absolute_path(cloud_path)
                     self._logger.info('uploading {} => {} ...'.format(local_path, cloud_path))
-                    self.__upload_file(local_path, cloud_path, overwrite=True)
+                    self.__upload_file(cloud_path, overwrite=True)
             else:
                 self._ui.message('upload files cancelled')
         else:
@@ -57,7 +57,7 @@ class CommandRunner:
         else:
             self._ui.message('nothing to download')
 
-    def __upload_file(self, local_path: str, cloud_path: str, overwrite: bool):
-        self._logger.debug('local_path={}, cloud_path={}'.format(local_path, cloud_path))
-        content, local_md = self._localStore.read(local_path)
+    def __upload_file(self, cloud_path: str, overwrite: bool):
+        self._logger.debug('cloud_path={}'.format(cloud_path))
+        content, local_md = self._localStore.read(cloud_path)
         self._cloudStore.save(cloud_path, content, local_md, overwrite)
