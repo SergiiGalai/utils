@@ -35,7 +35,7 @@ class CommandRunner:
     def __upload_to_cloud(self, cloud_paths: list[str]):
         if cloud_paths:
             self._ui.message('Upload files\n - {}'.format('\n - '.join(map(str, cloud_paths))))
-            if self._ui.confirm('Do you want to Upload {} files above from {}?'.format(len(cloud_paths), self._localStore.get_absolute_path("/")), True):
+            if self._ui.confirm('Do you want to Upload {} files above from {}?'.format(len(cloud_paths), self._localStore.get_absolute_path()), True):
                 self._syncService.upload_files(cloud_paths)
             else:
                 self._ui.message('upload files cancelled')
@@ -45,7 +45,7 @@ class CommandRunner:
     def __download_from_cloud(self, cloud_paths: list[str]):
         if cloud_paths:
             self._ui.message('Download files\n - {}'.format('\n - '.join(map(str, cloud_paths))))
-            if self._ui.confirm('Do you want to Download {} files above to {}?'.format(len(cloud_paths), self._localStore.get_absolute_path("/")), True):
+            if self._ui.confirm('Do you want to Download {} files above to {}?'.format(len(cloud_paths), self._localStore.get_absolute_path()), True):
                 self._syncService.download_files(cloud_paths)
             else:
                 self._ui.message('download files cancelled')

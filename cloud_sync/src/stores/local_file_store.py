@@ -42,7 +42,7 @@ class LocalFileStore:
         size = os.path.getsize(full_path)
         return LocalFileMetadata(name, cloud_path, full_path, client_modified, size)
 
-    def get_absolute_path(self, cloud_path: str) -> str:
+    def get_absolute_path(self, cloud_path='') -> str:
         relative_path = cloud_path[1:] if cloud_path.startswith('/') else cloud_path
         result = pathlib.PurePath( self._root_path ).joinpath( relative_path )
         self._logger.debug('result={}'.format(result))

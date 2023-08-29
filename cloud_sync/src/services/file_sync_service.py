@@ -1,4 +1,4 @@
-from posixpath import join as urljoin
+import posixpath
 from logging import Logger
 from src.configs.config import StorageConfig
 from src.stores.cloud_store import CloudStore
@@ -13,16 +13,16 @@ class FileSyncronizationService:
         self._logger = logger
         self._logger.debug(config)
 
-    def map_files(self, cloud_path: str):
+    def map_files(self, cloud_path: str) -> tuple[list[str], list[str]]:
         self._logger.info('cloud_path={}'.format(cloud_path))
 
         local_dirs, local_files = self._localStore.list_folder(cloud_path)
         cloud_dirs, cloud_files = self._cloudStore.list_folder(cloud_path)
 
-        download_files, upload_files = self.__map_cloud_files_to_local(local_files, cloud_path, cloud_files)
+        download_files, upload_files = self.__map_cloud_files_to_local(local_files, cloud_files)
         if self._recursive:
-            process_cloud_folders = self.__map_cloud_folders_to_local(local_dirs, cloud_path, cloud_dirs)
-            for cloud_folder in process_cloud_folders:
+            cloud_folders = self.__map_cloud_folders_to_local(local_dirs, cloud_path, cloud_dirs)
+            for cloud_folder in cloud_folders:
                 download_sub, upload_sub = self.map_files(cloud_folder)
                 download_files.extend(download_sub)
                 upload_files.extend(upload_sub)
@@ -30,7 +30,7 @@ class FileSyncronizationService:
             self._logger.info('skipping subfolders because of configuration')
         return download_files, upload_files
 
-    def __map_cloud_files_to_local(self, local_files: list[LocalFileMetadata], cloud_path: str, cloud_files: list[CloudFileMetadata]):
+    def __map_cloud_files_to_local(self, local_files: list[LocalFileMetadata], cloud_files: list[CloudFileMetadata]) -> tuple[list[str], list[str]]:
         upload_list = list[str]()
         download_list = list[str]()
 
@@ -71,12 +71,12 @@ class FileSyncronizationService:
                         .format(cloud_path, cloud_md.client_modified, local_md.client_modified))
                     download_list.append(cloud_path)
 
-    def __map_cloud_folders_to_local(self, local_folders: list[str], cloud_root: str, cloud_folders: list[CloudFolderMetadata]):
-        cloud_dict = {folder.path_lower: folder.path_display for folder in cloud_folders}
+    def __map_cloud_folders_to_local(self, local_folders: list[str], cloud_root: str, cloud_folders: list[CloudFolderMetadata]) -> list[str]:
+        cloud_dict = {folder.path_lower: folder.path_display for folder in cloud_folders} #dict
 
-        local_folder_paths = [urljoin(cloud_root, folder) for folder in local_folders]
+        local_folder_paths = [posixpath.join(cloud_root, folder) for folder in local_folders] #list
         local_folder_paths_filtered = filter(lambda name: not name.startswith('.'), local_folder_paths)
-        local_dict = {path.lower(): path for path in local_folder_paths_filtered}
+        local_dict = {path.lower(): path for path in local_folder_paths_filtered} #dict
 
         union_keys = set(cloud_dict.keys()).union(local_dict.keys())
         union_list = list(map(lambda key: cloud_dict[key] if key in cloud_dict else local_dict[key], union_keys))
