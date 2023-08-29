@@ -20,7 +20,7 @@ def create_command_runner(config: StorageConfig, logger: logging.Logger) -> Comm
     cloudStore = CloudStoreFactory(logger).create(config)
     fileService = FileSyncronizationService(localStore, cloudStore, config, logger)
     ui = UI(logger)
-    return CommandRunner(localStore, cloudStore, fileService, ui, logger)
+    return CommandRunner(localStore, fileService, ui, logger)
 
 if __name__ == '__main__':
     conf = create_configuration(log)
