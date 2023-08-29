@@ -22,8 +22,9 @@ class GoogleDriveFileMapperTests(unittest.TestCase):
       self.assertEqual(actual.id, '1C7Vb')
       self.assertEqual(actual.name, 'File1.pdf')
       self.assertEqual(actual.client_modified, datetime.datetime(2023, 8, 15, 14, 27, 44))
-      self.assertEqual(actual.path_display, 'File1.pdf')
+      self.assertEqual(actual.cloud_path, 'File1.pdf')
       self.assertEqual(actual.size, 12345)
+      self.assertEqual(actual.content_hash, '0')
 
    def test_CloudFileMetadata_with_null_file_size_when_gfile_is_a_shortcut(self):
       gFile = self._createGoogleDriveFile('application/vnd.google-apps.shortcut')
@@ -40,7 +41,7 @@ class GoogleDriveFileMapperTests(unittest.TestCase):
       self.assertEqual(actual.id, '1C7Vb')
       self.assertEqual(actual.name, 'Settings')
       self.assertEqual(actual.path_lower, '1C7Vb')
-      self.assertEqual(actual.path_display, 'Settings')
+      self.assertEqual(actual.cloud_path, 'Settings')
 
    @staticmethod
    def _createGoogleDriveFile(mimeType):
@@ -58,16 +59,19 @@ class DropboxFileMapperTests(unittest.TestCase):
       dbx_md.id = 'id:AABBCC'
       dbx_md.name = 'File1.pdf'
       dbx_md.path_display = '/Path/File1.pdf'
+      dbx_md.path_lower = '/path/file1.pdf'
       dbx_md.client_modified = datetime.datetime(2017, 6, 13, 20, 16, 8)
+      dbx_md.content_hash = '1234567890'
       dbx_md.size = 12345
 
       actual : CloudFileMetadata = self.sut.convert_DropboxFileMetadata_to_CloudFileMetadata(dbx_md)
 
       self.assertEqual(actual.id, '/path/file1.pdf')
       self.assertEqual(actual.name, 'File1.pdf')
-      self.assertEqual(actual.path_display, '/Path/File1.pdf')
+      self.assertEqual(actual.cloud_path, '/Path/File1.pdf')
       self.assertEqual(actual.client_modified, datetime.datetime(2017, 6, 13, 20, 16, 8))
       self.assertEqual(actual.size, 12345)
+      self.assertEqual(actual.content_hash, '1234567890')
 
    def test_result_contains_converted_dropbox_folder(self):
       dbx_dir = Mock(dropbox.files.FolderMetadata)
@@ -81,4 +85,4 @@ class DropboxFileMapperTests(unittest.TestCase):
       self.assertEqual(actual.id, '/path/subpath')
       self.assertEqual(actual.name, 'SubPath')
       self.assertEqual(actual.path_lower, '/path/subpath')
-      self.assertEqual(actual.path_display, '/Path/SubPath')
+      self.assertEqual(actual.cloud_path, '/Path/SubPath')

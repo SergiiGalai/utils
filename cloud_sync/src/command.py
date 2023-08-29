@@ -2,6 +2,7 @@ from logging import Logger
 from src.clients.ui import UI
 from src.services.file_sync_service import FileSyncronizationService
 from src.stores.local_file_store import LocalFileStore
+from src.stores.models import CloudFileMetadata, LocalFileMetadata
 
 class CommandRunner:
     COMMAND_DOWNLOAD = 'download'
@@ -32,21 +33,21 @@ class CommandRunner:
         if download: self.__download_from_cloud(download_files)
         if upload: self.__upload_to_cloud(upload_files)
 
-    def __upload_to_cloud(self, cloud_paths: list[str]):
-        if cloud_paths:
-            self._ui.message('Upload files\n - {}'.format('\n - '.join(map(str, cloud_paths))))
-            if self._ui.confirm('Do you want to Upload {} files above from {}?'.format(len(cloud_paths), self._localStore.get_absolute_path()), True):
-                self._syncService.upload_files(cloud_paths)
+    def __upload_to_cloud(self, local_files: list[LocalFileMetadata]):
+        if local_files:
+            self._ui.message('Upload files\n - {}'.format('\n - '.join(map(str, local_files))))
+            if self._ui.confirm('Do you want to Upload {} files above from {}?'.format(len(local_files), self._localStore.get_absolute_path()), True):
+                self._syncService.upload_files(local_files)
             else:
                 self._ui.message('upload files cancelled')
         else:
             self._ui.message('nothing to upload')
 
-    def __download_from_cloud(self, cloud_paths: list[str]):
-        if cloud_paths:
-            self._ui.message('Download files\n - {}'.format('\n - '.join(map(str, cloud_paths))))
-            if self._ui.confirm('Do you want to Download {} files above to {}?'.format(len(cloud_paths), self._localStore.get_absolute_path()), True):
-                self._syncService.download_files(cloud_paths)
+    def __download_from_cloud(self, cloud_files: list[CloudFileMetadata]):
+        if cloud_files:
+            self._ui.message('Download files\n - {}'.format('\n - '.join(map(str, cloud_files))))
+            if self._ui.confirm('Do you want to Download {} files above to {}?'.format(len(cloud_files), self._localStore.get_absolute_path()), True):
+                self._syncService.download_files(cloud_files)
             else:
                 self._ui.message('download files cancelled')
         else:

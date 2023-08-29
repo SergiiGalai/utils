@@ -13,7 +13,7 @@ class FileSyncronizationService:
         self._logger = logger
         self._logger.debug(config)
 
-    def map_files(self, cloud_path: str) -> tuple[list[str], list[str]]:
+    def map_files(self, cloud_path: str) -> tuple[list[CloudFileMetadata], list[LocalFileMetadata]]:
         self._logger.info('cloud_path={}'.format(cloud_path))
 
         local_dirs, local_files = self._localStore.list_folder(cloud_path)
@@ -30,31 +30,32 @@ class FileSyncronizationService:
             self._logger.info('skipping subfolders because of configuration')
         return download_files, upload_files
 
-    def __map_cloud_files_to_local(self, local_files: list[LocalFileMetadata], cloud_files: list[CloudFileMetadata]) -> tuple[list[str], list[str]]:
-        upload_list = list[str]()
-        download_list = list[str]()
+    def __map_cloud_files_to_local(self, local_files: list[LocalFileMetadata], cloud_files: list[CloudFileMetadata]) -> tuple[list[CloudFileMetadata], list[LocalFileMetadata]]:
+        upload_list = list[LocalFileMetadata]()
+        download_list = list[CloudFileMetadata]()
 
         local_files_dict = {md.cloud_path.lower(): md for md in local_files} #dict
-        cloud_files_dict = {md.path_display.lower(): md for md in cloud_files} #dict
+        cloud_files_dict = {md.cloud_path.lower(): md for md in cloud_files} #dict
 
         for key, cloud_md in cloud_files_dict.items():
             local_md = local_files_dict.get(key)
             if local_md is None:
-                self._logger.info('file does NOT exist locally - {} => download list'.format(cloud_md.path_display))
-                download_list.append(cloud_md.path_display)
+                self._logger.info('file does NOT exist locally - {} => download list'.format(cloud_md.cloud_path))
+                download_list.append(cloud_md)
             else:
                 self._logger.debug('file exists locally - {}'.format(key))
                 self._add_to_list_by_file_comparison(local_md, cloud_md, upload_list, download_list)
 
         for key, local_md in local_files_dict.items():
             if key in cloud_files_dict.keys(): continue
-            self._logger.info('file NOT found on dropbox - {} => upload list'.format(local_md.full_path))
-            upload_list.append(local_md.cloud_path)
+            self._logger.info('file NOT found on dropbox - {} => upload list'.format(local_md.local_path))
+            upload_list.append(local_md)
 
         return download_list, upload_list
 
-    def _add_to_list_by_file_comparison(self, local_md: LocalFileMetadata, cloud_md: CloudFileMetadata, upload_list: list[str], download_list: list[str]):
-        cloud_path = cloud_md.path_display
+    def _add_to_list_by_file_comparison(self, local_md: LocalFileMetadata, cloud_md: CloudFileMetadata,
+                                        upload_list: list[LocalFileMetadata], download_list: list[CloudFileMetadata]):
+        cloud_path = cloud_md.cloud_path
         if self.__are_equal_by_metadata(local_md, cloud_md):
             self._logger.info('file {} already synced [by metadata]. Skip'.format(cloud_path))
         else:
@@ -64,15 +65,15 @@ class FileSyncronizationService:
             else:
                 if local_md.client_modified > cloud_md.client_modified:
                     self._logger.info('file {} has changed since last sync (cloud={} < local={}) => upload list'
-                        .format(local_md.full_path, cloud_md.client_modified, local_md.client_modified))
-                    upload_list.append(cloud_path)
+                        .format(local_md.local_path, cloud_md.client_modified, local_md.client_modified))
+                    upload_list.append(local_md)
                 else:
                     self._logger.info('file {} has changed since last sync (cloud={} > local={}) => download list'
                         .format(cloud_path, cloud_md.client_modified, local_md.client_modified))
-                    download_list.append(cloud_path)
+                    download_list.append(cloud_md)
 
     def __map_cloud_folders_to_local(self, local_folders: list[str], cloud_root: str, cloud_folders: list[CloudFolderMetadata]) -> list[str]:
-        cloud_dict = {folder.path_lower: folder.path_display for folder in cloud_folders} #dict
+        cloud_dict = {folder.path_lower: folder.cloud_path for folder in cloud_folders} #dict
 
         local_folder_paths = [posixpath.join(cloud_root, folder) for folder in local_folders] #list
         local_folder_paths_filtered = filter(lambda name: not name.startswith('.'), local_folder_paths)
@@ -103,16 +104,17 @@ class FileSyncronizationService:
         return cloud_content == local_content
 
 
-    def download_files(self, cloud_paths: list[str]):
-        for cloud_path in cloud_paths:
+    def download_files(self, cloud_files: list[CloudFileMetadata]):
+        for cloud_file in cloud_files:
+            cloud_path = cloud_file.cloud_path
             self._logger.info('downloading {} => {} ...'.format(cloud_path, self._localStore.get_absolute_path(cloud_path)))
             cloud_content, cloud_md = self._cloudStore.read(cloud_path)
             self._logger.debug('downloaded file: {}'.format(cloud_md))
             self._localStore.save(cloud_path, cloud_content, cloud_md.client_modified)
 
-    def upload_files(self, cloud_paths: list[str]):
-        for cloud_path in cloud_paths:
-            local_path = self._localStore.get_absolute_path(cloud_path)
-            self._logger.info('uploading {} => {} ...'.format(local_path, cloud_path))
+    def upload_files(self, local_files: list[LocalFileMetadata]):
+        for local_file in local_files:
+            cloud_path = local_file.cloud_path
+            self._logger.info('uploading {} => {} ...'.format(local_file.local_path, cloud_path))
             content, local_md = self._localStore.read(cloud_path)
             self._cloudStore.save(cloud_path, content, local_md, overwrite=True)

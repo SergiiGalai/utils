@@ -6,20 +6,21 @@ class CloudFolderMetadata:
     id: str
     name: str
     path_lower: str
-    path_display: str
+    cloud_path: str
 
 @dataclass
 class CloudFileMetadata:
     id: str
     name: str
-    path_display: str
+    cloud_path: str
     client_modified: datetime
     size: int
+    content_hash: str
     
 @dataclass
 class LocalFileMetadata:
     name: str
     cloud_path: str
-    full_path: str
+    local_path: str
     client_modified: datetime
     size: int

@@ -30,17 +30,17 @@ class LocalFileStore:
 
     def read(self, cloud_path: str) -> tuple[bytes, LocalFileMetadata]:
         md = self._get_file_metadata(cloud_path)
-        with open(md.full_path, 'rb') as f:
+        with open(md.local_path, 'rb') as f:
             content = f.read()
         return content, md
 
     def _get_file_metadata(self, cloud_path: str) -> LocalFileMetadata:
-        full_path = self.get_absolute_path(cloud_path)
-        name = os.path.basename(full_path)
-        mtime = os.path.getmtime(full_path)
+        local_path = self.get_absolute_path(cloud_path)
+        name = os.path.basename(local_path)
+        mtime = os.path.getmtime(local_path)
         client_modified = datetime(*time.gmtime(mtime)[:6])
-        size = os.path.getsize(full_path)
-        return LocalFileMetadata(name, cloud_path, full_path, client_modified, size)
+        size = os.path.getsize(local_path)
+        return LocalFileMetadata(name, cloud_path, local_path, client_modified, size)
 
     def get_absolute_path(self, cloud_path='') -> str:
         relative_path = cloud_path[1:] if cloud_path.startswith('/') else cloud_path

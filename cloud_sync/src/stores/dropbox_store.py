@@ -7,6 +7,7 @@ from src.stores.cloud_store import CloudStore
 from src.stores.file_mappers import DropboxFileMapper
 from src.stores.models import CloudFileMetadata, CloudFolderMetadata, LocalFileMetadata
 
+#dropbox files https://dropbox-sdk-python.readthedocs.io/en/latest/api/files.html
 class DropboxStore(CloudStore):
     def __init__(self, conf: StorageConfig, logger: Logger):
         self._dbx = dropbox.Dropbox(conf.token)

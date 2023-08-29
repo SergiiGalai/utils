@@ -45,12 +45,13 @@ class FileSyncronizationServiceTests(unittest.TestCase):
       self.assertListEqual(actual_upload, [])
 
    def test_file_to_download_when_local_storage_has_no_file(self):
+      cloud_file = self._createCloudFile()
       self._mock_local_list([])
-      self._mock_cloud_list([self._createCloudFile()])
+      self._mock_cloud_list([cloud_file])
 
       actual_download, actual_upload = self.sut.map_files(self._CLOUD_FOLDER_PATH)
 
-      self.assertListEqual(actual_download, [self._CLOUD_FILE_PATH])
+      self.assertListEqual(actual_download, [cloud_file])
       self.assertListEqual(actual_upload, [])
 
    def test_empty_lists_when_local_storage_file_is_older_but_same_by_content(self):
@@ -76,7 +77,7 @@ class FileSyncronizationServiceTests(unittest.TestCase):
 
       actual_download, actual_upload = self.sut.map_files(self._CLOUD_FOLDER_PATH)
 
-      self.assertListEqual(actual_download, [self._CLOUD_FILE_PATH])
+      self.assertListEqual(actual_download, [cloud_file])
       self.assertListEqual(actual_upload, [])
 
    def test_file_to_download_when_local_file_is_different_by_content_and_size(self):
@@ -89,7 +90,7 @@ class FileSyncronizationServiceTests(unittest.TestCase):
 
       actual_download, actual_upload = self.sut.map_files(self._CLOUD_FOLDER_PATH)
 
-      self.assertListEqual(actual_download, [self._CLOUD_FILE_PATH])
+      self.assertListEqual(actual_download, [cloud_file])
       self.assertListEqual(actual_upload, [])
 
    def test_files_to_download_when_local_files_with_the_same_name_in_different_folders_do_not_exist(self):
@@ -100,7 +101,7 @@ class FileSyncronizationServiceTests(unittest.TestCase):
 
       actual_download, actual_upload = self.sut.map_files(self._CLOUD_FOLDER_PATH)
 
-      self.assertListEqual(actual_download, [self._CLOUD_FILE_PATH, '/Sub/2/f.txt'])
+      self.assertListEqual(actual_download, [cloud_file_root, cloud_file_subfolder])
       self.assertListEqual(actual_upload, [])
 
    def test_files_to_upload_when_cloud_files_with_the_same_name_in_different_folders_do_not_exist(self):
@@ -112,7 +113,7 @@ class FileSyncronizationServiceTests(unittest.TestCase):
       actual_download, actual_upload = self.sut.map_files(self._CLOUD_FOLDER_PATH)
 
       self.assertListEqual(actual_download, [])
-      self.assertListEqual(actual_upload, [self._CLOUD_FILE_PATH, '/Sub/2/f.txt'])
+      self.assertListEqual(actual_upload, [local_file_root, local_file_subfolder])
 
    def test_file_to_upload_when_local_file_is_newer_and_different_by_content(self):
       local_file = self._createLocalFile(4)
@@ -125,7 +126,7 @@ class FileSyncronizationServiceTests(unittest.TestCase):
       actual_download, actual_upload = self.sut.map_files(self._CLOUD_FOLDER_PATH)
 
       self.assertListEqual(actual_download, [])
-      self.assertListEqual(actual_upload, [self._CLOUD_FILE_PATH])
+      self.assertListEqual(actual_upload, [local_file])
 
    def test_file_to_upload_when_no_file_in_the_cloud(self):
       local_file = self._createLocalFile()
@@ -135,7 +136,7 @@ class FileSyncronizationServiceTests(unittest.TestCase):
       actual_download, actual_upload = self.sut.map_files(self._CLOUD_FOLDER_PATH)
 
       self.assertListEqual(actual_download, [])
-      self.assertListEqual(actual_upload, [self._CLOUD_FILE_PATH])
+      self.assertListEqual(actual_upload, [local_file])
 
 
    @staticmethod
@@ -146,7 +147,7 @@ class FileSyncronizationServiceTests(unittest.TestCase):
       return LocalFileMetadata(self._FILE_NAME, cloud_file_path, local_file_path, datetime.datetime(2023, 8, modified_day, 20, 14, 14), size )
 
    def _createCloudFile(self, modified_day = 1, size=2000, cloud_file_path = _CLOUD_FILE_PATH):
-      return CloudFileMetadata(cloud_file_path, self._FILE_NAME, cloud_file_path, datetime.datetime(2023, 8, modified_day, 20, 14, 14), size )
+      return CloudFileMetadata(cloud_file_path, self._FILE_NAME, cloud_file_path, datetime.datetime(2023, 8, modified_day, 20, 14, 14), size, '123321' )
 
    def _mock_cloud_list(self, files: list[CloudFileMetadata]):
       self._cloudStore.list_folder = Mock(return_value=([], files))

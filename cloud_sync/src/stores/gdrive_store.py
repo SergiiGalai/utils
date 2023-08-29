@@ -6,6 +6,8 @@ from src.stores.cloud_store import CloudStore
 from src.stores.file_mappers import GoogleDriveFileMapper
 from src.stores.models import CloudFileMetadata, CloudFolderMetadata, LocalFileMetadata
 
+#https://pythonhosted.org/PyDrive/pydrive.html#pydrive.files.GoogleDriveFile
+#https://developers.google.com/drive/api/guides/search-files
 class GdriveStore(CloudStore):
    def __init__(self, conf: StorageConfig, logger: Logger):
       self._dry_run = conf.dry_run
@@ -18,7 +20,7 @@ class GdriveStore(CloudStore):
       self.__setup_gdrive()
 
       cloud_dirs, cloud_files = self.__list_folder('')
-      folder_dict = {dir.path_display.lower(): dir for dir in cloud_dirs}
+      folder_dict = {dir.cloud_path.lower(): dir for dir in cloud_dirs}
       self._logger.debug('dictionary={}'.format(folder_dict))
 
       for part in self.__split_path(cloud_path):
@@ -28,7 +30,7 @@ class GdriveStore(CloudStore):
             cloudFolder : CloudFolderMetadata = folder_dict[key]
             self._logger.debug('next folder=`{}` id=`{}`'.format(part, cloudFolder.id))
             cloud_dirs, cloud_files = self.__list_folder(cloudFolder.id)
-            folder_dict = {dir.path_display.lower(): dir for dir in cloud_dirs}
+            folder_dict = {dir.cloud_path.lower(): dir for dir in cloud_dirs}
 
       return cloud_dirs, cloud_files
 
@@ -58,8 +60,8 @@ class GdriveStore(CloudStore):
       if self._gdrive == None:
          self._gdrive = self.__get_gdrive()
 
+   #https://pythonhosted.org/PyDrive/oauth.html
    def __get_gdrive(self) -> GoogleDrive:
-      # Authenticate request
       gauth = GoogleAuth()
       gauth.LocalWebserverAuth()
       return GoogleDrive(gauth)
