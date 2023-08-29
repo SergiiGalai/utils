@@ -9,18 +9,18 @@ from src.stores.local_file_store import LocalFileStore
 from src.stores.models import CloudFileMetadata, CloudFolderMetadata, LocalFileMetadata
 
 class FileSyncronizationServiceTests(unittest.TestCase):
-   _LOCAL_FILE_PATH = 'c:\\path\\sub\\f.txt'
-   _CLOUD_FOLDER_PATH = '/sub'
-   _CLOUD_FILE_PATH = '/sub/f.txt'
+   _LOCAL_FILE_PATH = 'C:\\Path\\CloudRoot\\sub\\f.txt'
+   _CLOUD_FOLDER_PATH = '/Sub'
+   _CLOUD_FILE_PATH = '/Sub/f.txt'
    _FILE_NAME = 'f.txt'
    _FILE_CONTENT = '111'
 
    def setUp(self):
       logger = Mock(logging.Logger)
-      self.localStore = Mock(LocalFileStore)
-      self.cloudStore = Mock(CloudStore)
-      self.config = self._createConfig()
-      self.sut = FileSyncronizationService(self.localStore, self.cloudStore, self.config, logger)
+      self._localStore = Mock(LocalFileStore)
+      self._cloudStore = Mock(CloudStore)
+      self._config = self._createConfig()
+      self.sut = FileSyncronizationService(self._localStore, self._cloudStore, self._config, logger)
 
    def test_empty_lists_when_local_and_cloud_files_match_by_metadata(self):
       self._mock_local_list([self._createLocalFile()])
@@ -95,24 +95,24 @@ class FileSyncronizationServiceTests(unittest.TestCase):
    def test_files_to_download_when_local_files_with_the_same_name_in_different_folders_do_not_exist(self):
       self._mock_local_list([])
       cloud_file_root = self._createCloudFile()
-      cloud_file_subfolder = self._createCloudFile(cloud_file_path='/sub/2/f.txt')
+      cloud_file_subfolder = self._createCloudFile(cloud_file_path='/Sub/2/f.txt')
       self._mock_cloud_list([cloud_file_root, cloud_file_subfolder])
 
       actual_download, actual_upload = self.sut.map_files(self._CLOUD_FOLDER_PATH)
 
-      self.assertListEqual(actual_download, [self._CLOUD_FILE_PATH, '/sub/2/f.txt'])
+      self.assertListEqual(actual_download, [self._CLOUD_FILE_PATH, '/Sub/2/f.txt'])
       self.assertListEqual(actual_upload, [])
 
    def test_files_to_upload_when_cloud_files_with_the_same_name_in_different_folders_do_not_exist(self):
       local_file_root = self._createLocalFile()
-      local_file_subfolder = self._createLocalFile(cloud_file_path='/sub/2/f.txt', local_file_path='c:\\path\\sub\\2\\f.txt')
+      local_file_subfolder = self._createLocalFile(cloud_file_path='/Sub/2/f.txt', local_file_path='c:\\path\\sub\\2\\f.txt')
       self._mock_local_list([local_file_root, local_file_subfolder])
       self._mock_cloud_list([])
 
       actual_download, actual_upload = self.sut.map_files(self._CLOUD_FOLDER_PATH)
 
       self.assertListEqual(actual_download, [])
-      self.assertListEqual(actual_upload, [self._CLOUD_FILE_PATH, '/sub/2/f.txt'])
+      self.assertListEqual(actual_upload, [self._CLOUD_FILE_PATH, '/Sub/2/f.txt'])
 
    def test_file_to_upload_when_local_file_is_newer_and_different_by_content(self):
       local_file = self._createLocalFile(4)
@@ -149,13 +149,13 @@ class FileSyncronizationServiceTests(unittest.TestCase):
       return CloudFileMetadata(cloud_file_path, self._FILE_NAME, cloud_file_path, datetime.datetime(2023, 8, modified_day, 20, 14, 14), size )
 
    def _mock_cloud_list(self, files: list[CloudFileMetadata]):
-      self.cloudStore.list_folder = Mock(return_value=([], files))
+      self._cloudStore.list_folder = Mock(return_value=([], files))
 
    def _mock_local_list(self, files: list[LocalFileMetadata]):
-      self.localStore.list_folder = Mock(return_value=([], files))
+      self._localStore.list_folder = Mock(return_value=([], files))
 
    def _mock_cloud_read(self, file: CloudFileMetadata, content = _FILE_CONTENT):
-      self.cloudStore.read = Mock(return_value=(content, file))
+      self._cloudStore.read = Mock(return_value=(content, file))
 
    def _mock_local_read(self, file: LocalFileMetadata, content = _FILE_CONTENT):
-      self.localStore.read = Mock(return_value=(content, file))
+      self._localStore.read = Mock(return_value=(content, file))
