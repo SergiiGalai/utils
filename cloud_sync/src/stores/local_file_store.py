@@ -1,6 +1,7 @@
 import time
 import os
 import pathlib
+import posixpath
 import unicodedata
 from datetime import datetime, timezone
 from logging import Logger
@@ -42,13 +43,16 @@ class LocalFileStore:
         return LocalFileMetadata(name, cloud_path, full_path, client_modified, size)
 
     def get_absolute_path(self, cloud_path: str) -> str:
-        return self._join_path(self._root_path, cloud_path)
+        relative_path = cloud_path[1:] if cloud_path.startswith('/') else cloud_path
+        result = pathlib.PurePath( self._root_path ).joinpath( relative_path )
+        self._logger.debug('result={}'.format(result))
+        return str(result)
 
     def _join_path(self, path1: str, path2: str) -> str:
         relative_path = path2[1:] if path2.startswith('/') else path2
-        result = pathlib.PurePath( path1 ).joinpath( relative_path )
+        result = posixpath.join(path1, relative_path)
         self._logger.debug('result={}'.format(result))
-        return str(result)
+        return result
 
     def save(self, cloud_path: str, content: bytes, client_modified: datetime):
         file_path = self.get_absolute_path(cloud_path)

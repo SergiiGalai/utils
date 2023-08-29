@@ -6,19 +6,6 @@ from src.configs.config import StorageConfigProvider
 
 class StorageConfigProviderTests(unittest.TestCase):
 
-    @staticmethod
-    def _createArgs(config=None, storage=None, local_dir=None):
-        args = Namespace()
-        args.config = config
-        args.storage = storage
-        args.action = None
-        args.token = None
-        args.local_dir = local_dir
-        args.cloud_dir = None
-        args.dryrun = None
-        args.recursive = None
-        return args
-
     def setUp(self):
         logger = Mock(logging.Logger)
         self.sut = StorageConfigProvider(logger)
@@ -70,3 +57,16 @@ class StorageConfigProviderTests(unittest.TestCase):
         actual = self.sut.get_config(args)
 
         self.assertFalse(actual.local_dir.startswith('.'))
+
+    @staticmethod
+    def _createArgs(config=None, storage=None, local_dir=None):
+        args = Namespace()
+        args.config = config
+        args.storage = storage
+        args.action = None
+        args.token = None
+        args.local_dir = local_dir
+        args.cloud_dir = None
+        args.dryrun = None
+        args.recursive = None
+        return args
