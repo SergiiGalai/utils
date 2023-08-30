@@ -14,7 +14,7 @@ class UiMock(UI):
       print(message)
 
    def message(self, message):
-      print('==='+message)
+      print('===' + message)
 
    def confirm(self, message, default):
       print(message)

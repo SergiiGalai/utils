@@ -4,7 +4,7 @@ import dropbox
 from logging import Logger
 from src.configs.config import StorageConfig
 from src.stores.cloud_store import CloudStore
-from src.stores.file_mappers import DropboxFileMapper
+from src.stores.dropbox_file_mapper import DropboxFileMapper
 from src.stores.models import CloudFileMetadata, CloudFolderMetadata, LocalFileMetadata
 
 #dropbox files https://dropbox-sdk-python.readthedocs.io/en/latest/api/files.html

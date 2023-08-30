@@ -3,7 +3,7 @@ from pydrive.auth import GoogleAuth
 from logging import Logger
 from src.configs.config import StorageConfig
 from src.stores.cloud_store import CloudStore
-from src.stores.file_mappers import GoogleDriveFileMapper
+from src.stores.gdrive_file_mapper import GoogleDriveFileMapper
 from src.stores.models import CloudFileMetadata, CloudFolderMetadata, LocalFileMetadata
 
 #https://pythonhosted.org/PyDrive/pydrive.html#pydrive.files.GoogleDriveFile
