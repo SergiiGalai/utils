@@ -140,7 +140,7 @@ class FileSyncronizationServiceTests(unittest.TestCase):
 
 
    @staticmethod
-   def _createConfig(name='stub', local_dir = 'c:\\path', cloud_dir = _CLOUD_FOLDER_PATH, recursive = False):
+   def _createConfig(name='GDRIVE', local_dir = 'c:\\path', cloud_dir = _CLOUD_FOLDER_PATH, recursive = False):
       return StorageConfig(name, 'sync', '123456', local_dir, cloud_dir, True, recursive)
 
    def _createLocalFile(self, modified_day = 1, size=2000, cloud_file_path = _CLOUD_FILE_PATH, local_file_path = _LOCAL_FILE_PATH):

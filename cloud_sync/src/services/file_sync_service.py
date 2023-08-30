@@ -1,6 +1,7 @@
 import posixpath
 from logging import Logger
 from src.configs.config import StorageConfig
+from src.services.file_comparer_factory import FileComparerFactory
 from src.stores.cloud_store import CloudStore
 from src.stores.local_file_store import LocalFileStore
 from src.stores.models import CloudFileMetadata, CloudFolderMetadata, LocalFileMetadata
@@ -11,6 +12,7 @@ class FileSyncronizationService:
         self._cloudStore = cloudStore
         self._recursive = config.recursive
         self._logger = logger
+        self._file_comparer = FileComparerFactory(localStore, cloudStore, logger).create(config)
         self._logger.debug(config)
 
     def map_files(self, cloud_path: str) -> tuple[list[CloudFileMetadata], list[LocalFileMetadata]]:
@@ -56,21 +58,15 @@ class FileSyncronizationService:
     def _add_to_list_by_file_comparison(self, local_md: LocalFileMetadata, cloud_md: CloudFileMetadata,
                                         upload_list: list[LocalFileMetadata], download_list: list[CloudFileMetadata]):
         cloud_path = cloud_md.cloud_path
-        if self.__are_equal_by_metadata(local_md, cloud_md):
-            self._logger.info('file {} already synced [by metadata]. Skip'.format(cloud_path))
-        else:
-            self._logger.info('file {} exists with different stats. Downloading temporary'.format(cloud_path))
-            if self.__are_equal_by_content(cloud_path):
-                self._logger.info('file {} already synced [by content]. Skip'.format(cloud_path))
+        if not self._file_comparer.are_equal(local_md, cloud_md):
+            if local_md.client_modified > cloud_md.client_modified:
+                self._logger.info('file {} has changed since last sync (cloud={} < local={}) => upload list'
+                    .format(local_md.local_path, cloud_md.client_modified, local_md.client_modified))
+                upload_list.append(local_md)
             else:
-                if local_md.client_modified > cloud_md.client_modified:
-                    self._logger.info('file {} has changed since last sync (cloud={} < local={}) => upload list'
-                        .format(local_md.local_path, cloud_md.client_modified, local_md.client_modified))
-                    upload_list.append(local_md)
-                else:
-                    self._logger.info('file {} has changed since last sync (cloud={} > local={}) => download list'
-                        .format(cloud_path, cloud_md.client_modified, local_md.client_modified))
-                    download_list.append(cloud_md)
+                self._logger.info('file {} has changed since last sync (cloud={} > local={}) => download list'
+                    .format(cloud_path, cloud_md.client_modified, local_md.client_modified))
+                download_list.append(cloud_md)
 
     def __map_cloud_folders_to_local(self, local_folders: list[str], cloud_root: str, cloud_folders: list[CloudFolderMetadata]) -> list[str]:
         cloud_dict = {folder.path_lower: folder.cloud_path for folder in cloud_folders} #dict
@@ -82,27 +78,6 @@ class FileSyncronizationService:
         union_keys = set(cloud_dict.keys()).union(local_dict.keys())
         union_list = list(map(lambda key: cloud_dict[key] if key in cloud_dict else local_dict[key], union_keys))
         return union_list
-
-    def __are_equal_by_metadata(self, local_md: LocalFileMetadata, cloud_md: CloudFileMetadata):
-        equal_by_name = (local_md.name == cloud_md.name)
-        equal_by_size = (local_md.size == cloud_md.size)
-        equal_by_date = (local_md.client_modified == cloud_md.client_modified)
-        if not equal_by_name:
-            self._logger.info('file diff by name: local={}, remote={}'.format(local_md.name, cloud_md.name))
-            return False
-        if not equal_by_size:
-            self._logger.info('file={} diff by size: local={}, remote={}'.format(local_md.name, local_md.size, cloud_md.size))
-            return False
-        if not equal_by_date:
-            self._logger.info('file={} diff by date: local={}, remote={}'.format(local_md.name, local_md.client_modified, cloud_md.client_modified))
-            return False
-        return True
-
-    def __are_equal_by_content(self, cloud_path: str):
-        local_content, _ = self._localStore.read(cloud_path)
-        cloud_content, _ = self._cloudStore.read(cloud_path)
-        return cloud_content == local_content
-
 
     def download_files(self, cloud_files: list[CloudFileMetadata]):
         for cloud_file in cloud_files:

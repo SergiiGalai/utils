@@ -12,5 +12,3 @@ class CloudStore(Protocol):
 
    @abstractmethod
    def save(self, cloud_path: str, content: bytes, local_md: LocalFileMetadata, overwrite: bool): raise NotImplementedError
-
-
