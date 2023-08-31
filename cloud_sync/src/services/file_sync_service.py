@@ -1,18 +1,18 @@
 import posixpath
 from logging import Logger
 from src.configs.config import StorageConfig
-from src.services.file_comparer_factory import FileComparerFactory
-from src.stores.cloud_store import CloudStore
+from src.services.file_comparer import FileComparison
+from src.services.storage_strategy import StorageStrategy
 from src.stores.local_file_store import LocalFileStore
 from src.stores.models import CloudFileMetadata, CloudFolderMetadata, LocalFileMetadata
 
 class FileSyncronizationService:
-    def __init__(self, localStore: LocalFileStore, cloudStore: CloudStore, config: StorageConfig, logger: Logger):
+    def __init__(self, strategy: StorageStrategy, localStore: LocalFileStore, config: StorageConfig, logger: Logger):
         self._localStore = localStore
-        self._cloudStore = cloudStore
+        self._cloudStore = strategy.create_cloud_store()
+        self._fileComparer = strategy.create_file_comparer()
         self._recursive = config.recursive
         self._logger = logger
-        self._file_comparer = FileComparerFactory(localStore, cloudStore, logger).create(config)
         self._logger.debug(config)
 
     def map_files(self, cloud_path: str) -> tuple[list[CloudFileMetadata], list[LocalFileMetadata]]:
@@ -58,7 +58,7 @@ class FileSyncronizationService:
     def _add_to_list_by_file_comparison(self, local_md: LocalFileMetadata, cloud_md: CloudFileMetadata,
                                         upload_list: list[LocalFileMetadata], download_list: list[CloudFileMetadata]):
         cloud_path = cloud_md.cloud_path
-        if not self._file_comparer.are_equal(local_md, cloud_md):
+        if self._fileComparer.are_equal(local_md, cloud_md) == FileComparison.EQUAL_BY_CONTENT:
             if local_md.client_modified > cloud_md.client_modified:
                 self._logger.info('file {} has changed since last sync (cloud={} < local={}) => upload list'
                     .format(local_md.local_path, cloud_md.client_modified, local_md.client_modified))
