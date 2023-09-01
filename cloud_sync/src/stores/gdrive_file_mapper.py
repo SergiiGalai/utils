@@ -13,7 +13,7 @@ class GoogleDriveFileMapper:
       #self.logger.debug('file: {}'.format(gFile))
       fileSize = 0 if gFile['mimeType'] == 'application/vnd.google-apps.shortcut' else int(gFile['fileSize'])
       modified = datetime.datetime.strptime(gFile['modifiedDate'], '%Y-%m-%dT%H:%M:%S.%fZ')
-      return CloudFileMetadata(gFile['id'], gFile['title'], gFile['title'], modified, fileSize, '0')
+      return CloudFileMetadata(gFile['title'], gFile['title'], modified, fileSize, gFile['id'], '0')
 
    def convert_GoogleDriveFile_to_CloudFolderMetadata(self, gFile: GoogleDriveFile) -> CloudFolderMetadata:
       #self.logger.debug('file: {}'.format(gFile))

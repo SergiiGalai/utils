@@ -1,7 +1,7 @@
 import posixpath
 from logging import Logger
 from src.configs.config import StorageConfig
-from src.services.file_comparer import FileComparison
+from src.services.file_comparer import FileAction
 from src.services.storage_strategy import StorageStrategy
 from src.stores.local_file_store import LocalFileStore
 from src.stores.models import CloudFileMetadata, CloudFolderMetadata, LocalFileMetadata
@@ -14,7 +14,7 @@ class FileSyncronizationService:
         self._recursive = config.recursive
         self._logger = logger
         self._logger.debug(config)
-
+    
     def map_files(self, cloud_path: str) -> tuple[list[CloudFileMetadata], list[LocalFileMetadata]]:
         self._logger.info('cloud_path={}'.format(cloud_path))
 
@@ -49,23 +49,22 @@ class FileSyncronizationService:
                 self._add_to_list_by_file_comparison(local_md, cloud_md, upload_list, download_list)
 
         for key, local_md in local_files_dict.items():
-            if key in cloud_files_dict.keys(): continue
-            self._logger.info('file NOT found on dropbox - {} => upload list'.format(local_md.local_path))
-            upload_list.append(local_md)
+            if not self._exists_in_cloud(key, cloud_files_dict):
+                self._logger.info('file does NOT exist in the cloud - {} => upload list'.format(local_md.local_path))
+                upload_list.append(local_md)
 
         return download_list, upload_list
 
+    def _exists_in_cloud(self, file_key:str, files: dict[str, CloudFileMetadata]) -> bool:
+        return file_key in files.keys()
+
     def _add_to_list_by_file_comparison(self, local_md: LocalFileMetadata, cloud_md: CloudFileMetadata,
                                         upload_list: list[LocalFileMetadata], download_list: list[CloudFileMetadata]):
-        cloud_path = cloud_md.cloud_path
-        if self._fileComparer.are_equal(local_md, cloud_md) == FileComparison.EQUAL_BY_CONTENT:
-            if local_md.client_modified > cloud_md.client_modified:
-                self._logger.info('file {} has changed since last sync (cloud={} < local={}) => upload list'
-                    .format(local_md.local_path, cloud_md.client_modified, local_md.client_modified))
+        file_action = self._fileComparer.get_file_action(local_md, cloud_md)
+        match file_action:
+            case FileAction.UPLOAD:
                 upload_list.append(local_md)
-            else:
-                self._logger.info('file {} has changed since last sync (cloud={} > local={}) => download list'
-                    .format(cloud_path, cloud_md.client_modified, local_md.client_modified))
+            case FileAction.DOWNLOAD:
                 download_list.append(cloud_md)
 
     def __map_cloud_folders_to_local(self, local_folders: list[str], cloud_root: str, cloud_folders: list[CloudFolderMetadata]) -> list[str]:

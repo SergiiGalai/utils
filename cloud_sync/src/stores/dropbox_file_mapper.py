@@ -10,7 +10,7 @@ class DropboxFileMapper:
    #dropbox content hash: https://www.dropbox.com/developers/reference/content-hash
    def convert_DropboxFileMetadata_to_CloudFileMetadata(self, dbx_md: dropbox.files.FileMetadata) -> CloudFileMetadata:
       #self.logger.debug('file: {}'.format(dbx_md))
-      return CloudFileMetadata(dbx_md.path_lower, dbx_md.name, dbx_md.path_display, dbx_md.client_modified, dbx_md.size, dbx_md.content_hash)
+      return CloudFileMetadata(dbx_md.name, dbx_md.path_display, dbx_md.client_modified, dbx_md.size, dbx_md.path_lower, dbx_md.content_hash)
 
    def convert_DropboxFolderMetadata_to_CloudFolderMetadata(self, dbx_dir: dropbox.files.FolderMetadata) -> CloudFolderMetadata:
       #self.logger.debug('folder: {}'.format(dbx_dir))
