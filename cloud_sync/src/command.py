@@ -1,5 +1,5 @@
 from logging import Logger
-from src.clients.ui import UI
+from src.clients.logger_ui import LoggerUi
 from src.services.file_sync_service import FileSyncronizationService
 from src.stores.local_file_store import LocalFileStore
 from src.stores.models import CloudFileMetadata, LocalFileMetadata
@@ -9,7 +9,7 @@ class CommandRunner:
     COMMAND_UPLOAD = 'upload'
     COMMAND_SYNC = 'sync'
 
-    def __init__(self, localStore: LocalFileStore, syncService: FileSyncronizationService, ui: UI, logger: Logger):
+    def __init__(self, localStore: LocalFileStore, syncService: FileSyncronizationService, ui: LoggerUi, logger: Logger):
         self._localStore = localStore
         self._syncService = syncService
         self._ui = ui
@@ -29,9 +29,9 @@ class CommandRunner:
         self._ui.output('Download files {}'.format(download))
         self._ui.output('Upload files {}'.format(upload))
 
-        download_files, upload_files = self._syncService.map_files(cloud_path)
-        if download: self.__download_from_cloud(download_files)
-        if upload: self.__upload_to_cloud(upload_files)
+        map_files = self._syncService.map_files(cloud_path)
+        if download: self.__download_from_cloud(map_files.download)
+        if upload: self.__upload_to_cloud(map_files.upload)
 
     def __upload_to_cloud(self, local_files: list[LocalFileMetadata]):
         if local_files:

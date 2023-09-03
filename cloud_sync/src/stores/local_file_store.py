@@ -40,7 +40,7 @@ class LocalFileStore:
         mtime = os.path.getmtime(local_path)
         client_modified = datetime(*time.gmtime(mtime)[:6])
         size = os.path.getsize(local_path)
-        return LocalFileMetadata(name, cloud_path, local_path, client_modified, size)
+        return LocalFileMetadata(name, cloud_path, client_modified, size, local_path)
 
     def get_absolute_path(self, cloud_path='') -> str:
         relative_path = cloud_path[1:] if cloud_path.startswith('/') else cloud_path

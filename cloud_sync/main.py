@@ -6,7 +6,7 @@ from src.command import CommandRunner
 from src.services.file_sync_service import FileSyncronizationService
 from src.services.storage_strategy import StorageStrategyFactory
 from src.stores.local_file_store import LocalFileStore
-from src.clients.ui import UI
+from src.clients.logger_ui import LoggerUi
 
 log = logger.setupLogger(logging.DEBUG)
 
@@ -19,7 +19,7 @@ def create_command_runner(config: StorageConfig, logger: logging.Logger) -> Comm
     localStore = LocalFileStore(config, logger)
     strategy = StorageStrategyFactory(localStore, logger).create(config)
     fileService = FileSyncronizationService(strategy, localStore, config, logger)
-    ui = UI(logger)
+    ui = LoggerUi(logger)
     return CommandRunner(localStore, fileService, ui, logger)
 
 if __name__ == '__main__':

@@ -2,6 +2,7 @@ import posixpath
 from logging import Logger
 from src.configs.config import StorageConfig
 from src.services.file_comparer import FileAction
+from src.services.models import MapFilesResult
 from src.services.storage_strategy import StorageStrategy
 from src.stores.local_file_store import LocalFileStore
 from src.stores.models import CloudFileMetadata, CloudFolderMetadata, LocalFileMetadata
@@ -15,26 +16,24 @@ class FileSyncronizationService:
         self._logger = logger
         self._logger.debug(config)
     
-    def map_files(self, cloud_path: str) -> tuple[list[CloudFileMetadata], list[LocalFileMetadata]]:
+    def map_files(self, cloud_path: str) -> MapFilesResult:
         self._logger.info('cloud_path={}'.format(cloud_path))
 
         local_dirs, local_files = self._localStore.list_folder(cloud_path)
         cloud_dirs, cloud_files = self._cloudStore.list_folder(cloud_path)
 
-        download_files, upload_files = self.__map_cloud_files_to_local(local_files, cloud_files)
+        result = self.__map_cloud_files_to_local(local_files, cloud_files)
         if self._recursive:
             cloud_folders = self.__map_cloud_folders_to_local(local_dirs, cloud_path, cloud_dirs)
             for cloud_folder in cloud_folders:
-                download_sub, upload_sub = self.map_files(cloud_folder)
-                download_files.extend(download_sub)
-                upload_files.extend(upload_sub)
+                result_sub = self.map_files(cloud_folder)
+                result.extend(result_sub)
         else:
             self._logger.info('skipping subfolders because of configuration')
-        return download_files, upload_files
+        return result
 
-    def __map_cloud_files_to_local(self, local_files: list[LocalFileMetadata], cloud_files: list[CloudFileMetadata]) -> tuple[list[CloudFileMetadata], list[LocalFileMetadata]]:
-        upload_list = list[LocalFileMetadata]()
-        download_list = list[CloudFileMetadata]()
+    def __map_cloud_files_to_local(self, local_files: list[LocalFileMetadata], cloud_files: list[CloudFileMetadata]) -> MapFilesResult:
+        result = MapFilesResult()
 
         local_files_dict = {md.cloud_path.lower(): md for md in local_files} #dict
         cloud_files_dict = {md.cloud_path.lower(): md for md in cloud_files} #dict
@@ -43,29 +42,28 @@ class FileSyncronizationService:
             local_md = local_files_dict.get(key)
             if local_md is None:
                 self._logger.info('file does NOT exist locally - {} => download list'.format(cloud_md.cloud_path))
-                download_list.append(cloud_md)
+                result.add_download(cloud_md)
             else:
                 self._logger.debug('file exists locally - {}'.format(key))
-                self._add_to_list_by_file_comparison(local_md, cloud_md, upload_list, download_list)
+                self._add_to_list_by_file_comparison(local_md, cloud_md, result)
 
         for key, local_md in local_files_dict.items():
             if not self._exists_in_cloud(key, cloud_files_dict):
                 self._logger.info('file does NOT exist in the cloud - {} => upload list'.format(local_md.local_path))
-                upload_list.append(local_md)
+                result.add_upload(local_md)
 
-        return download_list, upload_list
+        return result
 
     def _exists_in_cloud(self, file_key:str, files: dict[str, CloudFileMetadata]) -> bool:
         return file_key in files.keys()
 
-    def _add_to_list_by_file_comparison(self, local_md: LocalFileMetadata, cloud_md: CloudFileMetadata,
-                                        upload_list: list[LocalFileMetadata], download_list: list[CloudFileMetadata]):
+    def _add_to_list_by_file_comparison(self, local_md: LocalFileMetadata, cloud_md: CloudFileMetadata, result: MapFilesResult):
         file_action = self._fileComparer.get_file_action(local_md, cloud_md)
         match file_action:
             case FileAction.UPLOAD:
-                upload_list.append(local_md)
+                result.add_upload(local_md)
             case FileAction.DOWNLOAD:
-                download_list.append(cloud_md)
+                result.add_download(cloud_md)
 
     def __map_cloud_folders_to_local(self, local_folders: list[str], cloud_root: str, cloud_folders: list[CloudFolderMetadata]) -> list[str]:
         cloud_dict = {folder.path_lower: folder.cloud_path for folder in cloud_folders} #dict

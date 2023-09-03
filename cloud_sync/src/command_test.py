@@ -2,14 +2,15 @@ import datetime
 import unittest
 from unittest.mock import Mock
 import logging
-from src.clients.ui import UI
+from src.clients.logger_ui import LoggerUi
 
 from src.command import CommandRunner
 from src.services.file_sync_service import FileSyncronizationService
+from src.services.models import MapFilesResult
 from src.stores.local_file_store import LocalFileStore
 from src.stores.models import CloudFileMetadata, LocalFileMetadata
 
-class UiMock(UI):
+class UiMock(LoggerUi):
    def output(self, message):
       print(message)
 
@@ -49,10 +50,11 @@ class CommandRunnerTests(unittest.TestCase):
       self.assertRaises(NotImplementedError, self.sut.run, 'sYnc', '')
 
    def _set_map_files(self, download = [], upload = []):
-      self._syncService.map_files = Mock(return_value=(download, upload))
+      map_files = MapFilesResult(download, upload)
+      self._syncService.map_files = Mock(return_value=map_files)
 
    def _createLocalFile(self, file_name, cloud_file_path, local_file_path, modified_day = 1, size=2000):
-      return LocalFileMetadata(file_name, cloud_file_path, local_file_path, datetime.datetime(2023, 8, modified_day, 20, 14, 14), size )
+      return LocalFileMetadata(file_name, cloud_file_path, datetime.datetime(2023, 8, modified_day, 20, 14, 14), size, local_file_path )
 
    def _createCloudFile(self, file_name, cloud_file_path, modified_day = 1, size=2000):
-      return CloudFileMetadata(cloud_file_path, file_name, cloud_file_path, datetime.datetime(2023, 8, modified_day, 20, 14, 14), size, '123321' )
+      return CloudFileMetadata(file_name, cloud_file_path, datetime.datetime(2023, 8, modified_day, 20, 14, 14), size, cloud_file_path, '123321' )
