@@ -9,8 +9,7 @@ class CommandRunner:
     COMMAND_UPLOAD = 'upload'
     COMMAND_SYNC = 'sync'
 
-    def __init__(self, localStore: LocalFileStore, syncService: FileSyncronizationService, ui: LoggerUi, logger: Logger):
-        self._localStore = localStore
+    def __init__(self, syncService: FileSyncronizationService, ui: LoggerUi, logger: Logger):
         self._syncService = syncService
         self._ui = ui
         self._logger = logger
@@ -36,7 +35,7 @@ class CommandRunner:
     def __upload_to_cloud(self, local_files: list[LocalFileMetadata]):
         if local_files:
             self._ui.message('Upload files\n - {}'.format('\n - '.join(map(str, local_files))))
-            if self._ui.confirm('Do you want to Upload {} files above from {}?'.format(len(local_files), self._localStore.get_absolute_path()), True):
+            if self._ui.confirm('Do you want to Upload {} files above from {}?'.format(len(local_files), self._syncService.local_root), True):
                 self._syncService.upload_files(local_files)
             else:
                 self._ui.message('upload files cancelled')
@@ -46,7 +45,7 @@ class CommandRunner:
     def __download_from_cloud(self, cloud_files: list[CloudFileMetadata]):
         if cloud_files:
             self._ui.message('Download files\n - {}'.format('\n - '.join(map(str, cloud_files))))
-            if self._ui.confirm('Do you want to Download {} files above to {}?'.format(len(cloud_files), self._localStore.get_absolute_path()), True):
+            if self._ui.confirm('Do you want to Download {} files above to {}?'.format(len(cloud_files), self._syncService.local_root), True):
                 self._syncService.download_files(cloud_files)
             else:
                 self._ui.message('download files cancelled')

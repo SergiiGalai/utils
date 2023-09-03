@@ -20,7 +20,7 @@ def create_command_runner(config: StorageConfig, logger: logging.Logger) -> Comm
     strategy = StorageStrategyFactory(localStore, logger).create(config)
     fileService = FileSyncronizationService(strategy, localStore, config, logger)
     ui = LoggerUi(logger)
-    return CommandRunner(localStore, fileService, ui, logger)
+    return CommandRunner(fileService, ui, logger)
 
 if __name__ == '__main__':
     conf = create_configuration(log)

@@ -24,15 +24,14 @@ class CommandRunnerTests(unittest.TestCase):
 
    def setUp(self):
       logger = Mock(logging.Logger)
-      localStore = Mock(LocalFileStore)
-      localStore.get_absolute_path = Mock(return_value='C:\\Path\\CloudRoot')
-
-      self._syncService = Mock(FileSyncronizationService)
-      self._syncService.download_files = Mock()
-      self._syncService.upload_files = Mock()
-
+      syncService = Mock(FileSyncronizationService)
+      syncService = Mock(FileSyncronizationService)
+      syncService.download_files = Mock()
+      syncService.upload_files = Mock()
+      syncService.local_root = Mock(return_value='C:\\Path\\CloudRoot')
       ui = UiMock(logger)
-      self.sut = CommandRunner(localStore, self._syncService, ui, logger)
+      self._syncService = syncService
+      self.sut = CommandRunner(self._syncService, ui, logger)
 
    def test_ui_output_using_debugger_and_debug_console(self):
       local1 = self._createLocalFile('f1.pdf', '/f1.pdf', 'c:\\root\\f1.pdf')

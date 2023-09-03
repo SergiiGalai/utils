@@ -15,7 +15,11 @@ class FileSyncronizationService:
         self._recursive = config.recursive
         self._logger = logger
         self._logger.debug(config)
-    
+
+    @property
+    def local_root(self) -> str:
+        return self._localStore.get_absolute_path()
+
     def map_files(self, cloud_path: str) -> MapFilesResult:
         self._logger.info('cloud_path={}'.format(cloud_path))
 
