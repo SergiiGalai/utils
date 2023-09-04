@@ -70,6 +70,7 @@ class LocalFileStore:
         if self._dry_run:
             self._logger.info('Dry Run mode. path {}'.format(path))
         else:
+            self._logger.info('ensure {} path is exist or create'.format(path))
             pathlib.Path(path).mkdir(parents=True, exist_ok=True)
 
     def _set_modification_time(self, file_path: str, modified: datetime):
