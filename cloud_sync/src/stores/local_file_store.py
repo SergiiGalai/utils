@@ -57,7 +57,7 @@ class LocalFileStore:
     def save(self, cloud_path: str, content: bytes, client_modified: datetime):
         file_path = self.get_absolute_path(cloud_path)
         if self._dry_run:
-            self._logger.info('dry run mode. Skip saving file {}'.format(file_path))
+            self._logger.warn('dry run mode. Skip saving file {}'.format(file_path))
         else:
             base_path = os.path.dirname(file_path)
             self._try_create_local_folder(base_path)
@@ -68,14 +68,14 @@ class LocalFileStore:
 
     def _try_create_local_folder(self, path: str):
         if self._dry_run:
-            self._logger.info('Dry Run mode. path {}'.format(path))
+            self._logger.warn('Dry Run mode. path {}'.format(path))
         else:
             self._logger.info('ensure {} path is exist or create'.format(path))
             pathlib.Path(path).mkdir(parents=True, exist_ok=True)
 
     def _set_modification_time(self, file_path: str, modified: datetime):
         if self._dry_run:
-            self._logger.info('Dry Run mode. file_path {}, modified={}'.format(os.path.basename(file_path), modified))
+            self._logger.warn('Dry Run mode. file_path {}, modified={}'.format(os.path.basename(file_path), modified))
         else:
             self._logger.debug('file_path={}, modified={}'.format(file_path, modified))
             atime = os.stat(file_path).st_atime

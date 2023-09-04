@@ -64,6 +64,7 @@ class GdriveStore(CloudStore):
    def __get_gdrive(self) -> GoogleDrive:
       gauth = GoogleAuth()
       gauth.LocalWebserverAuth()
+      gauth.Authorize()
       return GoogleDrive(gauth)
 
    def __isFolder(self, entry):
@@ -72,6 +73,12 @@ class GdriveStore(CloudStore):
    def read(self, id: str) -> tuple[bytes, CloudFileMetadata]:
       self._logger.debug('id={}'.format(id))
       self.__setup_gdrive()
+      metadata = dict(id = id)
+      google_file = self._gdrive.CreateFile(metadata)
+      google_file.GetContentFile( filename= id )
+      content_bytes = google_file.content    # BytesIO
+      bytes = content_bytes.read()
+      return bytes, self._mapper.convert_GoogleDriveFile_to_CloudFileMetadata(google_file)
 
    def save(self, cloud_path: str, content: bytes, local_md: LocalFileMetadata, overwrite: bool):
       self._logger.debug('cloud_path={}'.format(cloud_path))

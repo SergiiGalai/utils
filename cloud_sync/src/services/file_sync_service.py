@@ -84,7 +84,7 @@ class FileSyncronizationService:
         for cloud_file in cloud_files:
             cloud_path = cloud_file.cloud_path
             self._logger.info('downloading {} => {} ...'.format(cloud_path, self._localStore.get_absolute_path(cloud_path)))
-            cloud_content, cloud_md = self._cloudStore.read(cloud_path)
+            cloud_content, cloud_md = self._cloudStore.read(cloud_file.id)
             self._logger.debug('downloaded file: {}'.format(cloud_md))
             self._localStore.save(cloud_path, cloud_content, cloud_md.client_modified)
 
