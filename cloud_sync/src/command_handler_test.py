@@ -4,7 +4,7 @@ from unittest.mock import Mock
 import logging
 from src.clients.logger_ui import LoggerUi
 
-from src.command import CommandRunner
+from src.command_handler import CommandHandler
 from src.services.file_sync_service import FileSyncronizationService
 from src.services.models import MapFilesResult
 from src.stores.local_file_store import LocalFileStore
@@ -20,7 +20,7 @@ class UiMock(LoggerUi):
    def confirm(self, message, default):
       print(message)
 
-class CommandRunnerTests(unittest.TestCase):
+class CommandHandlerTests(unittest.TestCase):
 
    def setUp(self):
       logger = Mock(logging.Logger)
@@ -31,7 +31,7 @@ class CommandRunnerTests(unittest.TestCase):
       syncService.local_root = Mock(return_value='C:\\Path\\CloudRoot')
       ui = UiMock(logger)
       self._syncService = syncService
-      self.sut = CommandRunner(self._syncService, ui, logger)
+      self.sut = CommandHandler(self._syncService, ui, logger)
 
    def test_ui_output_using_debugger_and_debug_console(self):
       local1 = self._createLocalFile('f1.pdf', '/f1.pdf', 'c:\\root\\f1.pdf')
@@ -39,14 +39,14 @@ class CommandRunnerTests(unittest.TestCase):
       cloud1 = self._createCloudFile('f3.pdf', '/f3.pdf')
       cloud2 = self._createCloudFile('f4.pdf', '/sub/f4.pdf')
       self._set_map_files([cloud1, cloud2], [local1, local2])
-      self.sut.run('sync', '/path')
+      self.sut.handle('sync', '/path')
       pass
 
    def test_run_throws_when_unknown_command_passed(self):
-      self.assertRaises(NotImplementedError, self.sut.run, 'unknownCommand', '')
-      self.assertRaises(NotImplementedError, self.sut.run, 'DOWNLOAD', '')
-      self.assertRaises(NotImplementedError, self.sut.run, 'Upload', '')
-      self.assertRaises(NotImplementedError, self.sut.run, 'sYnc', '')
+      self.assertRaises(NotImplementedError, self.sut.handle, 'unknownCommand', '')
+      self.assertRaises(NotImplementedError, self.sut.handle, 'DOWNLOAD', '')
+      self.assertRaises(NotImplementedError, self.sut.handle, 'Upload', '')
+      self.assertRaises(NotImplementedError, self.sut.handle, 'sYnc', '')
 
    def _set_map_files(self, download = [], upload = []):
       map_files = MapFilesResult(download, upload)

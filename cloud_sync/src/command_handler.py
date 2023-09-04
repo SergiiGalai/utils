@@ -4,7 +4,7 @@ from src.services.file_sync_service import FileSyncronizationService
 from src.stores.local_file_store import LocalFileStore
 from src.stores.models import CloudFileMetadata, LocalFileMetadata
 
-class CommandRunner:
+class CommandHandler:
     COMMAND_DOWNLOAD = 'download'
     COMMAND_UPLOAD = 'upload'
     COMMAND_SYNC = 'sync'
@@ -14,7 +14,7 @@ class CommandRunner:
         self._ui = ui
         self._logger = logger
 
-    def run(self, command:str, cloud_path: str):
+    def handle(self, command:str, cloud_path: str):
         match command:
             case self.COMMAND_DOWNLOAD: self.__sync(cloud_path, download=True, upload=False)
             case self.COMMAND_UPLOAD: self.__sync(cloud_path, download=False, upload=True)

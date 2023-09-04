@@ -2,7 +2,7 @@ import src.logs.logger_colorer  #add log highlighting
 import src.logs.logger as logger
 import logging
 from src.configs.config import StorageConfigProvider, StorageConfig
-from src.command import CommandRunner
+from src.command_handler import CommandHandler
 from src.services.file_sync_service import FileSyncronizationService
 from src.services.storage_strategy import StorageStrategyFactory
 from src.stores.local_file_store import LocalFileStore
@@ -15,14 +15,14 @@ def create_configuration(logger: logging.Logger):
     arguments = configProvider.parse_arguments()
     return configProvider.get_config(arguments)
 
-def create_command_runner(config: StorageConfig, logger: logging.Logger) -> CommandRunner:
+def create_command_handler(config: StorageConfig, logger: logging.Logger) -> CommandHandler:
     localStore = LocalFileStore(config, logger)
     strategy = StorageStrategyFactory(localStore, logger).create(config)
     fileService = FileSyncronizationService(strategy, localStore, config, logger)
     ui = LoggerUi(logger)
-    return CommandRunner(fileService, ui, logger)
+    return CommandHandler(fileService, ui, logger)
 
 if __name__ == '__main__':
     conf = create_configuration(log)
-    commandRunner = create_command_runner(conf, log)
-    commandRunner.run(conf.action, conf.cloud_dir)
+    commandHandler = create_command_handler(conf, log)
+    commandHandler.handle(conf.action, conf.cloud_dir)
