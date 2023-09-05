@@ -6,7 +6,7 @@ from logging import Logger
 from src.stores.models import CloudFileMetadata, CloudFolderMetadata, ListCloudFolderResult
 
 # ? https://developers.google.com/drive/api/reference/rest/v3/files
-class GoogleDriveFileMapper:
+class GoogleDriveFileConverter:
    def __init__(self, logger: Logger):
       self._logger = logger
 

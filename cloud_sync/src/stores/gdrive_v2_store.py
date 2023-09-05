@@ -3,7 +3,7 @@ from pydrive.auth import GoogleAuth
 from logging import Logger
 from src.configs.config import StorageConfig
 from src.stores.cloud_store import CloudStore
-from src.stores.gdrive_file_mapper import GoogleDriveFileMapper
+from src.stores.gdrive_file_converter import GoogleDriveFileConverter
 from src.stores.models import CloudFileMetadata, CloudFolderMetadata, ListCloudFolderResult, LocalFileMetadata
 
 #https://pythonhosted.org/PyDrive/pydrive.html#pydrive.files.GoogleDriveFile
@@ -13,7 +13,7 @@ class GdriveStore(CloudStore):
       self._dry_run = conf.dry_run
       self._logger = logger
       self._gdrive = None
-      self._mapper = GoogleDriveFileMapper(logger)
+      self._converter = GoogleDriveFileConverter(logger)
 
    def list_folder(self, cloud_path: str) -> ListCloudFolderResult:
       self._logger.debug('cloud_path={}'.format(cloud_path))
@@ -33,13 +33,12 @@ class GdriveStore(CloudStore):
             self._logger.debug('next folder=`{}` id=`{}`'.format(cloudFolder.cloud_path, cloudFolder.id))
             result = self.__list_folder(cloudFolder.id, sub_path)
             folder_dict = {folder.cloud_path.lower(): folder for folder in result.folders}
-
       return result
 
    def __list_folder(self, folder_id:str, cloud_path:str) -> ListCloudFolderResult:
       query = "'root' in parents and trashed=false" if folder_id == '' else "parents in '{}' and trashed=false".format(folder_id)
       file_list = self._gdrive.ListFile({'q': query}).GetList()
-      return self._mapper.convert_GoogleDriveFiles_to_FileMetadatas(file_list, cloud_path)
+      return self._converter.convert_GoogleDriveFiles_to_FileMetadatas(file_list, cloud_path)
 
    def __split_path(self, path: str) -> list[str]:
       parts = path.split('/')
@@ -67,7 +66,7 @@ class GdriveStore(CloudStore):
       content_bytes = google_file.content    # BytesIO
       bytes = content_bytes.read()
       #TODO add cloud path
-      return bytes, self._mapper.convert_GoogleDriveFile_to_CloudFileMetadata(google_file)
+      return bytes, self._converter.convert_GoogleDriveFile_to_CloudFileMetadata(google_file)
 
    def save(self, cloud_path: str, content: bytes, local_md: LocalFileMetadata, overwrite: bool):
       self._logger.debug('cloud_path={}'.format(cloud_path))

@@ -4,7 +4,7 @@ import dropbox
 from logging import Logger
 from src.configs.config import StorageConfig
 from src.stores.cloud_store import CloudStore
-from src.stores.dropbox_file_mapper import DropboxFileMapper
+from src.stores.dropbox_file_converter import DropboxFileConverter
 from src.stores.models import CloudFileMetadata, CloudFolderMetadata, ListCloudFolderResult, LocalFileMetadata
 
 #dropbox files https://dropbox-sdk-python.readthedocs.io/en/latest/api/files.html
@@ -13,7 +13,7 @@ class DropboxStore(CloudStore):
         self._dbx = dropbox.Dropbox(conf.token)
         self._dry_run = conf.dry_run
         self._logger = logger
-        self._mapper = DropboxFileMapper(logger)
+        self._converter = DropboxFileConverter(logger)
 
     def list_folder(self, cloud_path: str) -> ListCloudFolderResult:
         self._logger.debug('list path: {}'.format(cloud_path))
@@ -23,15 +23,15 @@ class DropboxStore(CloudStore):
         except dropbox.exceptions.ApiError:
             self._logger.warning('Folder listing failed for {} -- assumed empty'.format(cloud_path))
         else:
-            return self._mapper.convert_dropbox_entries_to_FileMetadatas(res.entries)
-        return [], []
+            return self._converter.convert_dropbox_entries_to_FileMetadatas(res.entries)
+        return ListCloudFolderResult()
 
     def read(self, cloud_path: str) -> tuple[bytes, CloudFileMetadata]:
         self._logger.debug('cloud_path={}'.format(cloud_path))
         with stopwatch('download', self._logger):
             try:
                 dbx_md, response = self._dbx.files_download(cloud_path)
-                cloud_file_md = self._mapper.convert_DropboxFileMetadata_to_CloudFileMetadata(dbx_md)
+                cloud_file_md = self._converter.convert_DropboxFileMetadata_to_CloudFileMetadata(dbx_md)
                 self._logger.debug('{} bytes; md: {}'.format(len(response.content), cloud_file_md.name))
                 return response.content, cloud_file_md
             except dropbox.exceptions.HttpError:

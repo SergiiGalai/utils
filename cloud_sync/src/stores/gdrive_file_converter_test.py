@@ -4,14 +4,14 @@ from unittest.mock import Mock
 import logging
 from pydrive.drive import GoogleDriveFile
 
-from src.stores.gdrive_file_mapper import GoogleDriveFileMapper
+from src.stores.gdrive_file_converter import GoogleDriveFileConverter
 from src.stores.models import CloudFileMetadata, CloudFolderMetadata
 
-class GoogleDriveFileMapperTests(unittest.TestCase):
+class GoogleDriveFileConverterTests(unittest.TestCase):
 
    def setUp(self):
       logger = Mock(logging.Logger)
-      self.sut = GoogleDriveFileMapper(logger)
+      self.sut = GoogleDriveFileConverter(logger)
 
    def test_2_files_when_converterd_gfiles_with_2_files_in_the_root(self):
       gFile1 = self._createGoogleDriveFile(id='1', name='f1.pdf')

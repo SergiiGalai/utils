@@ -4,14 +4,14 @@ from unittest.mock import Mock
 import logging
 import dropbox
 
-from src.stores.dropbox_file_mapper import DropboxFileMapper
+from src.stores.dropbox_file_converter import DropboxFileConverter
 from src.stores.models import CloudFileMetadata, CloudFolderMetadata
 
-class DropboxFileMapperTests(unittest.TestCase):
+class DropboxFileConverterTests(unittest.TestCase):
 
    def setUp(self):
       logger = Mock(logging.Logger)
-      self.sut = DropboxFileMapper(logger)
+      self.sut = DropboxFileConverter(logger)
 
    def test_2_files_when_converterd_gfiles_with_2_files_in_the_root(self):
       dbx_file1 = self._creatDropboxFile('f1.pdf', 'f1.pdf', 'f1.pdf')
