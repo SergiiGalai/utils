@@ -9,7 +9,7 @@ from src.services.models import FileAction
 from src.services.storage_strategy import StorageStrategy
 from src.stores.cloud_store import CloudStore
 from src.stores.local_file_store import LocalFileStore
-from src.stores.models import CloudFileMetadata, LocalFileMetadata
+from src.stores.models import CloudFileMetadata, ListCloudFolderResult, ListLocalFolderResult, LocalFileMetadata
 
 class FileSyncronizationServiceTests(unittest.TestCase):
    _LOCAL_FILE_PATH = 'C:\\Path\\CloudRoot\\sub\\f.txt'
@@ -140,7 +140,11 @@ class FileSyncronizationServiceTests(unittest.TestCase):
       return CloudFileMetadata(self._FILE_NAME, cloud_file_path, datetime.datetime(2023, 8, modified_day, 20, 14, 14), size, cloud_file_path, '123321' )
 
    def _mock_cloud_list(self, files: list[CloudFileMetadata]):
-      self._cloudStore.list_folder = Mock(return_value=([], files))
+      result = ListCloudFolderResult()
+      result.files = files
+      self._cloudStore.list_folder = Mock(return_value=result)
 
    def _mock_local_list(self, files: list[LocalFileMetadata]):
-      self._localStore.list_folder = Mock(return_value=([], files))
+      result = ListLocalFolderResult()
+      result.files = files
+      self._localStore.list_folder = Mock(return_value=result)

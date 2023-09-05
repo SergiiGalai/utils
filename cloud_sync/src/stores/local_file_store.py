@@ -6,7 +6,7 @@ import unicodedata
 from datetime import datetime, timezone
 from logging import Logger
 from src.configs.config import StorageConfig
-from src.stores.models import LocalFileMetadata
+from src.stores.models import ListLocalFolderResult, LocalFileMetadata
 
 class LocalFileStore:
     def __init__(self, config: StorageConfig, logger: Logger):
@@ -14,19 +14,22 @@ class LocalFileStore:
         self._root_path = config.local_dir
         self._logger = logger
 
-    def list_folder(self, cloud_path: str) -> tuple[list, list[LocalFileMetadata]]:
+    def list_folder(self, cloud_path: str) -> ListLocalFolderResult:
         full_folder_path = self.get_absolute_path(cloud_path)
         self._logger.debug('path={}'.format(full_folder_path))
+        result = ListLocalFolderResult()
 
         if pathlib.Path(full_folder_path).exists():
             _, dir_names, file_names = next(os.walk(full_folder_path))
             file_paths = [self._join_path(cloud_path, unicodedata.normalize('NFC', f)) for f in file_names] #list
             list_md = [self._get_file_metadata(f) for f in file_paths] #list
             self._logger.debug('list_md={}'.format(list_md))
-            return dir_names, list_md
+            result.folders = dir_names
+            result.files = list_md
+            return result
 
         self._logger.warn('path `{}` does not exist'.format(full_folder_path))
-        return [], []
+        return result
 
     def read(self, cloud_path: str) -> tuple[bytes, LocalFileMetadata]:
         md = self._get_file_metadata(cloud_path)

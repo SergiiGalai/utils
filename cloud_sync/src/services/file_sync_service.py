@@ -23,12 +23,12 @@ class FileSyncronizationService:
     def map_files(self, cloud_path: str) -> MapFilesResult:
         self._logger.info('cloud_path={}'.format(cloud_path))
 
-        local_dirs, local_files = self._localStore.list_folder(cloud_path)
-        cloud_dirs, cloud_files = self._cloudStore.list_folder(cloud_path)
+        local_result = self._localStore.list_folder(cloud_path)
+        cloud_result = self._cloudStore.list_folder(cloud_path)
 
-        result = self.__map_cloud_files_to_local(local_files, cloud_files)
+        result = self.__map_cloud_files_to_local(local_result.files, cloud_result.files)
         if self._recursive:
-            cloud_folders = self.__map_cloud_folders_to_local(local_dirs, cloud_path, cloud_dirs)
+            cloud_folders = self.__map_cloud_folders_to_local(local_result.folders, cloud_path, cloud_result.folders)
             for cloud_folder in cloud_folders:
                 result_sub = self.map_files(cloud_folder)
                 result.extend(result_sub)

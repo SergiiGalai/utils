@@ -5,7 +5,7 @@ from logging import Logger
 from src.configs.config import StorageConfig
 from src.stores.cloud_store import CloudStore
 from src.stores.dropbox_file_mapper import DropboxFileMapper
-from src.stores.models import CloudFileMetadata, CloudFolderMetadata, LocalFileMetadata
+from src.stores.models import CloudFileMetadata, CloudFolderMetadata, ListCloudFolderResult, LocalFileMetadata
 
 #dropbox files https://dropbox-sdk-python.readthedocs.io/en/latest/api/files.html
 class DropboxStore(CloudStore):
@@ -15,7 +15,7 @@ class DropboxStore(CloudStore):
         self._logger = logger
         self._mapper = DropboxFileMapper(logger)
 
-    def list_folder(self, cloud_path: str) -> tuple[list[CloudFolderMetadata], list[CloudFileMetadata]]:
+    def list_folder(self, cloud_path: str) -> ListCloudFolderResult:
         self._logger.debug('list path: {}'.format(cloud_path))
         try:
             with stopwatch('list_folder', self._logger):

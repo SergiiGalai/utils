@@ -19,10 +19,10 @@ class DropboxFileMapperTests(unittest.TestCase):
       expected1 = self._createCloudFileMetadata('f1.pdf', 'f1.pdf', 'f1.pdf')
       expected2 = self._createCloudFileMetadata('F2.pdf', 'F2.pdf', 'f2.pdf')
       #act
-      actual_dirs, actual_files = self.sut.convert_dropbox_entries_to_FileMetadatas([dbx_file1, dbx_file2])
+      actual = self.sut.convert_dropbox_entries_to_FileMetadatas([dbx_file1, dbx_file2])
       #assert
-      self.assertEqual(actual_dirs, [])
-      self.assertEqual(actual_files, [expected1, expected2])
+      self.assertEqual(actual.folders, [])
+      self.assertEqual(actual.files, [expected1, expected2])
 
    def test_2_files_when_converterd_gfiles_with_2_files_in_the_subfolder(self):
       dbx_file1 = self._creatDropboxFile('f1.pdf', '/Path/f1.pdf', '/path/f1.pdf')
@@ -30,10 +30,10 @@ class DropboxFileMapperTests(unittest.TestCase):
       expected1 = self._createCloudFileMetadata('f1.pdf', '/Path/f1.pdf', '/path/f1.pdf')
       expected2 = self._createCloudFileMetadata('F2.pdf', '/Path/F2.pdf', '/path/f2.pdf')
       #act
-      actual_dirs, actual_files = self.sut.convert_dropbox_entries_to_FileMetadatas([dbx_file1, dbx_file2])
+      actual = self.sut.convert_dropbox_entries_to_FileMetadatas([dbx_file1, dbx_file2])
       #assert
-      self.assertEqual(actual_dirs, [])
-      self.assertEqual(actual_files, [expected1, expected2])
+      self.assertEqual(actual.folders, [])
+      self.assertEqual(actual.files, [expected1, expected2])
 
    def test_result_contains_converted_dropbox_file(self):
       dbx_md = self._creatDropboxFile()

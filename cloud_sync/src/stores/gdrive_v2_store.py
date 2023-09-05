@@ -4,7 +4,7 @@ from logging import Logger
 from src.configs.config import StorageConfig
 from src.stores.cloud_store import CloudStore
 from src.stores.gdrive_file_mapper import GoogleDriveFileMapper
-from src.stores.models import CloudFileMetadata, CloudFolderMetadata, LocalFileMetadata
+from src.stores.models import CloudFileMetadata, CloudFolderMetadata, ListCloudFolderResult, LocalFileMetadata
 
 #https://pythonhosted.org/PyDrive/pydrive.html#pydrive.files.GoogleDriveFile
 #https://developers.google.com/drive/api/guides/search-files
@@ -15,13 +15,13 @@ class GdriveStore(CloudStore):
       self._gdrive = None
       self._mapper = GoogleDriveFileMapper(logger)
 
-   def list_folder(self, cloud_path: str) -> tuple[list[CloudFolderMetadata], list[CloudFileMetadata]]:
+   def list_folder(self, cloud_path: str) -> ListCloudFolderResult:
       self._logger.debug('cloud_path={}'.format(cloud_path))
       self.__setup_gdrive()
 
       sub_path = ''
-      cloud_dirs, cloud_files = self.__list_folder('', sub_path)
-      folder_dict = {dir.cloud_path.lower(): dir for dir in cloud_dirs}
+      result = self.__list_folder('', sub_path)
+      folder_dict = {folder.cloud_path.lower(): folder for folder in result.folders}
       self._logger.debug('dictionary={}'.format(folder_dict))
 
       for part in self.__split_path(cloud_path):
@@ -31,12 +31,12 @@ class GdriveStore(CloudStore):
          if key in folder_dict:
             cloudFolder : CloudFolderMetadata = folder_dict[key]
             self._logger.debug('next folder=`{}` id=`{}`'.format(cloudFolder.cloud_path, cloudFolder.id))
-            cloud_dirs, cloud_files = self.__list_folder(cloudFolder.id, sub_path)
-            folder_dict = {dir.cloud_path.lower(): dir for dir in cloud_dirs}
+            result = self.__list_folder(cloudFolder.id, sub_path)
+            folder_dict = {folder.cloud_path.lower(): folder for folder in result.folders}
 
-      return cloud_dirs, cloud_files
+      return result
 
-   def __list_folder(self, folder_id:str, cloud_path:str) -> tuple[list[CloudFolderMetadata], list[CloudFileMetadata]]:
+   def __list_folder(self, folder_id:str, cloud_path:str) -> ListCloudFolderResult:
       query = "'root' in parents and trashed=false" if folder_id == '' else "parents in '{}' and trashed=false".format(folder_id)
       file_list = self._gdrive.ListFile({'q': query}).GetList()
       return self._mapper.convert_GoogleDriveFiles_to_FileMetadatas(file_list, cloud_path)

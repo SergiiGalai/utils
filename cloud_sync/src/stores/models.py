@@ -23,3 +23,13 @@ class CloudFileMetadata(FileMetadata):
 @dataclass
 class LocalFileMetadata(FileMetadata):
     local_path: str
+
+class ListCloudFolderResult:
+    def __init__(self):
+        self.folders = list[CloudFolderMetadata]()
+        self.files = list[CloudFileMetadata]()
+
+class ListLocalFolderResult:
+    def __init__(self):
+        self.folders = list[str]()
+        self.files = list[LocalFileMetadata]()

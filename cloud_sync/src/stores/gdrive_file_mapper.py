@@ -3,26 +3,25 @@ import posixpath
 from pydrive.drive import GoogleDriveFile
 from logging import Logger
 
-from src.stores.models import CloudFileMetadata, CloudFolderMetadata
+from src.stores.models import CloudFileMetadata, CloudFolderMetadata, ListCloudFolderResult
 
 # ? https://developers.google.com/drive/api/reference/rest/v3/files
 class GoogleDriveFileMapper:
    def __init__(self, logger: Logger):
       self._logger = logger
 
-   def convert_GoogleDriveFiles_to_FileMetadatas(self, gFiles: list[GoogleDriveFile], folder_cloud_path:str = '') -> tuple[list[CloudFolderMetadata], list[CloudFileMetadata]]:
-      dirs = list[CloudFolderMetadata]()
-      files = list[CloudFileMetadata]()
+   def convert_GoogleDriveFiles_to_FileMetadatas(self, gFiles: list[GoogleDriveFile], folder_cloud_path:str = '') -> ListCloudFolderResult:
+      result = ListCloudFolderResult()
       for entry in gFiles:
          entry: GoogleDriveFile = entry
          self._logger.debug("title=`{}` type=`{}` id=`{}`".format(entry['title'], entry['mimeType'], entry['id']))
          if self.__isFolder(entry):
             folder = self.convert_GoogleDriveFile_to_CloudFolderMetadata(entry)
-            dirs.append(folder)
+            result.folders.append(folder)
          else:
             file = self.convert_GoogleDriveFile_to_CloudFileMetadata(entry, folder_cloud_path)
-            files.append(file)
-      return dirs, files
+            result.files.append(file)
+      return result
 
    def __isFolder(self, entry):
       return entry['mimeType'] == 'application/vnd.google-apps.folder'

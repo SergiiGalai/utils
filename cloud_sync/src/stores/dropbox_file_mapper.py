@@ -1,24 +1,23 @@
 import dropbox
 from logging import Logger
-from src.stores.models import CloudFileMetadata, CloudFolderMetadata
+from src.stores.models import CloudFileMetadata, CloudFolderMetadata, ListCloudFolderResult
 
 #dropbox files https://dropbox-sdk-python.readthedocs.io/en/latest/api/files.html
 class DropboxFileMapper:
    def __init__(self, logger: Logger):
       self._logger = logger
 
-   def convert_dropbox_entries_to_FileMetadatas(self, dropbox_entries:list) -> tuple[list[CloudFolderMetadata], list[CloudFileMetadata]]:
-      dirs = list[CloudFolderMetadata]()
-      files = list[CloudFileMetadata]()
+   def convert_dropbox_entries_to_FileMetadatas(self, dropbox_entries:list) -> ListCloudFolderResult:
+      result = ListCloudFolderResult()
       for entry in dropbox_entries:
          self._logger.debug("entry path_display=`{}`, name={}".format(entry.path_display, entry.name))
          if self.__isFile(entry):
             cloud_file: CloudFileMetadata = self.convert_DropboxFileMetadata_to_CloudFileMetadata(entry)
-            files.append(cloud_file)
+            result.files.append(cloud_file)
          else:
-            cloud_dir: CloudFolderMetadata = self.convert_DropboxFolderMetadata_to_CloudFolderMetadata(entry)
-            dirs.append(cloud_dir)
-      return dirs, files
+            cloud_folder: CloudFolderMetadata = self.convert_DropboxFolderMetadata_to_CloudFolderMetadata(entry)
+            result.folders.append(cloud_folder)
+      return result
 
    def __isFile(self, entry):
       return isinstance(entry, dropbox.files.FileMetadata)
