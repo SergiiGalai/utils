@@ -1,4 +1,4 @@
-from pydrive.drive import GoogleDrive, GoogleDriveFile
+from pydrive.drive import GoogleDrive
 from pydrive.auth import GoogleAuth
 from logging import Logger
 from src.configs.config import StorageConfig
@@ -66,6 +66,7 @@ class GdriveStore(CloudStore):
       google_file.GetContentFile( filename= id )
       content_bytes = google_file.content    # BytesIO
       bytes = content_bytes.read()
+      #TODO add cloud path
       return bytes, self._mapper.convert_GoogleDriveFile_to_CloudFileMetadata(google_file)
 
    def save(self, cloud_path: str, content: bytes, local_md: LocalFileMetadata, overwrite: bool):

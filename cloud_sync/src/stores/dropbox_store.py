@@ -17,26 +17,14 @@ class DropboxStore(CloudStore):
 
     def list_folder(self, cloud_path: str) -> tuple[list[CloudFolderMetadata], list[CloudFileMetadata]]:
         self._logger.debug('list path: {}'.format(cloud_path))
-        cloud_dirs = list[CloudFolderMetadata]()
-        cloud_files = list[CloudFileMetadata]()
         try:
             with stopwatch('list_folder', self._logger):
                 res = self._dbx.files_list_folder(cloud_path)
         except dropbox.exceptions.ApiError:
             self._logger.warning('Folder listing failed for {} -- assumed empty'.format(cloud_path))
         else:
-            for entry in res.entries:
-                self._logger.debug("entry path_display=`{}`, name={}".format(entry.path_display, entry.name))
-                if self.__isFile(entry):
-                    cloud_file: CloudFileMetadata = self._mapper.convert_DropboxFileMetadata_to_CloudFileMetadata(entry)
-                    cloud_files.append(cloud_file)
-                else:
-                    cloud_dir: CloudFolderMetadata = self._mapper.convert_DropboxFolderMetadata_to_CloudFolderMetadata(entry)
-                    cloud_dirs.append(cloud_dir)
-        return cloud_dirs, cloud_files
-
-    def __isFile(self, entry):
-        return isinstance(entry, dropbox.files.FileMetadata)
+            return self._mapper.convert_dropbox_entries_to_FileMetadatas(res.entries)
+        return [], []
 
     def read(self, cloud_path: str) -> tuple[bytes, CloudFileMetadata]:
         self._logger.debug('cloud_path={}'.format(cloud_path))

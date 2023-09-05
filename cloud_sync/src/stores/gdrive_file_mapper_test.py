@@ -13,15 +13,6 @@ class GoogleDriveFileMapperTests(unittest.TestCase):
       logger = Mock(logging.Logger)
       self.sut = GoogleDriveFileMapper(logger)
 
-   def test_single_file_when_converterd_gfiles_with_one_file_in_the_root(self):
-      gFile = self._createGoogleDriveFile()
-      expected = self._createCloudFileMetadata()
-      #act
-      actual_dirs, actual_files = self.sut.convert_GoogleDriveFiles_to_FileMetadatas([gFile])
-      #assert
-      self.assertEqual(actual_dirs, [])
-      self.assertEqual(actual_files, [expected])
-
    def test_2_files_when_converterd_gfiles_with_2_files_in_the_root(self):
       gFile1 = self._createGoogleDriveFile(id='1', name='f1.pdf')
       gFile2 = self._createGoogleDriveFile(id='2', name='F2.pdf')
@@ -29,6 +20,17 @@ class GoogleDriveFileMapperTests(unittest.TestCase):
       expected2 = self._createCloudFileMetadata('F2.pdf', 'F2.pdf', '2')
       #act
       actual_dirs, actual_files = self.sut.convert_GoogleDriveFiles_to_FileMetadatas([gFile1, gFile2])
+      #assert
+      self.assertEqual(actual_dirs, [])
+      self.assertEqual(actual_files, [expected1, expected2])
+
+   def test_2_files_when_converterd_gfiles_with_2_files_in_the_subfolder(self):
+      gFile1 = self._createGoogleDriveFile(id='1', name='f1.pdf')
+      gFile2 = self._createGoogleDriveFile(id='2', name='F2.pdf')
+      expected1 = self._createCloudFileMetadata('/folder/folder2/f1.pdf', 'f1.pdf', '1')
+      expected2 = self._createCloudFileMetadata('/folder/folder2/F2.pdf', 'F2.pdf', '2')
+      #act
+      actual_dirs, actual_files = self.sut.convert_GoogleDriveFiles_to_FileMetadatas([gFile1, gFile2], '/folder/folder2')
       #assert
       self.assertEqual(actual_dirs, [])
       self.assertEqual(actual_files, [expected1, expected2])
