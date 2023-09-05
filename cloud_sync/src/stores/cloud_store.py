@@ -11,4 +11,4 @@ class CloudStore(Protocol):
    def read(self, id: str) -> tuple[bytes, CloudFileMetadata]: raise NotImplementedError
 
    @abstractmethod
-   def save(self, cloud_path: str, content: bytes, local_md: LocalFileMetadata, overwrite: bool): raise NotImplementedError
+   def save(self, content: bytes, local_md: LocalFileMetadata, overwrite: bool): raise NotImplementedError

@@ -38,7 +38,8 @@ class DropboxStore(CloudStore):
                 self._logger.exception("*** Dropbox HTTP Error")
                 return None, None
 
-    def save(self, cloud_path: str, content: bytes, local_md: LocalFileMetadata, overwrite: bool):
+    def save(self, content: bytes, local_md: LocalFileMetadata, overwrite: bool):
+        cloud_path = local_md.cloud_path
         self._logger.debug('cloud_path={}'.format(cloud_path))
         write_mode = (dropbox.files.WriteMode.overwrite if overwrite else dropbox.files.WriteMode.add)
         with stopwatch('upload %d bytes' % len(content), self._logger):

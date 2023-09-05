@@ -6,7 +6,7 @@ import unicodedata
 from datetime import datetime, timezone
 from logging import Logger
 from src.configs.config import StorageConfig
-from src.stores.models import ListLocalFolderResult, LocalFileMetadata
+from src.stores.models import CloudFileMetadata, ListLocalFolderResult, LocalFileMetadata
 
 class LocalFileStore:
     def __init__(self, config: StorageConfig, logger: Logger):
@@ -57,8 +57,8 @@ class LocalFileStore:
         self._logger.debug('result={}'.format(result))
         return result
 
-    def save(self, cloud_path: str, content: bytes, client_modified: datetime):
-        file_path = self.get_absolute_path(cloud_path)
+    def save(self, content: bytes, cloud_md: CloudFileMetadata):
+        file_path = self.get_absolute_path(cloud_md.cloud_path)
         if self._dry_run:
             self._logger.warn('dry run mode. Skip saving file {}'.format(file_path))
         else:
@@ -66,7 +66,7 @@ class LocalFileStore:
             self._try_create_local_folder(base_path)
             with open(file_path, 'wb') as f:
                 f.write(content)
-            self._set_modification_time(file_path, self._datetime_utc_to_local(client_modified))
+            self._set_modification_time(file_path, self._datetime_utc_to_local(cloud_md.client_modified))
             self._logger.debug('saved file {}...'.format(file_path))
 
     def _try_create_local_folder(self, path: str):

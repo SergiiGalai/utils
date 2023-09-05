@@ -68,8 +68,8 @@ class GdriveStore(CloudStore):
       #TODO add cloud path
       return bytes, self._converter.convert_GoogleDriveFile_to_CloudFileMetadata(google_file)
 
-   def save(self, cloud_path: str, content: bytes, local_md: LocalFileMetadata, overwrite: bool):
-      self._logger.debug('cloud_path={}'.format(cloud_path))
+   def save(self, content: bytes, local_md: LocalFileMetadata, overwrite: bool):
+      self._logger.debug('cloud_path={}'.format(local_md.cloud_path))
       self.__setup_gdrive()
       #TODO use overwrite argument
       #TODO upload to subfolder
