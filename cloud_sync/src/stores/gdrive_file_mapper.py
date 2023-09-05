@@ -1,4 +1,5 @@
 import datetime
+import posixpath
 from pydrive.drive import GoogleDriveFile
 from logging import Logger
 
@@ -9,11 +10,30 @@ class GoogleDriveFileMapper:
    def __init__(self, logger: Logger):
       self._logger = logger
 
-   def convert_GoogleDriveFile_to_CloudFileMetadata(self, gFile: GoogleDriveFile) -> CloudFileMetadata:
+   def convert_GoogleDriveFiles_to_FileMetadatas(self, gFiles: list[GoogleDriveFile], folder_cloud_path:str = '') -> tuple[list[CloudFolderMetadata], list[CloudFileMetadata]]:
+      dirs = list[CloudFolderMetadata]()
+      files = list[CloudFileMetadata]()
+      for entry in gFiles:
+         entry: GoogleDriveFile = entry
+         self._logger.debug("title=`{}` type=`{}` id=`{}`".format(entry['title'], entry['mimeType'], entry['id']))
+         if self.__isFolder(entry):
+            folder = self.convert_GoogleDriveFile_to_CloudFolderMetadata(entry)
+            dirs.append(folder)
+         else:
+            file = self.convert_GoogleDriveFile_to_CloudFileMetadata(entry, folder_cloud_path)
+            files.append(file)
+      return dirs, files
+
+   def __isFolder(self, entry):
+      return entry['mimeType'] == 'application/vnd.google-apps.folder'
+
+   def convert_GoogleDriveFile_to_CloudFileMetadata(self, gFile: GoogleDriveFile, folder_cloud_path:str = '') -> CloudFileMetadata:
       #self.logger.debug('file: {}'.format(gFile))
-      fileSize = 0 if gFile['mimeType'] == 'application/vnd.google-apps.shortcut' else int(gFile['fileSize'])
+      file_size = 0 if gFile['mimeType'] == 'application/vnd.google-apps.shortcut' else int(gFile['fileSize'])
       modified = datetime.datetime.strptime(gFile['modifiedDate'], '%Y-%m-%dT%H:%M:%S.%fZ')
-      return CloudFileMetadata(gFile['title'], gFile['title'], modified, fileSize, gFile['id'], '0')
+      file_name = gFile['title']
+      file_cloud_path = posixpath.join(folder_cloud_path, gFile['title'])
+      return CloudFileMetadata(file_name, file_cloud_path, modified, file_size, gFile['id'], '0')
 
    def convert_GoogleDriveFile_to_CloudFolderMetadata(self, gFile: GoogleDriveFile) -> CloudFolderMetadata:
       #self.logger.debug('file: {}'.format(gFile))

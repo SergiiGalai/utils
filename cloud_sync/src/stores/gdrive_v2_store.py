@@ -19,37 +19,27 @@ class GdriveStore(CloudStore):
       self._logger.debug('cloud_path={}'.format(cloud_path))
       self.__setup_gdrive()
 
-      cloud_dirs, cloud_files = self.__list_folder('')
+      sub_path = ''
+      cloud_dirs, cloud_files = self.__list_folder('', sub_path)
       folder_dict = {dir.cloud_path.lower(): dir for dir in cloud_dirs}
       self._logger.debug('dictionary={}'.format(folder_dict))
 
       for part in self.__split_path(cloud_path):
          if part == '': continue
          key = part.lower()
+         sub_path += '/' + part
          if key in folder_dict:
             cloudFolder : CloudFolderMetadata = folder_dict[key]
-            self._logger.debug('next folder=`{}` id=`{}`'.format(part, cloudFolder.id))
-            cloud_dirs, cloud_files = self.__list_folder(cloudFolder.id)
+            self._logger.debug('next folder=`{}` id=`{}`'.format(cloudFolder.cloud_path, cloudFolder.id))
+            cloud_dirs, cloud_files = self.__list_folder(cloudFolder.id, sub_path)
             folder_dict = {dir.cloud_path.lower(): dir for dir in cloud_dirs}
 
       return cloud_dirs, cloud_files
 
-   def __list_folder(self, folder_id) -> tuple[list[CloudFolderMetadata], list[CloudFileMetadata]]:
+   def __list_folder(self, folder_id:str, cloud_path:str) -> tuple[list[CloudFolderMetadata], list[CloudFileMetadata]]:
       query = "'root' in parents and trashed=false" if folder_id == '' else "parents in '{}' and trashed=false".format(folder_id)
-      cloud_dirs = list[CloudFolderMetadata]()
-      cloud_files = list[CloudFileMetadata]()
-
       file_list = self._gdrive.ListFile({'q': query}).GetList()
-      for entry in file_list:
-         entry: GoogleDriveFile = entry
-         self._logger.debug("title=`{}` type=`{}` id=`{}`".format(entry['title'], entry['mimeType'], entry['id']))
-         if self.__isFolder(entry):
-            folder: CloudFolderMetadata = self._mapper.convert_GoogleDriveFile_to_CloudFolderMetadata(entry)
-            cloud_dirs.append(folder)
-         else:
-            file: CloudFileMetadata = self._mapper.convert_GoogleDriveFile_to_CloudFileMetadata(entry)
-            cloud_files.append(file)
-      return cloud_dirs, cloud_files
+      return self._mapper.convert_GoogleDriveFiles_to_FileMetadatas(file_list, cloud_path)
 
    def __split_path(self, path: str) -> list[str]:
       parts = path.split('/')
@@ -67,12 +57,10 @@ class GdriveStore(CloudStore):
       gauth.Authorize()
       return GoogleDrive(gauth)
 
-   def __isFolder(self, entry):
-      return entry['mimeType'] == 'application/vnd.google-apps.folder'
-
    def read(self, id: str) -> tuple[bytes, CloudFileMetadata]:
       self._logger.debug('id={}'.format(id))
       self.__setup_gdrive()
+
       metadata = dict(id = id)
       google_file = self._gdrive.CreateFile(metadata)
       google_file.GetContentFile( filename= id )
@@ -83,3 +71,15 @@ class GdriveStore(CloudStore):
    def save(self, cloud_path: str, content: bytes, local_md: LocalFileMetadata, overwrite: bool):
       self._logger.debug('cloud_path={}'.format(cloud_path))
       self.__setup_gdrive()
+      #TODO use overwrite argument
+      #TODO upload to subfolder
+
+      #folder_id = folder['id']
+      #metadata = dict(title = local_md.name, parents = [{'id': folder_id}])
+      metadata = dict(title = local_md.name)
+      google_file = self._gdrive.CreateFile(metadata)
+      google_file.SetContentString(content)
+      try:
+         google_file.Upload()
+      finally:
+         google_file.content.close()
