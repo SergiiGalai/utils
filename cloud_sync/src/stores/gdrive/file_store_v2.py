@@ -79,7 +79,11 @@ class GdriveStore(CloudStore):
       metadata = dict(title = local_md.name)
       google_file = self._gdrive.CreateFile(metadata)
       google_file.SetContentString(content)
-      try:
-         google_file.Upload()
-      finally:
-         google_file.content.close()
+      if self._dry_run:
+         self._logger.info('Dry run mode. Skip uploading {} (modified:{})'
+                    .format(local_md.cloud_path, local_md.client_modified))
+      else:
+         try:
+            google_file.Upload()
+         finally:
+            google_file.content.close()
