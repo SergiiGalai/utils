@@ -9,7 +9,7 @@ Normally we install the Google Drive client on our system which takes care of al
 - track subfolders and their content inside the directory
 - compare files base on metadata or on file content
 - ask you which new or modified files to upload and which to download
-- open source command line tool so your files belong to you (and Dropbox :) )
+- open source command line tool so your files belong to you
 - no need to install (except python runtime and dependency module)
 
 ### What it cannot do:
@@ -65,3 +65,6 @@ CLOUD_DIR = [path to folder on Dropbox]
 RECURSIVE = [False|True - process subfolders if true]
 DRY_RUN = [False|True]
 ```
+
+## Development
+[Code Style Guide](https://peps.python.org/pep-0008/)
