@@ -9,7 +9,7 @@ from src.stores.local.dry_run_file_store import DryRunLocalFileStore
 from src.clients.logger_ui import LoggerUi
 from src.stores.local.path_provider import PathProvider
 
-log = logger.setupLogger(logging.DEBUG)
+log = logger.setup_logger(logging.DEBUG)
 
 
 def create_configuration(logger: logging.Logger):

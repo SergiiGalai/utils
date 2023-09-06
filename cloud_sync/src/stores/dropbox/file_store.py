@@ -40,7 +40,7 @@ class DropboxStore(CloudStore):
                 return response.content, cloud_file_md
             except dropbox.exceptions.HttpError:
                 self._logger.exception("*** Dropbox HTTP Error")
-                return None, None
+                raise NotImplementedError
 
     def save(self, content: bytes, local_md: LocalFileMetadata, overwrite: bool):
         cloud_path = local_md.cloud_path

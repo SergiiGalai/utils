@@ -1,6 +1,6 @@
 import hashlib
 from logging import Logger
-from src.services.file_comparer import FileComparer
+from src.stores.file_comparer import FileComparer
 from src.stores.models import CloudFileMetadata, LocalFileMetadata
 
 

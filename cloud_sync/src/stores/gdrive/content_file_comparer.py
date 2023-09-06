@@ -1,5 +1,5 @@
 from logging import Logger
-from src.services.file_comparer import FileComparer
+from src.stores.file_comparer import FileComparer
 from src.stores.cloud_store import CloudStore
 from src.stores.local.file_store import LocalFileStore
 from src.stores.models import CloudFileMetadata, LocalFileMetadata

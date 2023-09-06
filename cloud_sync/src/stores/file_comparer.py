@@ -13,7 +13,7 @@ class FileComparer:
         self._logger = logger
 
     def get_file_action(self, local_md: LocalFileMetadata, cloud_md: CloudFileMetadata) -> FileAction:
-        need_time_verification, comparisonResult = self._are_equal(local_md, cloud_md)
+        need_time_verification, comparisonResult = self.__are_equal(local_md, cloud_md)
         if need_time_verification:
             if local_md.client_modified > cloud_md.client_modified:
                 self._logger.info('file {} has changed since last sync (cloud={} < local={}) => upload list'
@@ -26,9 +26,9 @@ class FileComparer:
             return FileAction.CONFLICT
         return FileAction.SKIP
 
-    def _are_equal(self, local_md: LocalFileMetadata, cloud_md: CloudFileMetadata) -> tuple[bool, FileComparison]:
+    def __are_equal(self, local_md: LocalFileMetadata, cloud_md: CloudFileMetadata) -> tuple[bool, FileComparison]:
         cloud_path = cloud_md.cloud_path
-        comparison_by_md = self._are_equal_by_metadata(local_md, cloud_md)
+        comparison_by_md = self.__are_equal_by_metadata(local_md, cloud_md)
         match comparison_by_md:
             case FileComparison.EQUAL:
                 self._logger.info(
@@ -37,24 +37,24 @@ class FileComparer:
             case FileComparison.DIF_BY_SIZE:
                 return True, FileComparison.DIF_BY_SIZE
             case FileComparison.DIF_BY_DATE:
-                self._logger.info(
-                    'file {} exists with different stats. Comparing files by content'.format(cloud_path))
+                self._logger.info('file {} exists with different stats. Comparing files by content'.
+                                  format(cloud_path))
                 if self._are_equal_by_content(local_md, cloud_md):
-                    self._logger.info(
-                        'file {} already the same [by content]. Skip'.format(cloud_path))
+                    self._logger.info('file {} already the same [by content]. Skip'.
+                                      format(cloud_path))
                     return False, FileComparison.EQUAL
-                self._logger.info(
-                    'Local and cloud file {} is different'.format(cloud_path))
+                self._logger.info('Local and cloud file {} is different'.
+                                  format(cloud_path))
                 return True, FileComparison.DIF_BY_DATE
             case _:
                 self._logger.info('Cannot compare local file {} and cloud file {}. Skip'.format(
                     cloud_path, local_md.cloud_path))
                 return False, FileComparison.ERROR
 
-    def _are_equal_by_metadata(self, local_md: LocalFileMetadata, cloud_md: CloudFileMetadata) -> FileComparison:
+    def __are_equal_by_metadata(self, local_md: LocalFileMetadata, cloud_md: CloudFileMetadata) -> FileComparison:
         if local_md.name != cloud_md.name:
-            self._logger.info('file diff by name: local={}, remote={}'.format(
-                local_md.name, cloud_md.name))
+            self._logger.info('file diff by name: local={}, remote={}'.
+                              format(local_md.name, cloud_md.name))
             return FileComparison.DIF_BY_NAME
 
         if local_md.client_modified != cloud_md.client_modified and local_md.size != cloud_md.size:

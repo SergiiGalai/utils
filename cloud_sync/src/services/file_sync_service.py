@@ -1,9 +1,10 @@
 import posixpath
 from logging import Logger
 from src.configs.config import StorageConfig
-from src.services.file_comparer import FileAction
+from src.stores.file_comparer import FileAction, FileComparer
 from src.services.models import MapFilesResult
 from src.services.storage_strategy import StorageStrategy
+from src.stores.cloud_store import CloudStore
 from src.stores.local.file_store import LocalFileStore
 from src.stores.local.path_provider import PathProvider
 from src.stores.models import CloudFileMetadata, CloudFolderMetadata, LocalFileMetadata
@@ -13,12 +14,12 @@ class FileSyncronizationService:
     def __init__(self, strategy: StorageStrategy,
                  local_store: LocalFileStore, path_provider: PathProvider,
                  config: StorageConfig, logger: Logger):
-        self._local_store = local_store
-        self._path_provider = path_provider
-        self._cloud_store = strategy.create_cloud_store()
-        self._file_comparer = strategy.create_file_comparer()
         self._recursive = config.recursive
         self._logger = logger
+        self._local_store = local_store
+        self._path_provider = path_provider
+        self._cloud_store: CloudStore = strategy.create_cloud_store()
+        self._file_comparer: FileComparer = strategy.create_file_comparer()
         self._logger.debug(config)
 
     @property
@@ -48,10 +49,8 @@ class FileSyncronizationService:
                                    cloud_files: list[CloudFileMetadata]) -> MapFilesResult:
         result = MapFilesResult()
 
-        local_files_dict = {
-            md.cloud_path.lower(): md for md in local_files}  # dict
-        cloud_files_dict = {
-            md.cloud_path.lower(): md for md in cloud_files}  # dict
+        local_files_dict = {md.cloud_path.lower(): md for md in local_files}
+        cloud_files_dict = {md.cloud_path.lower(): md for md in cloud_files}
 
         for key, cloud_md in cloud_files_dict.items():
             local_md = local_files_dict.get(key)
@@ -61,21 +60,21 @@ class FileSyncronizationService:
                 result.add_download(cloud_md)
             else:
                 self._logger.debug('file exists locally - {}'.format(key))
-                self._add_to_list_by_file_comparison(
+                self.__add_to_list_by_file_comparison(
                     local_md, cloud_md, result)
 
         for key, local_md in local_files_dict.items():
-            if not self._exists_in_cloud(key, cloud_files_dict):
+            if not self.__exists_in_cloud(key, cloud_files_dict):
                 self._logger.info(
                     'file does NOT exist in the cloud - {} => upload list'.format(local_md.local_path))
                 result.add_upload(local_md)
 
         return result
 
-    def _exists_in_cloud(self, file_key: str, files: dict[str, CloudFileMetadata]) -> bool:
+    def __exists_in_cloud(self, file_key: str, files: dict[str, CloudFileMetadata]) -> bool:
         return file_key in files.keys()
 
-    def _add_to_list_by_file_comparison(self,
+    def __add_to_list_by_file_comparison(self,
                                         local_md: LocalFileMetadata,
                                         cloud_md: CloudFileMetadata, result: MapFilesResult):
         file_action = self._file_comparer.get_file_action(local_md, cloud_md)
@@ -91,8 +90,7 @@ class FileSyncronizationService:
 
         local_folder_paths = list(posixpath.join(cloud_root, folder) for folder in local_folders)
         local_folder_paths_filtered = filter(lambda name: not name.startswith('.'), local_folder_paths)
-        local_dict = {
-            path.lower(): path for path in local_folder_paths_filtered}  # dict
+        local_dict = {path.lower(): path for path in local_folder_paths_filtered}  # dict
 
         union_keys = set(cloud_dict.keys()).union(local_dict.keys())
         union_list = list(map(lambda key: cloud_dict[key] if key in cloud_dict else local_dict[key], union_keys))

@@ -19,7 +19,7 @@ class StorageConfigProviderTests(unittest.TestCase):
     #     self.assertEqual(actual.storage_name, 'DROPBOX')
 
     def test_gets_dropbox_configuration_when_passing_dropbox_storage(self):
-        args = self._createArgs(config='config.ini', storage='DROPBOX')
+        args = self.__createArgs(config='config.ini', storage='DROPBOX')
         # act
         actual = self.sut.get_config(args)
         # assert
@@ -36,7 +36,7 @@ class StorageConfigProviderTests(unittest.TestCase):
         self.assertFalse(actual.dry_run)
 
     def test_gets_gdrive_configuration_when_passing_gdrive_storage(self):
-        args = self._createArgs(config='config.ini', storage='GDRIVE')
+        args = self.__createArgs(config='config.ini', storage='GDRIVE')
         # act
         actual = self.sut.get_config(args)
         # assert
@@ -63,7 +63,7 @@ class StorageConfigProviderTests(unittest.TestCase):
         self.assertEqual(actual.token, '12345')
 
     def test_gets_absolute_local_directory_path_when_passed_relative(self):
-        args = self._createArgs(config='config.ini',
+        args = self.__createArgs(config='config.ini',
                                 storage='GDRIVE', local_dir='.\\another.ini')
         # act
         actual = self.sut.get_config(args)
@@ -71,7 +71,7 @@ class StorageConfigProviderTests(unittest.TestCase):
         self.assertFalse(actual.local_dir.startswith('.'))
 
     @staticmethod
-    def _createArgs(config=None, storage=None, local_dir=None):
+    def __createArgs(config=None, storage=None, local_dir=None):
         args = Namespace()
         args.config = config
         args.storage = storage
