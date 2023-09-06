@@ -29,13 +29,10 @@ class GoogleDriveFileConverterTests(unittest.TestCase):
     def test_2_files_when_converterd_gfiles_with_2_files_in_the_subfolder(self):
         gFile1 = self._createGoogleDriveFile(id='1', name='f1.pdf')
         gFile2 = self._createGoogleDriveFile(id='2', name='F2.pdf')
-        expected1 = self._createCloudFileMetadata(
-            '/folder/folder2/f1.pdf', 'f1.pdf', '1')
-        expected2 = self._createCloudFileMetadata(
-            '/folder/folder2/F2.pdf', 'F2.pdf', '2')
+        expected1 = self._createCloudFileMetadata('/folder/folder2/f1.pdf', 'f1.pdf', '1')
+        expected2 = self._createCloudFileMetadata('/folder/folder2/F2.pdf', 'F2.pdf', '2')
         # act
-        actual = self.sut.convert_GoogleDriveFiles_to_FileMetadatas(
-            [gFile1, gFile2], '/folder/folder2')
+        actual = self.sut.convert_GoogleDriveFiles_to_FileMetadatas([gFile1, gFile2], '/folder/folder2')
         # assert
         self.assertEqual(actual.folders, [])
         self.assertEqual(actual.files, [expected1, expected2])
@@ -44,7 +41,7 @@ class GoogleDriveFileConverterTests(unittest.TestCase):
         gFile = self._createGoogleDriveFile()
         expected = self._createCloudFileMetadata()
         # act
-        actual = self.sut.convert_GoogleDriveFile_to_CloudFileMetadata(gFile)
+        actual = self.sut.convert_GoogleDriveFile_to_CloudFile(gFile)
         # assert
         self.assertEqual(actual, expected)
 
@@ -52,8 +49,7 @@ class GoogleDriveFileConverterTests(unittest.TestCase):
         gFile = self._createGoogleDriveFile()
         expected = self._createCloudFileMetadata('/File1.pdf')
         # act
-        actual = self.sut.convert_GoogleDriveFile_to_CloudFileMetadata(
-            gFile, '/')
+        actual = self.sut.convert_GoogleDriveFile_to_CloudFile(gFile, '/')
         # assert
         self.assertEqual(actual, expected)
 
@@ -61,8 +57,7 @@ class GoogleDriveFileConverterTests(unittest.TestCase):
         gFile = self._createGoogleDriveFile()
         expected = self._createCloudFileMetadata('/sub/File1.pdf')
         # act
-        actual = self.sut.convert_GoogleDriveFile_to_CloudFileMetadata(
-            gFile, '/sub')
+        actual = self.sut.convert_GoogleDriveFile_to_CloudFile(gFile, '/sub')
         # assert
         self.assertEqual(actual, expected)
 
@@ -70,16 +65,14 @@ class GoogleDriveFileConverterTests(unittest.TestCase):
         gFile = self._createGoogleDriveFile()
         expected = self._createCloudFileMetadata('/sub/sub2/File1.pdf')
         # act
-        actual = self.sut.convert_GoogleDriveFile_to_CloudFileMetadata(
-            gFile, '/sub/sub2')
+        actual = self.sut.convert_GoogleDriveFile_to_CloudFile(gFile, '/sub/sub2')
         # assert
         self.assertEqual(actual, expected)
 
     def test_CloudFileMetadata_with_null_file_size_when_gfile_is_a_shortcut(self):
-        gFile = self._createGoogleDriveFile(
-            'application/vnd.google-apps.shortcut')
+        gFile = self._createGoogleDriveFile('application/vnd.google-apps.shortcut')
         # act
-        actual = self.sut.convert_GoogleDriveFile_to_CloudFileMetadata(gFile)
+        actual = self.sut.convert_GoogleDriveFile_to_CloudFile(gFile)
         # assert
         self.assertEqual(actual.size, 0)
 

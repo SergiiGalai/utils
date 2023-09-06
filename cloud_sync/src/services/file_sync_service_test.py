@@ -36,9 +36,9 @@ class FileSyncronizationServiceTests(unittest.TestCase):
     def test_empty_lists_when_local_and_cloud_files_match_by_metadata(self):
         self.__mock_local_list([self.__create_local_file()])
         self.__mock_cloud_list([self.__create_cloud_file()])
-        #act
+        # act
         actual = self.sut.map_files(self._CLOUD_FOLDER_PATH)
-        #assert
+        # assert
         self.assertListEqual(actual.download, [])
         self.assertListEqual(actual.upload, [])
 
@@ -46,7 +46,7 @@ class FileSyncronizationServiceTests(unittest.TestCase):
         cloud_file = self.__create_cloud_file()
         self.__mock_local_list([])
         self.__mock_cloud_list([cloud_file])
-        #act
+        # act
         actual = self.sut.map_files(self._CLOUD_FOLDER_PATH)
         # assert
         self.assertListEqual(actual.download, [cloud_file])
@@ -145,7 +145,7 @@ class FileSyncronizationServiceTests(unittest.TestCase):
         return StorageConfig(name, 'sync', '123456', local_dir, cloud_dir, True, recursive)
 
     def __create_local_file(self, modified_day=1, size=2000,
-                         cloud_file_path=_CLOUD_FILE_PATH, local_file_path=_LOCAL_FILE_PATH):
+                            cloud_file_path=_CLOUD_FILE_PATH, local_file_path=_LOCAL_FILE_PATH):
         return LocalFileMetadata(
             self._FILE_NAME, cloud_file_path,
             datetime.datetime(2023, 8, modified_day, 20, 14, 14),

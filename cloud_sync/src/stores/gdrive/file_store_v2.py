@@ -72,7 +72,7 @@ class GdriveStore(CloudStore):
         content_bytes = google_file.content    # BytesIO
         bytes = content_bytes.read()
         # TODO add cloud path
-        return bytes, self._converter.convert_GoogleDriveFile_to_CloudFileMetadata(google_file)
+        return bytes, self._converter.convert_GoogleDriveFile_to_CloudFile(google_file)
 
     def save(self, content: bytes, local_md: LocalFileMetadata, overwrite: bool):
         self._logger.debug('cloud_path={}'.format(local_md.cloud_path))

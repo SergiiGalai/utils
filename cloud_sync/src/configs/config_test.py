@@ -63,8 +63,7 @@ class StorageConfigProviderTests(unittest.TestCase):
         self.assertEqual(actual.token, '12345')
 
     def test_gets_absolute_local_directory_path_when_passed_relative(self):
-        args = self.__createArgs(config='config.ini',
-                                storage='GDRIVE', local_dir='.\\another.ini')
+        args = self.__createArgs(config='config.ini', storage='GDRIVE', local_dir='.\\another.ini')
         # act
         actual = self.sut.get_config(args)
         # assert

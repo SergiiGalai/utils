@@ -32,11 +32,9 @@ class FileSyncronizationService:
         local_result = self._local_store.list_folder(cloud_path)
         cloud_result = self._cloud_store.list_folder(cloud_path)
 
-        result = self.__map_cloud_files_to_local(
-            local_result.files, cloud_result.files)
+        result = self.__map_cloud_files_to_local(local_result.files, cloud_result.files)
         if self._recursive:
-            cloud_folders = self.__map_cloud_folders_to_local(
-                local_result.folders, cloud_path, cloud_result.folders)
+            cloud_folders = self.__map_cloud_folders_to_local(local_result.folders, cloud_path, cloud_result.folders)
             for cloud_folder in cloud_folders:
                 result_sub = self.map_files(cloud_folder)
                 result.extend(result_sub)
@@ -44,8 +42,7 @@ class FileSyncronizationService:
             self._logger.info('skipping subfolders because of configuration')
         return result
 
-    def __map_cloud_files_to_local(self,
-                                   local_files: list[LocalFileMetadata],
+    def __map_cloud_files_to_local(self, local_files: list[LocalFileMetadata],
                                    cloud_files: list[CloudFileMetadata]) -> MapFilesResult:
         result = MapFilesResult()
 
@@ -74,9 +71,8 @@ class FileSyncronizationService:
     def __exists_in_cloud(self, file_key: str, files: dict[str, CloudFileMetadata]) -> bool:
         return file_key in files.keys()
 
-    def __add_to_list_by_file_comparison(self,
-                                        local_md: LocalFileMetadata,
-                                        cloud_md: CloudFileMetadata, result: MapFilesResult):
+    def __add_to_list_by_file_comparison(self, local_md: LocalFileMetadata,
+                                         cloud_md: CloudFileMetadata, result: MapFilesResult):
         file_action = self._file_comparer.get_file_action(local_md, cloud_md)
         match file_action:
             case FileAction.UPLOAD:
@@ -108,7 +104,6 @@ class FileSyncronizationService:
     def upload_files(self, local_files: list[LocalFileMetadata]):
         for local_file in local_files:
             cloud_path = local_file.cloud_path
-            self._logger.info('uploading {} => {} ...'.
-                              format(local_file.local_path, cloud_path))
+            self._logger.info('uploading {} => {} ...'.format(local_file.local_path, cloud_path))
             content, local_md = self._local_store.read(cloud_path)
             self._cloud_store.save(content, local_md, overwrite=True)

@@ -12,10 +12,12 @@ from src.stores.local.file_store import LocalFileStore
 
 class StorageStrategy:
     @abstractmethod
-    def create_file_comparer(self) -> FileComparer: raise NotImplementedError
+    def create_file_comparer(self) -> FileComparer:
+        raise NotImplementedError
 
     @abstractmethod
-    def create_cloud_store(self) -> CloudStore: raise NotImplementedError
+    def create_cloud_store(self) -> CloudStore:
+        raise NotImplementedError
 
 
 class DropboxStorageStrategy(StorageStrategy):
@@ -59,5 +61,4 @@ class StorageStrategyFactory:
                 return GdriveStorageStrategy(config, self._localStore, self._logger)
             case _:
                 self._logger.error('Not supported storage configuration')
-                raise NotImplementedError(
-                    f'Not supported value {config.storage_name}')
+                raise NotImplementedError(f'Not supported value {config.storage_name}')

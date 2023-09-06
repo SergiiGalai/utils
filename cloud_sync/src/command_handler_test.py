@@ -37,8 +37,7 @@ class CommandHandlerTests(unittest.TestCase):
 
     def test_ui_output_using_debugger_and_debug_console(self):
         local1 = self._createLocalFile('f1.pdf', '/f1.pdf', 'c:\\root\\f1.pdf')
-        local2 = self._createLocalFile(
-            'f2.pdf', '/sub/f2.pdf', 'c:\\root\\f2.pdf')
+        local2 = self._createLocalFile('f2.pdf', '/sub/f2.pdf', 'c:\\root\\f2.pdf')
         cloud1 = self._createCloudFile('f3.pdf', '/f3.pdf')
         cloud2 = self._createCloudFile('f4.pdf', '/sub/f4.pdf')
         self._set_map_files([cloud1, cloud2], [local1, local2])
@@ -55,7 +54,7 @@ class CommandHandlerTests(unittest.TestCase):
         map_files = MapFilesResult(download, upload)
         self._sync_service.map_files = Mock(return_value=map_files)
 
-    def _createLocalFile(self, file_name, 
+    def _createLocalFile(self, file_name,
                          cloud_file_path, local_file_path,
                          modified_day=1, size=2000):
         return LocalFileMetadata(

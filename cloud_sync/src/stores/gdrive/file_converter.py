@@ -22,7 +22,7 @@ class GoogleDriveFileConverter:
                     entry)
                 result.folders.append(folder)
             else:
-                file = self.convert_GoogleDriveFile_to_CloudFileMetadata(
+                file = self.convert_GoogleDriveFile_to_CloudFile(
                     entry, folder_cloud_path)
                 result.files.append(file)
         return result
@@ -30,7 +30,7 @@ class GoogleDriveFileConverter:
     def __isFolder(self, entry):
         return entry['mimeType'] == 'application/vnd.google-apps.folder'
 
-    def convert_GoogleDriveFile_to_CloudFileMetadata(self, gFile: GoogleDriveFile, folder_cloud_path: str = '') -> CloudFileMetadata:
+    def convert_GoogleDriveFile_to_CloudFile(self, gFile: GoogleDriveFile, folder_cloud_path: str = '') -> CloudFileMetadata:
         # self.logger.debug('file: {}'.format(gFile))
         file_size = 0 if gFile['mimeType'] == 'application/vnd.google-apps.shortcut' else int(
             gFile['fileSize'])

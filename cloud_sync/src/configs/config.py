@@ -26,16 +26,12 @@ class StorageConfigProvider:
         parser = ArgumentParser()
         parser.add_argument('-c', '--config', help='Config file')
         parser.add_argument('--storage', help='dropbox|gdrive')
-        parser.add_argument('--action',
-                            help='download|upload|sync files (sync if not exist)')
+        parser.add_argument('--action', help='download|upload|sync files (sync if not exist)')
         parser.add_argument('--token', help='Access token')
         parser.add_argument('--local_dir', help='Local directory to upload')
-        parser.add_argument('--cloud_dir',
-                            help='Destination folder on your cloud storage')
-        parser.add_argument('--yes', '-y', action='store_true',
-                            help='Answer yes to all questions')
-        parser.add_argument('--no', '-n', action='store_true',
-                            help='Answer no to all questions')
+        parser.add_argument('--cloud_dir', help='Destination folder on your cloud storage')
+        parser.add_argument('--yes', '-y', action='store_true', help='Answer yes to all questions')
+        parser.add_argument('--no', '-n', action='store_true', help='Answer no to all questions')
         parser.add_argument('--default', '-d', action='store_true',
                             help='Take default answer on all questions')
         parser.add_argument('--dryrun', help='Do not change files if True')
@@ -49,10 +45,8 @@ class StorageConfigProvider:
         configFilePaths = self.__get_config_file_locations(args.config)
 
         defaultConfigParser = self.__get_config_parser(configFilePaths)
-        activeStorageName = self.__get_active_storage_name(
-            args, defaultConfigParser)
-        defaultConfig = self.__get_storage_config(
-            activeStorageName, args, defaultConfigParser)
+        activeStorageName = self.__get_active_storage_name(args, defaultConfigParser)
+        defaultConfig = self.__get_storage_config(activeStorageName, args, defaultConfigParser)
 
         overrideFilePaths = [location + '.secret.ini'
                              for location in configFilePaths]
@@ -97,17 +91,14 @@ class StorageConfigProvider:
         return config
 
     def __get_config_from_args_or_file(self, storageName: str, args: Namespace, config: SectionProxy) -> StorageConfig:
-        self._logger.debug('storageName={}, config={}, args={}'.format(
-            storageName, config, args))
+        self._logger.debug('storageName={}, config={}, args={}'.format(storageName, config, args))
 
         action = args.action or config.get('ACTION')
         token = args.token or config.get('TOKEN')
         local_dir = args.local_dir or config.get('LOCAL_DIR')
         cloud_dir = args.cloud_dir or config.get('CLOUD_DIR')
-        dry_run = args.dryrun or (
-            args.dryrun is None and config.getboolean('DRY_RUN'))
-        recursive = args.recursive or (
-            args.recursive is None and config.getboolean('RECURSIVE'))
+        dry_run = args.dryrun or (args.dryrun is None and config.getboolean('DRY_RUN'))
+        recursive = args.recursive or (args.recursive is None and config.getboolean('RECURSIVE'))
 
         if local_dir is not None and local_dir.startswith('.'):
             local_dir = os.path.abspath(local_dir)
@@ -116,8 +107,7 @@ class StorageConfigProvider:
 
     def __validate_args_defaults(self, args: Namespace):
         if sum([bool(b) for b in (args.yes, args.no, args.default)]) > 1:
-            self._logger.error(
-                'At most one of --yes, --no, --default is allowed')
+            self._logger.error('At most one of --yes, --no, --default is allowed')
             sys.exit(2)
 
     def __merge_configs(self, default: StorageConfig, override: StorageConfig):
@@ -128,6 +118,5 @@ class StorageConfigProvider:
             override.local_dir or default.local_dir,
             override.cloud_dir or default.cloud_dir,
             override.dry_run or (override.dry_run is None and default.dry_run),
-            override.recursive or (
-                override.recursive is None and default.recursive),
+            override.recursive or (override.recursive is None and default.recursive),
         )

@@ -68,4 +68,6 @@ DRY_RUN = [False|True]
 
 ## Development
 [Code Style Guide](https://peps.python.org/pep-0008/)
-install VS Code extension for code formatting `autopep8`` 
+install VS Code extension for code formatting `autopep8`
+Search in VSC settings for `@ext:ms-python.autopep8`.
+Add to Args `--max-line-length=120`
