@@ -1,5 +1,6 @@
 from logging import Logger
 
+
 class LoggerUi:
     def __init__(self, logger: Logger):
         self._logger = logger

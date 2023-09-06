@@ -1,4 +1,4 @@
-import src.logs.logger_colorer  #add log highlighting
+import src.logs.logger_colorer  # add log highlighting
 import src.logs.logger as logger
 import logging
 from src.configs.config import StorageConfigProvider, StorageConfig
@@ -11,18 +11,22 @@ from src.stores.local.path_provider import PathProvider
 
 log = logger.setupLogger(logging.DEBUG)
 
+
 def create_configuration(logger: logging.Logger):
-    configProvider = StorageConfigProvider(logger)
-    arguments = configProvider.parse_arguments()
-    return configProvider.get_config(arguments)
+    config_provider = StorageConfigProvider(logger)
+    arguments = config_provider.parse_arguments()
+    return config_provider.get_config(arguments)
+
 
 def create_command_handler(config: StorageConfig, logger: logging.Logger) -> CommandHandler:
-    pathProvider = PathProvider(config, logger)
-    localStore = DryRunLocalFileStore(config, pathProvider, logger)
-    strategy = StorageStrategyFactory(localStore, logger).create(config)
-    fileService = FileSyncronizationService(strategy, localStore, pathProvider, config, logger)
+    path_provider = PathProvider(config, logger)
+    local_store = DryRunLocalFileStore(config, path_provider, logger)
+    strategy = StorageStrategyFactory(local_store, logger).create(config)
+    sync_service = FileSyncronizationService(
+        strategy, local_store, path_provider, config, logger)
     ui = LoggerUi(logger)
-    return CommandHandler(fileService, ui, logger)
+    return CommandHandler(sync_service, ui, logger)
+
 
 if __name__ == '__main__':
     conf = create_configuration(log)

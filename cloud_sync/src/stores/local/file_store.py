@@ -8,6 +8,7 @@ from logging import Logger
 from src.stores.local.path_provider import PathProvider
 from src.stores.models import CloudFileMetadata, ListLocalFolderResult, LocalFileMetadata
 
+
 class LocalFileStore:
     def __init__(self, path_provider: PathProvider, logger: Logger):
         self._path_provider = path_provider
@@ -20,7 +21,8 @@ class LocalFileStore:
 
         if pathlib.Path(full_folder_path).exists():
             _, dir_names, file_names = next(os.walk(full_folder_path))
-            file_paths = list(self._join_path(cloud_path, unicodedata.normalize('NFC', f)) for f in file_names)
+            file_paths = list(self._join_path(
+                cloud_path, unicodedata.normalize('NFC', f)) for f in file_names)
             list_md = list(self._get_file_metadata(f) for f in file_paths)
             self._logger.debug('list_md={}'.format(list_md))
             result.folders = dir_names
@@ -59,7 +61,8 @@ class LocalFileStore:
         self._try_create_local_folder(base_path)
         with open(file_path, 'wb') as f:
             f.write(content)
-        self._set_modification_time(file_path, self._datetime_utc_to_local(cloud_md.client_modified))
+        self._set_modification_time(
+            file_path, self._datetime_utc_to_local(cloud_md.client_modified))
         self._logger.debug('saved file {}...'.format(file_path))
 
     def _try_create_local_folder(self, path: str):
@@ -67,7 +70,8 @@ class LocalFileStore:
         pathlib.Path(path).mkdir(parents=True, exist_ok=True)
 
     def _set_modification_time(self, file_path: str, modified: datetime):
-        self._logger.debug('file_path={}, modified={}'.format(file_path, modified))
+        self._logger.debug(
+            'file_path={}, modified={}'.format(file_path, modified))
         atime = os.stat(file_path).st_atime
         mtime = modified.timestamp()
         os.utime(file_path, times=(atime, mtime))
