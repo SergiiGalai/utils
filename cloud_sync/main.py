@@ -5,8 +5,9 @@ from src.configs.config import StorageConfigProvider, StorageConfig
 from src.command_handler import CommandHandler
 from src.services.file_sync_service import FileSyncronizationService
 from src.services.storage_strategy import StorageStrategyFactory
-from src.stores.local.file_store import LocalFileStore
+from src.stores.local.dry_run_file_store import DryRunLocalFileStore
 from src.clients.logger_ui import LoggerUi
+from src.stores.local.path_provider import PathProvider
 
 log = logger.setupLogger(logging.DEBUG)
 
@@ -16,9 +17,10 @@ def create_configuration(logger: logging.Logger):
     return configProvider.get_config(arguments)
 
 def create_command_handler(config: StorageConfig, logger: logging.Logger) -> CommandHandler:
-    localStore = LocalFileStore(config, logger)
+    pathProvider = PathProvider(config, logger)
+    localStore = DryRunLocalFileStore(config, pathProvider, logger)
     strategy = StorageStrategyFactory(localStore, logger).create(config)
-    fileService = FileSyncronizationService(strategy, localStore, config, logger)
+    fileService = FileSyncronizationService(strategy, localStore, pathProvider, config, logger)
     ui = LoggerUi(logger)
     return CommandHandler(fileService, ui, logger)
 

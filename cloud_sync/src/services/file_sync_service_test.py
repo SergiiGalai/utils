@@ -9,6 +9,7 @@ from src.services.models import FileAction
 from src.services.storage_strategy import StorageStrategy
 from src.stores.cloud_store import CloudStore
 from src.stores.local.file_store import LocalFileStore
+from src.stores.local.path_provider import PathProvider
 from src.stores.models import CloudFileMetadata, ListCloudFolderResult, ListLocalFolderResult, LocalFileMetadata
 
 class FileSyncronizationServiceTests(unittest.TestCase):
@@ -20,6 +21,7 @@ class FileSyncronizationServiceTests(unittest.TestCase):
 
    def setUp(self):
       logger = Mock(logging.Logger)
+      pathProvider = Mock(PathProvider)
       self._localStore = Mock(LocalFileStore)
       self._cloudStore = Mock(CloudStore)
       self._fileComparer = Mock(FileComparer)
@@ -27,7 +29,7 @@ class FileSyncronizationServiceTests(unittest.TestCase):
       strategy = Mock(StorageStrategy)
       strategy.create_cloud_store = Mock(return_value=self._cloudStore)
       strategy.create_file_comparer = Mock(return_value=self._fileComparer)
-      self.sut = FileSyncronizationService(strategy, self._localStore, self._config, logger)
+      self.sut = FileSyncronizationService(strategy, self._localStore, pathProvider, self._config, logger)
 
    def test_empty_lists_when_local_and_cloud_files_match_by_metadata(self):
       self._mock_local_list([self._createLocalFile()])

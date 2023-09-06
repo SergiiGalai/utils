@@ -5,11 +5,13 @@ from src.services.file_comparer import FileAction
 from src.services.models import MapFilesResult
 from src.services.storage_strategy import StorageStrategy
 from src.stores.local.file_store import LocalFileStore
+from src.stores.local.path_provider import PathProvider
 from src.stores.models import CloudFileMetadata, CloudFolderMetadata, LocalFileMetadata
 
 class FileSyncronizationService:
-    def __init__(self, strategy: StorageStrategy, localStore: LocalFileStore, config: StorageConfig, logger: Logger):
+    def __init__(self, strategy: StorageStrategy, localStore: LocalFileStore, pathProvider: PathProvider, config: StorageConfig, logger: Logger):
         self._localStore = localStore
+        self._pathProvider = pathProvider
         self._cloudStore = strategy.create_cloud_store()
         self._fileComparer = strategy.create_file_comparer()
         self._recursive = config.recursive
@@ -18,7 +20,7 @@ class FileSyncronizationService:
 
     @property
     def local_root(self) -> str:
-        return self._localStore.get_absolute_path()
+        return self._pathProvider.get_absolute_path()
 
     def map_files(self, cloud_path: str) -> MapFilesResult:
         self._logger.info('cloud_path={}'.format(cloud_path))
@@ -83,7 +85,7 @@ class FileSyncronizationService:
     def download_files(self, cloud_files: list[CloudFileMetadata]):
         for cloud_file in cloud_files:
             cloud_path = cloud_file.cloud_path
-            self._logger.info('downloading {} => {} ...'.format(cloud_path, self._localStore.get_absolute_path(cloud_path)))
+            self._logger.info('downloading {} => {} ...'.format(cloud_path, self._pathProvider.get_absolute_path(cloud_path)))
             content, cloud_md = self._cloudStore.read(cloud_file.id)
             self._logger.debug('downloaded file: {}'.format(cloud_md))
             self._localStore.save(content, cloud_md)
