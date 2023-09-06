@@ -8,7 +8,7 @@ from src.services.file_sync_service import FileSyncronizationService
 from src.services.models import FileAction
 from src.services.storage_strategy import StorageStrategy
 from src.stores.cloud_store import CloudStore
-from src.stores.local_file_store import LocalFileStore
+from src.stores.local.file_store import LocalFileStore
 from src.stores.models import CloudFileMetadata, ListCloudFolderResult, ListLocalFolderResult, LocalFileMetadata
 
 class FileSyncronizationServiceTests(unittest.TestCase):

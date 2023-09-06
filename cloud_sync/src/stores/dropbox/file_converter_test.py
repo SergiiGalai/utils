@@ -4,7 +4,7 @@ from unittest.mock import Mock
 import logging
 import dropbox
 
-from src.stores.dropbox_file_converter import DropboxFileConverter
+from src.stores.dropbox.file_converter import DropboxFileConverter
 from src.stores.models import CloudFileMetadata, CloudFolderMetadata
 
 class DropboxFileConverterTests(unittest.TestCase):

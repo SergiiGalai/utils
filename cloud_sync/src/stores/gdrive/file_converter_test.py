@@ -4,7 +4,7 @@ from unittest.mock import Mock
 import logging
 from pydrive.drive import GoogleDriveFile
 
-from src.stores.gdrive_file_converter import GoogleDriveFileConverter
+from src.stores.gdrive.file_converter import GoogleDriveFileConverter
 from src.stores.models import CloudFileMetadata, CloudFolderMetadata
 
 class GoogleDriveFileConverterTests(unittest.TestCase):

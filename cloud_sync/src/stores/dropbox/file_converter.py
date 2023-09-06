@@ -12,10 +12,10 @@ class DropboxFileConverter:
       for entry in dropbox_entries:
          self._logger.debug("entry path_display=`{}`, name={}".format(entry.path_display, entry.name))
          if self.__isFile(entry):
-            cloud_file: CloudFileMetadata = self.convert_DropboxFileMetadata_to_CloudFileMetadata(entry)
+            cloud_file = self.convert_DropboxFileMetadata_to_CloudFileMetadata(entry)
             result.files.append(cloud_file)
          else:
-            cloud_folder: CloudFolderMetadata = self.convert_DropboxFolderMetadata_to_CloudFolderMetadata(entry)
+            cloud_folder = self.convert_DropboxFolderMetadata_to_CloudFolderMetadata(entry)
             result.folders.append(cloud_folder)
       return result
 

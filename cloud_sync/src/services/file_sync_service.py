@@ -4,7 +4,7 @@ from src.configs.config import StorageConfig
 from src.services.file_comparer import FileAction
 from src.services.models import MapFilesResult
 from src.services.storage_strategy import StorageStrategy
-from src.stores.local_file_store import LocalFileStore
+from src.stores.local.file_store import LocalFileStore
 from src.stores.models import CloudFileMetadata, CloudFolderMetadata, LocalFileMetadata
 
 class FileSyncronizationService:
@@ -84,9 +84,9 @@ class FileSyncronizationService:
         for cloud_file in cloud_files:
             cloud_path = cloud_file.cloud_path
             self._logger.info('downloading {} => {} ...'.format(cloud_path, self._localStore.get_absolute_path(cloud_path)))
-            cloud_content, cloud_md = self._cloudStore.read(cloud_file.id)
+            content, cloud_md = self._cloudStore.read(cloud_file.id)
             self._logger.debug('downloaded file: {}'.format(cloud_md))
-            self._localStore.save(cloud_content, cloud_md)
+            self._localStore.save(content, cloud_md)
 
     def upload_files(self, local_files: list[LocalFileMetadata]):
         for local_file in local_files:

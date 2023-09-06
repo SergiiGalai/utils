@@ -5,7 +5,7 @@ from src.configs.config import StorageConfigProvider, StorageConfig
 from src.command_handler import CommandHandler
 from src.services.file_sync_service import FileSyncronizationService
 from src.services.storage_strategy import StorageStrategyFactory
-from src.stores.local_file_store import LocalFileStore
+from src.stores.local.file_store import LocalFileStore
 from src.clients.logger_ui import LoggerUi
 
 log = logger.setupLogger(logging.DEBUG)

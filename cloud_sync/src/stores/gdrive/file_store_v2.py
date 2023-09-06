@@ -3,7 +3,7 @@ from pydrive.auth import GoogleAuth
 from logging import Logger
 from src.configs.config import StorageConfig
 from src.stores.cloud_store import CloudStore
-from src.stores.gdrive_file_converter import GoogleDriveFileConverter
+from src.stores.gdrive.file_converter import GoogleDriveFileConverter
 from src.stores.models import CloudFileMetadata, CloudFolderMetadata, ListCloudFolderResult, LocalFileMetadata
 
 #https://pythonhosted.org/PyDrive/pydrive.html#pydrive.files.GoogleDriveFile
@@ -24,12 +24,12 @@ class GdriveStore(CloudStore):
       folder_dict = {folder.cloud_path.lower(): folder for folder in result.folders}
       self._logger.debug('dictionary={}'.format(folder_dict))
 
-      for part in self.__split_path(cloud_path):
-         if part == '': continue
-         key = part.lower()
-         sub_path += '/' + part
-         if key in folder_dict:
-            cloudFolder : CloudFolderMetadata = folder_dict[key]
+      for folder in self.__split_path(cloud_path):
+         if folder == '': continue
+         folder_key = folder.lower()
+         sub_path += '/' + folder
+         if folder_key in folder_dict:
+            cloudFolder : CloudFolderMetadata = folder_dict[folder_key]
             self._logger.debug('next folder=`{}` id=`{}`'.format(cloudFolder.cloud_path, cloudFolder.id))
             result = self.__list_folder(cloudFolder.id, sub_path)
             folder_dict = {folder.cloud_path.lower(): folder for folder in result.folders}

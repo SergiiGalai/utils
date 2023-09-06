@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import Mock
 import logging
 from src.configs.config import StorageConfig
-from src.stores.local_file_store import LocalFileStore
+from src.stores.local.file_store import LocalFileStore
 
 class LocalFileStoreTests(unittest.TestCase):
 

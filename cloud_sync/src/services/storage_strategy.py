@@ -5,9 +5,9 @@ from src.services.content_file_comparer import ContentFileComparer
 from src.services.dropbox_hash_file_comparer import DropboxHashFileComparer
 from src.services.file_comparer import FileComparer
 from src.stores.cloud_store import CloudStore
-from src.stores.dropbox_store import DropboxStore
-from src.stores.gdrive_v2_store import GdriveStore
-from src.stores.local_file_store import LocalFileStore
+from src.stores.dropbox.file_store import DropboxStore
+from src.stores.gdrive.file_store_v2 import GdriveStore
+from src.stores.local.file_store import LocalFileStore
 
 class StorageStrategy:
    @abstractmethod
