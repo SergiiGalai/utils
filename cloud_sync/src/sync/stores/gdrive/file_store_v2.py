@@ -86,8 +86,8 @@ class GdriveStore(CloudStore):
         google_file = self._gdrive.CreateFile(metadata)
         google_file.SetContentString(content)
         if self._dry_run:
-            self._logger.info('Dry run mode. Skip uploading {} (modified:{})'
-                              .format(local_md.cloud_path, local_md.client_modified))
+            self._logger.info('Dry run mode. Skip uploading {} (modified:{})'.format(
+                local_md.cloud_path, local_md.client_modified))
         else:
             try:
                 google_file.Upload()

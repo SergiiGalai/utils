@@ -70,8 +70,7 @@ class LocalFileStore:
         pathlib.Path(path).mkdir(parents=True, exist_ok=True)
 
     def _set_modification_time(self, file_path: str, modified: datetime):
-        self._logger.debug(
-            'file_path={}, modified={}'.format(file_path, modified))
+        self._logger.debug('file_path={}, modified={}'.format(file_path, modified))
         atime = os.stat(file_path).st_atime
         mtime = modified.timestamp()
         os.utime(file_path, times=(atime, mtime))

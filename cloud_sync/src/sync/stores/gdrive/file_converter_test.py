@@ -20,8 +20,7 @@ class GoogleDriveFileConverterTests(unittest.TestCase):
         expected1 = self._createCloudFileMetadata('f1.pdf', 'f1.pdf', '1')
         expected2 = self._createCloudFileMetadata('F2.pdf', 'F2.pdf', '2')
         # act
-        actual = self.sut.convert_GoogleDriveFiles_to_FileMetadatas([
-                                                                    gFile1, gFile2])
+        actual = self.sut.convert_GoogleDriveFiles_to_FileMetadatas([gFile1, gFile2])
         # assert
         self.assertEqual(actual.folders, [])
         self.assertEqual(actual.files, [expected1, expected2])

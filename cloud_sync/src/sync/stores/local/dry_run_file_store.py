@@ -16,8 +16,7 @@ class DryRunLocalFileStore(LocalFileStore):
     def save(self, content: bytes, cloud_md: CloudFileMetadata):
         if self._dry_run:
             file_path = self._get_absolute_path(cloud_md.cloud_path)
-            self._logger.warn(
-                'dry run mode. Skip saving file {}'.format(file_path))
+            self._logger.warn('Dry run mode. Skip saving file {}'.format(file_path))
         else:
             super().save(content, cloud_md)
 

@@ -22,8 +22,7 @@ class DropboxStore(CloudStore):
             with stopwatch('list_folder', self._logger):
                 res = self._dbx.files_list_folder(cloud_path)
         except dropbox.exceptions.ApiError:
-            self._logger.warning(
-                'Folder listing failed for {} -- assumed empty'.format(cloud_path))
+            self._logger.warning('Folder listing failed for {} -- assumed empty'.format(cloud_path))
         else:
             return self._converter.convert_dropbox_entries_to_cloud(res.entries)
         return ListCloudFolderResult()
@@ -65,5 +64,4 @@ def stopwatch(message: str, logger: Logger):
         yield
     finally:
         t1 = time.time()
-        logger.debug(
-            'Total elapsed time for {}: {:.3f}'.format(message, t1 - t0))
+        logger.debug('Total elapsed time for {}: {:.3f}'.format(message, t1 - t0))

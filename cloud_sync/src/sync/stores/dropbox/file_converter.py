@@ -32,4 +32,5 @@ class DropboxFileConverter:
 
     def convert_DropboxFolder_to_CloudFolder(self, dbx_dir: dropbox.files.FolderMetadata) -> CloudFolderMetadata:
         # self.logger.debug('folder: {}'.format(dbx_dir))
-        return CloudFolderMetadata(dbx_dir.path_lower, dbx_dir.name, dbx_dir.path_lower, dbx_dir.path_display)
+        return CloudFolderMetadata(dbx_dir.path_lower, dbx_dir.name, 
+                                   dbx_dir.path_lower, dbx_dir.path_display)
