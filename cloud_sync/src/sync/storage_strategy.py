@@ -1,9 +1,9 @@
 from abc import abstractmethod
 from logging import Logger
 from src.configs.config import StorageConfig
-from src.stores.gdrive.content_file_comparer import ContentFileComparer
-from src.stores.dropbox.dropbox_hash_file_comparer import DropboxHashFileComparer
-from src.stores.file_comparer import FileComparer
+from src.sync.comparison.file_content_comparer import FileContentComparer
+from src.sync.comparison.file_store_content_comparer import FileStoreContentComparer
+from src.sync.comparison.dropbox_hash_file_comparer import DropboxHashFileComparer
 from src.stores.cloud_store import CloudStore
 from src.stores.dropbox.file_store import DropboxStore
 from src.stores.gdrive.file_store_v2 import GdriveStore
@@ -12,7 +12,7 @@ from src.stores.local.file_store import LocalFileStore
 
 class StorageStrategy:
     @abstractmethod
-    def create_file_comparer(self) -> FileComparer:
+    def create_file_content_comparer(self) -> FileContentComparer:
         raise NotImplementedError
 
     @abstractmethod
@@ -25,7 +25,7 @@ class DropboxStorageStrategy(StorageStrategy):
         self._config = config
         self._logger = logger
 
-    def create_file_comparer(self) -> FileComparer:
+    def create_file_content_comparer(self) -> FileContentComparer:
         return DropboxHashFileComparer(self._logger)
 
     def create_cloud_store(self) -> CloudStore:
@@ -39,8 +39,8 @@ class GdriveStorageStrategy(StorageStrategy):
         self._localStore = localStore
         self._cloudStore = GdriveStore(config, logger)
 
-    def create_file_comparer(self) -> FileComparer:
-        return ContentFileComparer(self._localStore, self._cloudStore, self._logger)
+    def create_file_content_comparer(self) -> FileContentComparer:
+        return FileStoreContentComparer(self._localStore, self._cloudStore, self._logger)
 
     def create_cloud_store(self) -> CloudStore:
         return self._cloudStore

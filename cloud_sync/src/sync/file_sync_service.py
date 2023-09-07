@@ -1,9 +1,8 @@
 import posixpath
 from logging import Logger
 from src.configs.config import StorageConfig
-from src.stores.file_comparer import FileAction, FileComparer
-from src.services.models import MapFilesResult
-from src.services.storage_strategy import StorageStrategy
+from src.sync.file_sync_action_provider import FileSyncAction, FileSyncActionProvider
+from src.sync.models import MapFilesResult
 from src.stores.cloud_store import CloudStore
 from src.stores.local.file_store import LocalFileStore
 from src.stores.local.path_provider import PathProvider
@@ -11,15 +10,16 @@ from src.stores.models import CloudFileMetadata, CloudFolderMetadata, LocalFileM
 
 
 class FileSyncronizationService:
-    def __init__(self, strategy: StorageStrategy,
-                 local_store: LocalFileStore, path_provider: PathProvider,
+    def __init__(self,
+                 local_store: LocalFileStore, cloud_store: CloudStore,
+                 file_comparer: FileSyncActionProvider, path_provider: PathProvider,
                  config: StorageConfig, logger: Logger):
         self._recursive = config.recursive
         self._logger = logger
-        self._local_store = local_store
         self._path_provider = path_provider
-        self._cloud_store: CloudStore = strategy.create_cloud_store()
-        self._file_comparer: FileComparer = strategy.create_file_comparer()
+        self._local_store = local_store
+        self._cloud_store = cloud_store
+        self._file_comparer = file_comparer
         self._logger.debug(config)
 
     @property
@@ -73,11 +73,11 @@ class FileSyncronizationService:
 
     def __add_to_list_by_file_comparison(self, local_md: LocalFileMetadata,
                                          cloud_md: CloudFileMetadata, result: MapFilesResult):
-        file_action = self._file_comparer.get_file_action(local_md, cloud_md)
+        file_action = self._file_comparer.get_sync_action(local_md, cloud_md)
         match file_action:
-            case FileAction.UPLOAD:
+            case FileSyncAction.UPLOAD:
                 result.add_upload(local_md)
-            case FileAction.DOWNLOAD:
+            case FileSyncAction.DOWNLOAD:
                 result.add_download(cloud_md)
 
     def __map_cloud_folders_to_local(self, local_folders: list[str],

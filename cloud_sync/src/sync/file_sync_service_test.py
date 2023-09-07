@@ -3,11 +3,10 @@ import unittest
 from unittest.mock import Mock
 import logging
 from src.configs.config import StorageConfig
-from src.stores.file_comparer import FileComparer
-from src.services.file_sync_service import FileSyncronizationService
-from src.services.models import FileAction
-from src.services.storage_strategy import StorageStrategy
+from src.sync.file_sync_service import FileSyncronizationService
+from src.sync.models import FileSyncAction
 from src.stores.cloud_store import CloudStore
+from src.sync.file_sync_action_provider import FileSyncActionProvider
 from src.stores.local.file_store import LocalFileStore
 from src.stores.local.path_provider import PathProvider
 from src.stores.models import CloudFileMetadata, ListCloudFolderResult, ListLocalFolderResult, LocalFileMetadata
@@ -25,13 +24,12 @@ class FileSyncronizationServiceTests(unittest.TestCase):
         path_provider = Mock(PathProvider)
         self._local_store = Mock(LocalFileStore)
         self._cloud_store = Mock(CloudStore)
-        self._file_comparer = Mock(FileComparer)
+        self._sync_action_provider = Mock(FileSyncActionProvider)
         self._config = self.__createConfig()
-        strategy = Mock(StorageStrategy)
-        strategy.create_cloud_store = Mock(return_value=self._cloud_store)
-        strategy.create_file_comparer = Mock(return_value=self._file_comparer)
         self.sut = FileSyncronizationService(
-            strategy, self._local_store, path_provider, self._config, logger)
+            self._local_store, self._cloud_store,
+            self._sync_action_provider, path_provider,
+            self._config, logger)
 
     def test_empty_lists_when_local_and_cloud_files_match_by_metadata(self):
         self.__mock_local_list([self.__create_local_file()])
@@ -57,8 +55,7 @@ class FileSyncronizationServiceTests(unittest.TestCase):
         self.__mock_local_list([local_file])
         cloud_file = self.__create_cloud_file(3)
         self.__mock_cloud_list([cloud_file])
-        self._file_comparer.get_file_action = Mock(
-            return_value=FileAction.SKIP)
+        self._sync_action_provider.get_sync_action = Mock(return_value=FileSyncAction.SKIP)
         # act
         actual = self.sut.map_files(self._CLOUD_FOLDER_PATH)
         # assert
@@ -70,8 +67,7 @@ class FileSyncronizationServiceTests(unittest.TestCase):
         self.__mock_local_list([local_file])
         cloud_file = self.__create_cloud_file(3)
         self.__mock_cloud_list([cloud_file])
-        self._file_comparer.get_file_action = Mock(
-            return_value=FileAction.CONFLICT)
+        self._sync_action_provider.get_sync_action = Mock(return_value=FileSyncAction.CONFLICT)
         # act
         actual = self.sut.map_files(self._CLOUD_FOLDER_PATH)
         # assert
@@ -83,8 +79,7 @@ class FileSyncronizationServiceTests(unittest.TestCase):
         self.__mock_local_list([local_file])
         cloud_file = self.__create_cloud_file()
         self.__mock_cloud_list([cloud_file])
-        self._file_comparer.get_file_action = Mock(
-            return_value=FileAction.DOWNLOAD)
+        self._sync_action_provider.get_sync_action = Mock(return_value=FileSyncAction.DOWNLOAD)
         # act
         actual = self.sut.map_files(self._CLOUD_FOLDER_PATH)
         # assert
@@ -96,8 +91,7 @@ class FileSyncronizationServiceTests(unittest.TestCase):
         self.__mock_local_list([local_file])
         cloud_file = self.__create_cloud_file()
         self.__mock_cloud_list([cloud_file])
-        self._file_comparer.get_file_action = Mock(
-            return_value=FileAction.UPLOAD)
+        self._sync_action_provider.get_sync_action = Mock(return_value=FileSyncAction.UPLOAD)
         # act
         actual = self.sut.map_files(self._CLOUD_FOLDER_PATH)
         # assert

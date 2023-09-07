@@ -1,16 +1,16 @@
 import hashlib
 from logging import Logger
-from src.stores.file_comparer import FileComparer
+from src.sync.comparison.file_content_comparer import FileContentComparer
 from src.stores.models import CloudFileMetadata, LocalFileMetadata
 
 
-class DropboxHashFileComparer(FileComparer):
+class DropboxHashFileComparer(FileContentComparer):
     _DROPBOX_HASH_CHUNK_SIZE = 4*1024*1024
 
     def __init__(self, logger: Logger):
         self._logger = logger
 
-    def _are_equal_by_content(self, local_md: LocalFileMetadata, cloud_md: CloudFileMetadata) -> bool:
+    def are_equal(self, local_md: LocalFileMetadata, cloud_md: CloudFileMetadata) -> bool:
         local_hash = self._compute_dropbox_hash(local_md.local_path)
         cloud_hash = cloud_md.content_hash
         return local_hash == cloud_hash

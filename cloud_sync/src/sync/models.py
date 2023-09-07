@@ -3,7 +3,7 @@ from enum import Enum
 from src.stores.models import CloudFileMetadata, LocalFileMetadata
 
 
-class FileAction(Enum):
+class FileSyncAction(Enum):
     DOWNLOAD = 1
     UPLOAD = 2
     SKIP = 3

@@ -5,9 +5,8 @@ import logging
 from src.clients.logger_ui import LoggerUi
 
 from src.command_handler import CommandHandler
-from src.services.file_sync_service import FileSyncronizationService
-from src.services.models import MapFilesResult
-from src.stores.local.file_store import LocalFileStore
+from src.sync.file_sync_service import FileSyncronizationService
+from src.sync.models import MapFilesResult
 from src.stores.models import CloudFileMetadata, LocalFileMetadata
 
 
@@ -26,7 +25,6 @@ class CommandHandlerTests(unittest.TestCase):
 
     def setUp(self):
         logger = Mock(logging.Logger)
-        sync_service = Mock(FileSyncronizationService)
         sync_service = Mock(FileSyncronizationService)
         sync_service.download_files = Mock()
         sync_service.upload_files = Mock()
@@ -62,7 +60,7 @@ class CommandHandlerTests(unittest.TestCase):
             datetime.datetime(2023, 8, modified_day, 20, 14, 14),
             size, local_file_path)
 
-    def _createCloudFile(self, file_name, cloud_file_path, 
+    def _createCloudFile(self, file_name, cloud_file_path,
                          modified_day=1, size=2000):
         return CloudFileMetadata(
             file_name, cloud_file_path,
