@@ -3,9 +3,9 @@ import time
 import dropbox
 from logging import Logger
 from src.configs.config import StorageConfig
-from src.stores.cloud_store import CloudStore
-from src.stores.dropbox.file_converter import DropboxFileConverter
-from src.stores.models import CloudFileMetadata, CloudFolderMetadata, ListCloudFolderResult, LocalFileMetadata
+from src.sync.stores.cloud_store import CloudStore
+from src.sync.stores.dropbox.file_converter import DropboxFileConverter
+from src.sync.stores.models import CloudFileMetadata, CloudFolderMetadata, ListCloudFolderResult, LocalFileMetadata
 
 
 # dropbox files https://dropbox-sdk-python.readthedocs.io/en/latest/api/files.html

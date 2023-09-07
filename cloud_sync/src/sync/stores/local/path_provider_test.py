@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import Mock
 import logging
 from src.configs.config import StorageConfig
-from src.stores.local.path_provider import PathProvider
+from src.sync.stores.local.path_provider import PathProvider
 
 
 class PathProviderTests(unittest.TestCase):

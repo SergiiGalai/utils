@@ -3,7 +3,7 @@ import posixpath
 from pydrive.drive import GoogleDriveFile
 from logging import Logger
 
-from src.stores.models import CloudFileMetadata, CloudFolderMetadata, ListCloudFolderResult
+from src.sync.stores.models import CloudFileMetadata, CloudFolderMetadata, ListCloudFolderResult
 
 
 # ? https://developers.google.com/drive/api/reference/rest/v3/files

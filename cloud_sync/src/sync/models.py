@@ -1,6 +1,6 @@
 from enum import Enum
 
-from src.stores.models import CloudFileMetadata, LocalFileMetadata
+from src.sync.stores.models import CloudFileMetadata, LocalFileMetadata
 
 
 class FileSyncAction(Enum):

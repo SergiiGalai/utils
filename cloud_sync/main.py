@@ -1,14 +1,14 @@
 import src.logs.logger_colorer  # add log highlighting
 import src.logs.logger as logger
 import logging
+from src.clients.logger_ui import LoggerUi
 from src.configs.config import StorageConfigProvider, StorageConfig
 from src.command_handler import CommandHandler
 from src.sync.file_sync_service import FileSyncronizationService
 from src.sync.storage_strategy import StorageStrategyFactory
 from src.sync.file_sync_action_provider import FileSyncActionProvider
-from src.stores.local.dry_run_file_store import DryRunLocalFileStore
-from src.clients.logger_ui import LoggerUi
-from src.stores.local.path_provider import PathProvider
+from src.sync.stores.local.dry_run_file_store import DryRunLocalFileStore
+from src.sync.stores.local.path_provider import PathProvider
 
 log = logger.setup_logger(logging.DEBUG)
 

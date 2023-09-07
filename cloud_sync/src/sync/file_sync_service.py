@@ -3,10 +3,10 @@ from logging import Logger
 from src.configs.config import StorageConfig
 from src.sync.file_sync_action_provider import FileSyncAction, FileSyncActionProvider
 from src.sync.models import MapFilesResult
-from src.stores.cloud_store import CloudStore
-from src.stores.local.file_store import LocalFileStore
-from src.stores.local.path_provider import PathProvider
-from src.stores.models import CloudFileMetadata, CloudFolderMetadata, LocalFileMetadata
+from src.sync.stores.cloud_store import CloudStore
+from src.sync.stores.local.file_store import LocalFileStore
+from src.sync.stores.local.path_provider import PathProvider
+from src.sync.stores.models import CloudFileMetadata, CloudFolderMetadata, LocalFileMetadata
 
 
 class FileSyncronizationService:

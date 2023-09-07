@@ -2,9 +2,9 @@ import os
 from datetime import datetime
 from logging import Logger
 from src.configs.config import StorageConfig
-from src.stores.local.path_provider import PathProvider
-from src.stores.local.file_store import LocalFileStore
-from src.stores.models import CloudFileMetadata
+from src.sync.stores.local.path_provider import PathProvider
+from src.sync.stores.local.file_store import LocalFileStore
+from src.sync.stores.models import CloudFileMetadata
 
 
 class DryRunLocalFileStore(LocalFileStore):

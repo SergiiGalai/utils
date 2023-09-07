@@ -1,6 +1,6 @@
 from logging import Logger
 from src.sync.models import FileComparison
-from src.stores.models import CloudFileMetadata, LocalFileMetadata
+from src.sync.stores.models import CloudFileMetadata, LocalFileMetadata
 
 
 class FileMetadataComparer:

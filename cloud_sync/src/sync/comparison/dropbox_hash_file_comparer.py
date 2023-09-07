@@ -1,7 +1,7 @@
 import hashlib
 from logging import Logger
 from src.sync.comparison.file_content_comparer import FileContentComparer
-from src.stores.models import CloudFileMetadata, LocalFileMetadata
+from src.sync.stores.models import CloudFileMetadata, LocalFileMetadata
 
 
 class DropboxHashFileComparer(FileContentComparer):

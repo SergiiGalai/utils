@@ -1,6 +1,6 @@
 import dropbox
 from logging import Logger
-from src.stores.models import CloudFileMetadata, CloudFolderMetadata, ListCloudFolderResult
+from src.sync.stores.models import CloudFileMetadata, CloudFolderMetadata, ListCloudFolderResult
 
 # dropbox files https://dropbox-sdk-python.readthedocs.io/en/latest/api/files.html
 

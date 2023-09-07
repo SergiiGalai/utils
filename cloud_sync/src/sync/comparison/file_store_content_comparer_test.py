@@ -3,9 +3,9 @@ import unittest
 from unittest.mock import Mock
 import logging
 from src.sync.comparison.file_store_content_comparer import FileStoreContentComparer
-from src.stores.cloud_store import CloudStore
-from src.stores.local.file_store import LocalFileStore
-from src.stores.models import CloudFileMetadata, LocalFileMetadata
+from src.sync.stores.cloud_store import CloudStore
+from src.sync.stores.local.file_store import LocalFileStore
+from src.sync.stores.models import CloudFileMetadata, LocalFileMetadata
 
 
 class FileStoreContentComparerTests(unittest.TestCase):

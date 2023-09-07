@@ -1,8 +1,8 @@
 from logging import Logger
-from src.stores.cloud_store import CloudStore
+from src.sync.stores.cloud_store import CloudStore
 from src.sync.comparison.file_content_comparer import FileContentComparer
-from src.stores.local.file_store import LocalFileStore
-from src.stores.models import CloudFileMetadata, LocalFileMetadata
+from src.sync.stores.local.file_store import LocalFileStore
+from src.sync.stores.models import CloudFileMetadata, LocalFileMetadata
 
 
 class FileStoreContentComparer(FileContentComparer):

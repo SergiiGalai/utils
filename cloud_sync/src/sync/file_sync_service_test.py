@@ -5,11 +5,11 @@ import logging
 from src.configs.config import StorageConfig
 from src.sync.file_sync_service import FileSyncronizationService
 from src.sync.models import FileSyncAction
-from src.stores.cloud_store import CloudStore
+from src.sync.stores.cloud_store import CloudStore
 from src.sync.file_sync_action_provider import FileSyncActionProvider
-from src.stores.local.file_store import LocalFileStore
-from src.stores.local.path_provider import PathProvider
-from src.stores.models import CloudFileMetadata, ListCloudFolderResult, ListLocalFolderResult, LocalFileMetadata
+from src.sync.stores.local.file_store import LocalFileStore
+from src.sync.stores.local.path_provider import PathProvider
+from src.sync.stores.models import CloudFileMetadata, ListCloudFolderResult, ListLocalFolderResult, LocalFileMetadata
 
 
 class FileSyncronizationServiceTests(unittest.TestCase):

@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import Protocol
 
-from src.stores.models import CloudFileMetadata, ListCloudFolderResult, LocalFileMetadata
+from src.sync.stores.models import CloudFileMetadata, ListCloudFolderResult, LocalFileMetadata
 
 
 class CloudStore(Protocol):

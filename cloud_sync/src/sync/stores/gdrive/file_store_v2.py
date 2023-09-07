@@ -2,9 +2,9 @@ from pydrive.drive import GoogleDrive
 from pydrive.auth import GoogleAuth
 from logging import Logger
 from src.configs.config import StorageConfig
-from src.stores.cloud_store import CloudStore
-from src.stores.gdrive.file_converter import GoogleDriveFileConverter
-from src.stores.models import CloudFileMetadata, CloudFolderMetadata, ListCloudFolderResult, LocalFileMetadata
+from src.sync.stores.cloud_store import CloudStore
+from src.sync.stores.gdrive.file_converter import GoogleDriveFileConverter
+from src.sync.stores.models import CloudFileMetadata, CloudFolderMetadata, ListCloudFolderResult, LocalFileMetadata
 
 
 # https://pythonhosted.org/PyDrive/pydrive.html#pydrive.files.GoogleDriveFile

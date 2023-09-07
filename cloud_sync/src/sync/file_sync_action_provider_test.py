@@ -4,7 +4,7 @@ from unittest.mock import Mock
 import logging
 from src.sync.file_sync_action_provider import FileSyncAction, FileSyncActionProvider
 from src.sync.comparison.file_content_comparer import FileContentComparer
-from src.stores.models import CloudFileMetadata, LocalFileMetadata
+from src.sync.stores.models import CloudFileMetadata, LocalFileMetadata
 
 
 class FileSyncActionProviderTests(unittest.TestCase):

@@ -2,7 +2,7 @@ from logging import Logger
 from src.sync.models import FileSyncAction, FileComparison
 from src.sync.comparison.file_content_comparer import FileContentComparer
 from src.sync.comparison.file_metadata_comparer import FileMetadataComparer
-from src.stores.models import CloudFileMetadata, LocalFileMetadata
+from src.sync.stores.models import CloudFileMetadata, LocalFileMetadata
 
 
 class FileSyncActionProvider:

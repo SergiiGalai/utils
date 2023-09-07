@@ -1,7 +1,7 @@
 from logging import Logger
 from src.clients.logger_ui import LoggerUi
 from src.sync.file_sync_service import FileSyncronizationService
-from src.stores.models import CloudFileMetadata, LocalFileMetadata
+from src.sync.stores.models import CloudFileMetadata, LocalFileMetadata
 
 
 class CommandHandler:

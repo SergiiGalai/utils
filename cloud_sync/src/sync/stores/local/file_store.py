@@ -5,8 +5,8 @@ import posixpath
 import unicodedata
 from datetime import datetime, timezone
 from logging import Logger
-from src.stores.local.path_provider import PathProvider
-from src.stores.models import CloudFileMetadata, ListLocalFolderResult, LocalFileMetadata
+from src.sync.stores.local.path_provider import PathProvider
+from src.sync.stores.models import CloudFileMetadata, ListLocalFolderResult, LocalFileMetadata
 
 
 class LocalFileStore:

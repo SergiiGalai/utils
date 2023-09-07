@@ -4,10 +4,10 @@ from src.configs.config import StorageConfig
 from src.sync.comparison.file_content_comparer import FileContentComparer
 from src.sync.comparison.file_store_content_comparer import FileStoreContentComparer
 from src.sync.comparison.dropbox_hash_file_comparer import DropboxHashFileComparer
-from src.stores.cloud_store import CloudStore
-from src.stores.dropbox.file_store import DropboxStore
-from src.stores.gdrive.file_store_v2 import GdriveStore
-from src.stores.local.file_store import LocalFileStore
+from src.sync.stores.cloud_store import CloudStore
+from src.sync.stores.dropbox.file_store import DropboxStore
+from src.sync.stores.gdrive.file_store_v2 import GdriveStore
+from src.sync.stores.local.file_store import LocalFileStore
 
 
 class StorageStrategy:

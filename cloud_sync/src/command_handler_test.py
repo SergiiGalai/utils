@@ -7,7 +7,7 @@ from src.clients.logger_ui import LoggerUi
 from src.command_handler import CommandHandler
 from src.sync.file_sync_service import FileSyncronizationService
 from src.sync.models import MapFilesResult
-from src.stores.models import CloudFileMetadata, LocalFileMetadata
+from src.sync.stores.models import CloudFileMetadata, LocalFileMetadata
 
 
 class UiMock(LoggerUi):
