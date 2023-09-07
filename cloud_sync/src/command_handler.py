@@ -28,11 +28,11 @@ class CommandHandler:
         self._ui.output('Download files {}'.format(download))
         self._ui.output('Upload files {}'.format(upload))
 
-        map_files = self._sync_service.map_files(cloud_path)
+        files = self._sync_service.map_folder(cloud_path)
         if download:
-            self.__download_from_cloud(map_files.download)
+            self.__download_from_cloud(files.download)
         if upload:
-            self.__upload_to_cloud(map_files.upload)
+            self.__upload_to_cloud(files.upload)
 
     def __upload_to_cloud(self, local_files: list[LocalFileMetadata]):
         if local_files:

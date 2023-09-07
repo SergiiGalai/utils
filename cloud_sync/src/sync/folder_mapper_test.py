@@ -3,16 +3,15 @@ import unittest
 from unittest.mock import Mock
 import logging
 from src.configs.config import StorageConfig
-from src.sync.file_sync_service import FileSyncronizationService
+from src.sync.folder_mapper import FolderMapper
 from src.sync.models import FileSyncAction
 from src.sync.stores.cloud_store import CloudStore
 from src.sync.file_sync_action_provider import FileSyncActionProvider
 from src.sync.stores.local.file_store import LocalFileStore
-from src.sync.stores.local.path_provider import PathProvider
 from src.sync.stores.models import CloudFileMetadata, ListCloudFolderResult, ListLocalFolderResult, LocalFileMetadata
 
 
-class FileSyncronizationServiceTests(unittest.TestCase):
+class FolderMapperTests(unittest.TestCase):
     _LOCAL_FILE_PATH = 'C:\\Path\\CloudRoot\\sub\\f.txt'
     _CLOUD_FOLDER_PATH = '/Sub'
     _CLOUD_FILE_PATH = '/Sub/f.txt'
@@ -21,21 +20,20 @@ class FileSyncronizationServiceTests(unittest.TestCase):
 
     def setUp(self):
         logger = Mock(logging.Logger)
-        path_provider = Mock(PathProvider)
         self._local_store = Mock(LocalFileStore)
         self._cloud_store = Mock(CloudStore)
         self._sync_action_provider = Mock(FileSyncActionProvider)
         self._config = self.__createConfig()
-        self.sut = FileSyncronizationService(
+        self.sut = FolderMapper(
             self._local_store, self._cloud_store,
-            self._sync_action_provider, path_provider,
+            self._sync_action_provider, 
             self._config, logger)
 
-    def test_empty_lists_when_local_and_cloud_files_match_by_metadata(self):
+    def test_empty_lists_when_local_and_cloud_files_match(self):
         self.__mock_local_list([self.__create_local_file()])
         self.__mock_cloud_list([self.__create_cloud_file()])
         # act
-        actual = self.sut.map_files(self._CLOUD_FOLDER_PATH)
+        actual = self.sut.map_folder(self._CLOUD_FOLDER_PATH)
         # assert
         self.assertListEqual(actual.download, [])
         self.assertListEqual(actual.upload, [])
@@ -45,7 +43,7 @@ class FileSyncronizationServiceTests(unittest.TestCase):
         self.__mock_local_list([])
         self.__mock_cloud_list([cloud_file])
         # act
-        actual = self.sut.map_files(self._CLOUD_FOLDER_PATH)
+        actual = self.sut.map_folder(self._CLOUD_FOLDER_PATH)
         # assert
         self.assertListEqual(actual.download, [cloud_file])
         self.assertListEqual(actual.upload, [])
@@ -57,7 +55,7 @@ class FileSyncronizationServiceTests(unittest.TestCase):
         self.__mock_cloud_list([cloud_file])
         self._sync_action_provider.get_sync_action = Mock(return_value=FileSyncAction.SKIP)
         # act
-        actual = self.sut.map_files(self._CLOUD_FOLDER_PATH)
+        actual = self.sut.map_folder(self._CLOUD_FOLDER_PATH)
         # assert
         self.assertListEqual(actual.download, [])
         self.assertListEqual(actual.upload, [])
@@ -69,7 +67,7 @@ class FileSyncronizationServiceTests(unittest.TestCase):
         self.__mock_cloud_list([cloud_file])
         self._sync_action_provider.get_sync_action = Mock(return_value=FileSyncAction.CONFLICT)
         # act
-        actual = self.sut.map_files(self._CLOUD_FOLDER_PATH)
+        actual = self.sut.map_folder(self._CLOUD_FOLDER_PATH)
         # assert
         self.assertListEqual(actual.download, [])
         self.assertListEqual(actual.upload, [])
@@ -81,7 +79,7 @@ class FileSyncronizationServiceTests(unittest.TestCase):
         self.__mock_cloud_list([cloud_file])
         self._sync_action_provider.get_sync_action = Mock(return_value=FileSyncAction.DOWNLOAD)
         # act
-        actual = self.sut.map_files(self._CLOUD_FOLDER_PATH)
+        actual = self.sut.map_folder(self._CLOUD_FOLDER_PATH)
         # assert
         self.assertListEqual(actual.download, [cloud_file])
         self.assertListEqual(actual.upload, [])
@@ -93,7 +91,7 @@ class FileSyncronizationServiceTests(unittest.TestCase):
         self.__mock_cloud_list([cloud_file])
         self._sync_action_provider.get_sync_action = Mock(return_value=FileSyncAction.UPLOAD)
         # act
-        actual = self.sut.map_files(self._CLOUD_FOLDER_PATH)
+        actual = self.sut.map_folder(self._CLOUD_FOLDER_PATH)
         # assert
         self.assertListEqual(actual.download, [])
         self.assertListEqual(actual.upload, [local_file])
@@ -101,11 +99,10 @@ class FileSyncronizationServiceTests(unittest.TestCase):
     def test_files_to_download_when_local_files_with_the_same_name_in_different_folders_do_not_exist(self):
         self.__mock_local_list([])
         cloud_file_root = self.__create_cloud_file()
-        cloud_file_subfolder = self.__create_cloud_file(
-            cloud_file_path='/Sub/2/f.txt')
+        cloud_file_subfolder = self.__create_cloud_file(cloud_file_path='/Sub/2/f.txt')
         self.__mock_cloud_list([cloud_file_root, cloud_file_subfolder])
         # act
-        actual = self.sut.map_files(self._CLOUD_FOLDER_PATH)
+        actual = self.sut.map_folder(self._CLOUD_FOLDER_PATH)
         # assert
         self.assertListEqual(
             actual.download, [cloud_file_root, cloud_file_subfolder])
@@ -118,7 +115,7 @@ class FileSyncronizationServiceTests(unittest.TestCase):
         self.__mock_local_list([local_file_root, local_file_subfolder])
         self.__mock_cloud_list([])
         # act
-        actual = self.sut.map_files(self._CLOUD_FOLDER_PATH)
+        actual = self.sut.map_folder(self._CLOUD_FOLDER_PATH)
         # assert
         self.assertListEqual(actual.download, [])
         self.assertListEqual(
@@ -129,7 +126,7 @@ class FileSyncronizationServiceTests(unittest.TestCase):
         self.__mock_local_list([local_file])
         self.__mock_cloud_list([])
         # act
-        actual = self.sut.map_files(self._CLOUD_FOLDER_PATH)
+        actual = self.sut.map_folder(self._CLOUD_FOLDER_PATH)
         # assert
         self.assertListEqual(actual.download, [])
         self.assertListEqual(actual.upload, [local_file])

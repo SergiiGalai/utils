@@ -6,7 +6,7 @@ from src.clients.logger_ui import LoggerUi
 
 from src.command_handler import CommandHandler
 from src.sync.file_sync_service import FileSyncronizationService
-from src.sync.models import MapFilesResult
+from src.sync.models import MapFolderResult
 from src.sync.stores.models import CloudFileMetadata, LocalFileMetadata
 
 
@@ -49,8 +49,8 @@ class CommandHandlerTests(unittest.TestCase):
         self.assertRaises(NotImplementedError, self.sut.handle, 'sYnc', '')
 
     def _set_map_files(self, download=[], upload=[]):
-        map_files = MapFilesResult(download, upload)
-        self._sync_service.map_files = Mock(return_value=map_files)
+        map_folder_result = MapFolderResult(download, upload)
+        self._sync_service.map_folder = Mock(return_value=map_folder_result)
 
     def _createLocalFile(self, file_name,
                          cloud_file_path, local_file_path,

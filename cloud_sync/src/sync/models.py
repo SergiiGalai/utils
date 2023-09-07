@@ -18,7 +18,7 @@ class FileComparison(Enum):
     DIF_BY_DATE = 5
 
 
-class MapFilesResult:
+class MapFolderResult:
     def __init__(self, download: list[CloudFileMetadata] = [], upload: list[LocalFileMetadata] = []):
         self.__download = list[CloudFileMetadata]() if download == [] else download
         self.__upload = list[LocalFileMetadata]() if upload == [] else upload
@@ -35,6 +35,6 @@ class MapFilesResult:
     def add_download(self, file: CloudFileMetadata):
         self.__download.append(file)
 
-    def extend(self, source: "MapFilesResult"):
+    def extend(self, source: "MapFolderResult"):
         self.__upload.extend(source.upload)
         self.__download.extend(source.download)
