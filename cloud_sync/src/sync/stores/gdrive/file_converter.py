@@ -6,34 +6,35 @@ from logging import Logger
 from src.sync.stores.models import CloudFileMetadata, CloudFolderMetadata, ListCloudFolderResult
 
 
-# ? https://developers.google.com/drive/api/reference/rest/v3/files
+# ? https://developers.google.com/drive/api/reference/rest/v2/files
 class GoogleDriveFileConverter:
     def __init__(self, logger: Logger):
         self._logger = logger
 
-    def convert_GoogleDriveFiles_to_FileMetadatas(self, gFiles: list[GoogleDriveFile], folder_cloud_path: str = '') -> ListCloudFolderResult:
+    def convert_GoogleDriveFiles_to_FileMetadatas(self,
+                                                  gFiles: list[GoogleDriveFile],
+                                                  folder_cloud_path: str = '') -> ListCloudFolderResult:
         result = ListCloudFolderResult()
         for entry in gFiles:
             entry: GoogleDriveFile = entry
             self._logger.debug("title=`{}` type=`{}` id=`{}`".format(
                 entry['title'], entry['mimeType'], entry['id']))
             if self.__isFolder(entry):
-                folder = self.convert_GoogleDriveFile_to_CloudFolderMetadata(
-                    entry)
+                folder = self.convert_GoogleDriveFile_to_CloudFolderMetadata(entry)
                 result.folders.append(folder)
             else:
-                file = self.convert_GoogleDriveFile_to_CloudFile(
-                    entry, folder_cloud_path)
+                file = self.convert_GoogleDriveFile_to_CloudFile(entry, folder_cloud_path)
                 result.files.append(file)
         return result
 
     def __isFolder(self, entry):
         return entry['mimeType'] == 'application/vnd.google-apps.folder'
 
-    def convert_GoogleDriveFile_to_CloudFile(self, gFile: GoogleDriveFile, folder_cloud_path: str = '') -> CloudFileMetadata:
+    def convert_GoogleDriveFile_to_CloudFile(self,
+                                             gFile: GoogleDriveFile,
+                                             folder_cloud_path: str = '') -> CloudFileMetadata:
         # self.logger.debug('file: {}'.format(gFile))
-        file_size = 0 if gFile['mimeType'] == 'application/vnd.google-apps.shortcut' else int(
-            gFile['fileSize'])
+        file_size = 0 if gFile['mimeType'] == 'application/vnd.google-apps.shortcut' else int(gFile['fileSize'])
         modified = datetime.datetime.strptime(
             gFile['modifiedDate'], '%Y-%m-%dT%H:%M:%S.%fZ')
         file_name = gFile['title']

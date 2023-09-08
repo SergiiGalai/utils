@@ -13,7 +13,8 @@ class GdriveStore(CloudStore):
     def __init__(self, conf: StorageConfig, logger: Logger):
         self._dry_run = conf.dry_run
         self._logger = logger
-        self._gdrive = None
+        self._conf = conf
+        self._gdrive: GoogleDrive | None = None
         self._converter = GoogleDriveFileConverter(logger)
 
     def list_folder(self, cloud_path: str) -> ListCloudFolderResult:
@@ -22,8 +23,7 @@ class GdriveStore(CloudStore):
 
         sub_path = ''
         result = self.__list_folder('', sub_path)
-        folder_dict = {folder.cloud_path.lower(
-        ): folder for folder in result.folders}
+        folder_dict = self.__to_cloud_dict(result.folders)
         self._logger.debug('dictionary={}'.format(folder_dict))
 
         for folder in self.__split_path(cloud_path):
@@ -36,8 +36,7 @@ class GdriveStore(CloudStore):
                 self._logger.debug('next folder=`{}` id=`{}`'.format(
                     cloudFolder.cloud_path, cloudFolder.id))
                 result = self.__list_folder(cloudFolder.id, sub_path)
-                folder_dict = {folder.cloud_path.lower(
-                ): folder for folder in result.folders}
+                folder_dict = self.__to_cloud_dict(result.folders)
         return result
 
     def __list_folder(self, folder_id: str, cloud_path: str) -> ListCloudFolderResult:
@@ -46,14 +45,18 @@ class GdriveStore(CloudStore):
         file_list = self._gdrive.ListFile({'q': query}).GetList()
         return self._converter.convert_GoogleDriveFiles_to_FileMetadatas(file_list, cloud_path)
 
+    def __to_cloud_dict(self, folders: list[CloudFolderMetadata]) -> dict[str, CloudFolderMetadata]:
+        return {folder.cloud_path.lower(): folder for folder in folders}
+
     def __split_path(self, path: str) -> list[str]:
         parts = path.split('/')
         self._logger.debug(parts)
         return parts
 
-    def __setup_gdrive(self):
+    def __setup_gdrive(self) -> GoogleDrive:
         if self._gdrive == None:
             self._gdrive = self.__get_gdrive()
+        return self._gdrive
 
     # https://pythonhosted.org/PyDrive/oauth.html
     def __get_gdrive(self) -> GoogleDrive:
