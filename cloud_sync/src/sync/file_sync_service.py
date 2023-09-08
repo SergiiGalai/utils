@@ -1,7 +1,6 @@
 from logging import Logger
 from src.configs.config import StorageConfig
-from src.sync.file_sync_action_provider import FileSyncActionProvider
-from src.sync.folder_mapper import FolderMapper
+from src.sync.mapping.recursive_folder_mapper import RecursiveFolderMapper
 from src.sync.models import MapFolderResult
 from src.sync.stores.cloud_store import CloudStore
 from src.sync.stores.local.file_store import LocalFileStore
@@ -11,18 +10,18 @@ from src.sync.stores.models import CloudFileMetadata, LocalFileMetadata
 
 class FileSyncronizationService:
     def __init__(self,
-                 local_store: LocalFileStore, 
+                 local_store: LocalFileStore,
                  cloud_store: CloudStore,
-                 file_sync_action_provider: FileSyncActionProvider, 
+                 folder_mapper: RecursiveFolderMapper,
                  path_provider: PathProvider,
-                 config: StorageConfig, logger: Logger):
+                 config: StorageConfig,
+                 logger: Logger):
         self._recursive = config.recursive
         self._logger = logger
         self._path_provider = path_provider
         self._local_store = local_store
         self._cloud_store = cloud_store
-        self._file_sync_action_provider = file_sync_action_provider
-        self._folder_mapper = FolderMapper(local_store, cloud_store, file_sync_action_provider, config, logger)
+        self._folder_mapper = folder_mapper
         self._logger.debug(config)
 
     @property
