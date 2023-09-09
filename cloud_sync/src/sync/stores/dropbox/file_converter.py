@@ -13,16 +13,17 @@ class DropboxFileConverter:
         result = ListCloudFolderResult()
         for entry in dropbox_entries:
             self._logger.debug("entry path_display=`{}`, name={}".format(entry.path_display, entry.name))
-            if self.__isFile(entry):
-                cloud_file = self.convert_DropboxFile_to_CloudFile(entry)
-                result.files.append(cloud_file)
-            else:
+            if DropboxFileConverter.__isFolder(entry):
                 cloud_folder = self.convert_DropboxFolder_to_CloudFolder(entry)
                 result.folders.append(cloud_folder)
+            else:
+                cloud_file = self.convert_DropboxFile_to_CloudFile(entry)
+                result.files.append(cloud_file)
         return result
 
-    def __isFile(self, entry):
-        return isinstance(entry, dropbox.files.FileMetadata)
+    @staticmethod
+    def __isFolder(entry):
+        return isinstance(entry, dropbox.files.FolderMetadata)
 
     # dropbox content hash: https://www.dropbox.com/developers/reference/content-hash
     def convert_DropboxFile_to_CloudFile(self, dbx_md: dropbox.files.FileMetadata) -> CloudFileMetadata:

@@ -13,29 +13,34 @@ class GdriveSubfolderFileStore(CloudStore):
         self._logger.debug('cloud_path={}'.format(cloud_path))
         sub_path = ''
         result = self._store.list_folder('', sub_path)
-        folder_dict = self.__to_cloud_dict(result.folders)
+        folder_dict = GdriveSubfolderFileStore.__to_cloud_dict(result.folders)
         self._logger.debug('dictionary={}'.format(folder_dict))
 
         for folder in self.__split_path(cloud_path):
             if folder == '':
                 continue
-            folder_key = folder.lower()
-            sub_path += '/' + folder
+            folder_key = GdriveSubfolderFileStore.__start_with_slash(folder.lower())
+            sub_path += GdriveSubfolderFileStore.__start_with_slash(folder)
             if folder_key in folder_dict:
                 cloudFolder: CloudFolderMetadata = folder_dict[folder_key]
                 self._logger.debug('next folder=`{}` id=`{}`'.format(
                     cloudFolder.cloud_path, cloudFolder.id))
                 result = self._store.list_folder(cloudFolder.id, sub_path)
-                folder_dict = self.__to_cloud_dict(result.folders)
+                folder_dict = GdriveSubfolderFileStore.__to_cloud_dict(result.folders)
         return result
 
-    def __to_cloud_dict(self, folders: list[CloudFolderMetadata]) -> dict[str, CloudFolderMetadata]:
+    @staticmethod
+    def __to_cloud_dict(folders: list[CloudFolderMetadata]) -> dict[str, CloudFolderMetadata]:
         return {folder.cloud_path.lower(): folder for folder in folders}
 
     def __split_path(self, path: str) -> list[str]:
         parts = path.split('/')
         self._logger.debug(parts)
         return parts
+
+    @staticmethod
+    def __start_with_slash(path):
+        return path if path.startswith('/') else '/' + path
 
     def read(self, id: str) -> tuple[bytes, CloudFileMetadata]:
         self._logger.debug('id={}'.format(id))

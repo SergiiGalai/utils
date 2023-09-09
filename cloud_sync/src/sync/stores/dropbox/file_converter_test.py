@@ -15,10 +15,10 @@ class DropboxFileConverterTests(unittest.TestCase):
         self.sut = DropboxFileConverter(logger)
 
     def test_2_files_when_converterd_gfiles_with_2_files_in_the_root(self):
-        dbx_file1 = self.__create_DropboxFile('f1.pdf', 'f1.pdf', 'f1.pdf')
-        dbx_file2 = self.__create_DropboxFile('F2.pdf', 'F2.pdf', 'f2.pdf')
-        expected1 = self.__create_CloudFile('f1.pdf', 'f1.pdf', 'f1.pdf')
-        expected2 = self.__create_CloudFile('F2.pdf', 'F2.pdf', 'f2.pdf')
+        dbx_file1 = self.__create_DropboxFile('f1.pdf', '/f1.pdf', '/f1.pdf')
+        dbx_file2 = self.__create_DropboxFile('F2.pdf', '/F2.pdf', '/f2.pdf')
+        expected1 = self.__create_CloudFile('f1.pdf', '/f1.pdf', '/f1.pdf')
+        expected2 = self.__create_CloudFile('F2.pdf', '/F2.pdf', '/f2.pdf')
         # act
         actual = self.sut.convert_dropbox_entries_to_cloud([dbx_file1, dbx_file2])
         # assert
@@ -26,10 +26,10 @@ class DropboxFileConverterTests(unittest.TestCase):
         self.assertEqual(actual.files, [expected1, expected2])
 
     def test_2_files_when_converterd_gfiles_with_2_files_in_the_subfolder(self):
-        dbx_file1 = self.__create_DropboxFile('f1.pdf', '/Path/f1.pdf', '/path/f1.pdf')
-        dbx_file2 = self.__create_DropboxFile('F2.pdf', '/Path/F2.pdf', '/path/f2.pdf')
-        expected1 = self.__create_CloudFile('f1.pdf', '/Path/f1.pdf', '/path/f1.pdf')
-        expected2 = self.__create_CloudFile('F2.pdf', '/Path/F2.pdf', '/path/f2.pdf')
+        dbx_file1 = self.__create_DropboxFile('f1.pdf', '/Root/f1.pdf', '/root/f1.pdf')
+        dbx_file2 = self.__create_DropboxFile('F2.pdf', '/Root/F2.pdf', '/root/f2.pdf')
+        expected1 = self.__create_CloudFile('f1.pdf', '/Root/f1.pdf', '/root/f1.pdf')
+        expected2 = self.__create_CloudFile('F2.pdf', '/Root/F2.pdf', '/root/f2.pdf')
         # act
         actual = self.sut.convert_dropbox_entries_to_cloud([dbx_file1, dbx_file2])
         # assert
@@ -53,8 +53,8 @@ class DropboxFileConverterTests(unittest.TestCase):
         self.assertEqual(actual, expected)
 
     DEFAULT_NAME = 'File1.pdf'
-    DEFAULT_PATH_DISPLAY = '/Path/File1.pdf'
-    DEFAULT_PATH_LOWER = '/path/file1.pdf'
+    DEFAULT_PATH_DISPLAY = '/Root/File1.pdf'
+    DEFAULT_PATH_LOWER = '/root/file1.pdf'
 
     @staticmethod
     def __create_DropboxFile(name=DEFAULT_NAME, path_display=DEFAULT_PATH_DISPLAY, path_lower=DEFAULT_PATH_LOWER):
@@ -77,7 +77,7 @@ class DropboxFileConverterTests(unittest.TestCase):
             path_lower, '1234567890')
 
     @staticmethod
-    def __create_DropboxFolder(name='SubPath', path_display='/Path/SubPath', path_lower='/path/subpath'):
+    def __create_DropboxFolder(name='SubPath', path_display='/Root/SubPath', path_lower='/root/subpath'):
         result = Mock(dropbox.files.FolderMetadata)
         result.id = 'id:AABBCC'
         result.path_display = path_display
@@ -86,5 +86,5 @@ class DropboxFileConverterTests(unittest.TestCase):
         return result
 
     @staticmethod
-    def __create_CloudFolder(name='SubPath', cloud_path='/Path/SubPath', path_lower='/path/subpath'):
+    def __create_CloudFolder(name='SubPath', cloud_path='/Root/SubPath', path_lower='/root/subpath'):
         return CloudFolderMetadata(path_lower, name, path_lower, cloud_path)

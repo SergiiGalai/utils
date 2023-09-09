@@ -50,10 +50,14 @@ class LocalFileStore:
         return LocalFileMetadata(name, cloud_path, client_modified, size, local_path)
 
     def _join_path(self, path1: str, path2: str) -> str:
-        relative_path = path2[1:] if path2.startswith('/') else path2
+        relative_path = LocalFileStore.__without_starting_slash(path2)
         result = posixpath.join(path1, relative_path)
         self._logger.debug('result={}'.format(result))
         return result
+
+    @staticmethod
+    def __without_starting_slash(path):
+        return path[1:] if path.startswith('/') else path
 
     def save(self, content: bytes, cloud_md: CloudFileMetadata):
         file_path = self._get_absolute_path(cloud_md.cloud_path)
