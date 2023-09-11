@@ -60,11 +60,11 @@ class GoogleDriveFileConverterTests(unittest.TestCase):
         # assert
         self.assertEqual(actual, expected)
 
-    def test_CloudFileMetadata_when_converted_gfile_with_level2_subpath(self):
+    def test_CloudFileMetadata_when_converted_gfile_with_level3_subpath(self):
         gFile = self.__create_drive_file()
-        expected = self.__create_cloud_file('/Root/sub2/File1.pdf')
+        expected = self.__create_cloud_file('/Root/sub2/sub3/File1.pdf')
         # act
-        actual = self.sut.convert_GoogleDriveFile_to_CloudFile(gFile, '/Root/sub2')
+        actual = self.sut.convert_GoogleDriveFile_to_CloudFile(gFile, '/Root/sub2/sub3')
         # assert
         self.assertEqual(actual, expected)
 
@@ -84,18 +84,16 @@ class GoogleDriveFileConverterTests(unittest.TestCase):
         self.assertEqual(actual, expected)
 
     DEFAULT_ID = '1C7Vb'
-    FILE_NAME = 'File1.pdf'
-    ROOT_PATH = '/Root'
 
     @staticmethod
-    def __create_drive_file(mimeType='application/pdf', name=FILE_NAME, id=DEFAULT_ID):
+    def __create_drive_file(mimeType='application/pdf', name='File1.pdf', id=DEFAULT_ID):
         return GoogleDriveFile(metadata={
             'id': id, 'title': name,
             'modifiedDate': '2023-08-15T14:27:44.000Z',
             'mimeType': mimeType, 'fileSize': '12345'})
 
     @staticmethod
-    def __create_cloud_file(cloud_path='/Root/File1.pdf', name=FILE_NAME, id=DEFAULT_ID):
+    def __create_cloud_file(cloud_path='/Root/File1.pdf', name='File1.pdf', id=DEFAULT_ID):
         return CloudFileMetadata(name, cloud_path,
                                  datetime.datetime(2023, 8, 15, 14, 27, 44),
                                  12345, id, '0')

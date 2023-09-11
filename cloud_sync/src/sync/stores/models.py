@@ -30,12 +30,12 @@ class LocalFileMetadata(FileMetadata):
 
 
 class ListCloudFolderResult:
-    def __init__(self):
-        self.folders = list[CloudFolderMetadata]()
-        self.files = list[CloudFileMetadata]()
+    def __init__(self, files: list[CloudFileMetadata] = [], folders: list[CloudFolderMetadata] = []):
+        self.files = list[CloudFileMetadata]() if files == [] else files
+        self.folders = list[CloudFolderMetadata]() if folders == [] else folders
 
 
 class ListLocalFolderResult:
-    def __init__(self):
-        self.folders = list[str]()
-        self.files = list[LocalFileMetadata]()
+    def __init__(self, files: list[LocalFileMetadata] = [], folders: list[str] = []):
+        self.files = list[LocalFileMetadata]() if files == [] else files
+        self.folders = list[str]() if folders == [] else folders

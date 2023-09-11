@@ -16,7 +16,6 @@ class FileSyncronizationService:
                  path_provider: PathProvider,
                  config: StorageConfig,
                  logger: Logger):
-        self._recursive = config.recursive
         self._logger = logger
         self._path_provider = path_provider
         self._local_store = local_store

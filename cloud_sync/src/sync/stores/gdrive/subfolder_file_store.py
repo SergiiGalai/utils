@@ -11,21 +11,19 @@ class GdriveSubfolderFileStore(CloudStore):
 
     def list_folder(self, cloud_path: str) -> ListCloudFolderResult:
         self._logger.debug('cloud_path={}'.format(cloud_path))
-        sub_path = ''
-        result = self._store.list_folder('', sub_path)
+        folder_key = ''
+        result = self._store.list_folder('', '')
         folder_dict = GdriveSubfolderFileStore.__to_cloud_dict(result.folders)
         self._logger.debug('dictionary={}'.format(folder_dict))
 
         for folder in self.__split_path(cloud_path):
             if folder == '':
                 continue
-            folder_key = GdriveSubfolderFileStore.__start_with_slash(folder.lower())
-            sub_path += GdriveSubfolderFileStore.__start_with_slash(folder)
+            folder_key += GdriveSubfolderFileStore.__start_with_slash(folder.lower())
             if folder_key in folder_dict:
-                cloudFolder: CloudFolderMetadata = folder_dict[folder_key]
-                self._logger.debug('next folder=`{}` id=`{}`'.format(
-                    cloudFolder.cloud_path, cloudFolder.id))
-                result = self._store.list_folder(cloudFolder.id, sub_path)
+                cloud_folder: CloudFolderMetadata = folder_dict[folder_key]
+                self._logger.debug('next folder=`{}` id=`{}`'.format(cloud_folder.cloud_path, cloud_folder.id))
+                result = self._store.list_folder(cloud_folder.id, cloud_folder.cloud_path)
                 folder_dict = GdriveSubfolderFileStore.__to_cloud_dict(result.folders)
         return result
 
