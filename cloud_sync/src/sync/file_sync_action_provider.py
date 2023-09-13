@@ -16,7 +16,7 @@ class FileSyncActionProvider:
         if need_time_verification:
             if local_md.client_modified > cloud_md.client_modified:
                 self._logger.info('file {} has changed since last sync (cloud={} < local={}) => upload list'
-                                  .format(local_md.local_path, cloud_md.client_modified, local_md.client_modified))
+                                  .format(local_md.full_path, cloud_md.client_modified, local_md.client_modified))
                 return FileSyncAction.UPLOAD
             self._logger.info('file {} has changed since last sync (cloud={} > local={}) => download list'
                               .format(cloud_md.cloud_path, cloud_md.client_modified, local_md.client_modified))

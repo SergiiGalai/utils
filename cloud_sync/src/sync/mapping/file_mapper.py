@@ -39,7 +39,7 @@ class FileMapper:
         result.add_download(cloud_md)
 
     def __add_to_upload(self, local_md: LocalFileMetadata, result: MapFolderResult):
-        self._logger.info('file does NOT exist in the cloud - {} => upload list'.format(local_md.local_path))
+        self._logger.info('file does NOT exist in the cloud - {} => upload list'.format(local_md.full_path))
         result.add_upload(local_md)
 
     def __add_by_comparison(self,

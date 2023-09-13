@@ -11,7 +11,7 @@ class DropboxHashFileComparer(FileContentComparer):
         self._logger = logger
 
     def are_equal(self, local_md: LocalFileMetadata, cloud_md: CloudFileMetadata) -> bool:
-        local_hash = self._compute_dropbox_hash(local_md.local_path)
+        local_hash = self._compute_dropbox_hash(local_md.full_path)
         cloud_hash = cloud_md.content_hash
         return local_hash == cloud_hash
 

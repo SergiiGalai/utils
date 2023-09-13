@@ -1,10 +1,8 @@
-import time
 import os
 import pathlib
-import posixpath
-import unicodedata
 from datetime import datetime, timezone
 from logging import Logger
+from src.sync.stores.local.system_file_provider import SystemFileProvider
 from src.sync.stores.local.path_provider import PathProvider
 from src.sync.stores.models import CloudFileMetadata, ListLocalFolderResult, LocalFileMetadata
 
@@ -13,6 +11,7 @@ class LocalFileStore:
     def __init__(self, path_provider: PathProvider, logger: Logger):
         self._path_provider = path_provider
         self._logger = logger
+        self._file_provider = SystemFileProvider(path_provider, logger)
 
     def list_folder(self, cloud_path: str) -> ListLocalFolderResult:
         full_folder_path = self._get_absolute_path(cloud_path)
@@ -21,12 +20,8 @@ class LocalFileStore:
 
         if pathlib.Path(full_folder_path).exists():
             _, dir_names, file_names = next(os.walk(full_folder_path))
-            file_paths = list(self._join_path(
-                cloud_path, unicodedata.normalize('NFC', f)) for f in file_names)
-            list_md = list(self._get_file_metadata(f) for f in file_paths)
-            self._logger.debug('list_md={}'.format(list_md))
-            result.folders = dir_names
-            result.files = list_md
+            result.files = self._file_provider.get_files(cloud_path, file_names)
+            result.folders = self._file_provider.get_folders(cloud_path, dir_names)
             return result
 
         self._logger.warn('path `{}` does not exist'.format(full_folder_path))
@@ -36,28 +31,10 @@ class LocalFileStore:
         return self._path_provider.get_absolute_path(cloud_path)
 
     def read(self, cloud_path: str) -> tuple[bytes, LocalFileMetadata]:
-        md = self._get_file_metadata(cloud_path)
-        with open(md.local_path, 'rb') as f:
+        md = self._file_provider.get_file(cloud_path)
+        with open(md.full_path, 'rb') as f:
             content = f.read()
         return content, md
-
-    def _get_file_metadata(self, cloud_path: str) -> LocalFileMetadata:
-        local_path = self._get_absolute_path(cloud_path)
-        name = os.path.basename(local_path)
-        mtime = os.path.getmtime(local_path)
-        client_modified = datetime(*time.gmtime(mtime)[:6])
-        size = os.path.getsize(local_path)
-        return LocalFileMetadata(name, cloud_path, client_modified, size, local_path)
-
-    def _join_path(self, path1: str, path2: str) -> str:
-        relative_path = LocalFileStore.__without_starting_slash(path2)
-        result = posixpath.join(path1, relative_path)
-        self._logger.debug('result={}'.format(result))
-        return result
-
-    @staticmethod
-    def __without_starting_slash(path):
-        return path[1:] if path.startswith('/') else path
 
     def save(self, content: bytes, cloud_md: CloudFileMetadata):
         file_path = self._get_absolute_path(cloud_md.cloud_path)

@@ -8,25 +8,20 @@ from src.sync.stores.models import CloudFileMetadata, LocalFileMetadata
 
 
 class FileSyncActionProviderTests(unittest.TestCase):
-    _LOCAL_FILE_PATH = 'C:\\Path\\CloudRoot\\sub\\f.txt'
-    _CLOUD_FOLDER_PATH = '/Sub'
-    _CLOUD_FILE_PATH = '/Sub/f.txt'
-    _FILE_NAME = 'f.txt'
-    _FILE_CONTENT = '111'
 
     def setUp(self):
         logger = Mock(logging.Logger)
         self._content_comparer = Mock(FileContentComparer)
         self.sut = FileSyncActionProvider(self._content_comparer, logger)
 
-    def test_skip_when_files_match_by_metadata(self):
+    def test_skip_when_files_equal_by_metadata(self):
         local_file = self.__create_local_file()
         cloud_file = self.__create_cloud_file()
         # act
         actual = self.sut.get_sync_action(local_file, cloud_file)
         self.assertEqual(actual, FileSyncAction.SKIP)
 
-    def test_skip_when_files_match_by_metadata_and_different_by_content(self):
+    def test_skip_when_files_equal_by_metadata_but_different_by_content(self):
         local_file = self.__create_local_file()
         cloud_file = self.__create_cloud_file()
         self.__mock_content_comparer(False)
@@ -93,6 +88,10 @@ class FileSyncActionProviderTests(unittest.TestCase):
         # act
         actual = self.sut.get_sync_action(local_file, cloud_file)
         self.assertEqual(actual, FileSyncAction.UPLOAD)
+
+    _LOCAL_FILE_PATH = 'C:\\Path\\CloudRoot\\sub\\f.txt'
+    _CLOUD_FILE_PATH = '/Sub/f.txt'
+    _FILE_NAME = 'f.txt'
 
     def __create_local_file(self, modified_day=1, size=2000, name=_FILE_NAME):
         return LocalFileMetadata(

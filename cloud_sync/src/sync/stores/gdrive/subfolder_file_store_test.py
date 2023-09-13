@@ -36,23 +36,23 @@ class GdriveSubfolderFileStoreTests(unittest.TestCase):
 
     def test_files_and_folders_when_list_target_non_root_folder(self):
         # arrange
-        cloud_file_root = self.__create_cloud_file('/File1.pdf', id='idrf1')
-        cloud_folder_sub = self.__create_cloud_folder('/Sub', '/sub', 'Sub', 'SubFolderId')
-        cloud_file_sub = self.__create_cloud_file('/Sub/File1.pdf', id='idf1')
-        cloud_folder_sub1 = self.__create_cloud_folder('/Sub/Sub1', '/sub/sub1', 'Sub1', 'Sub1FolderId')
-        cloud_file_sub1 = self.__create_cloud_file('/Sub/Sub1/File1.pdf', id='idsubf1')
+        cloud_file_root =       self.__create_cloud_file('/File1.pdf', id='idrf1')
+        cloud_folder_sub =    self.__create_cloud_folder('/Sub', '/sub', 'Sub', 'SubFolderId')
+        cloud_file_sub =        self.__create_cloud_file('/Sub/File1.pdf', id='idf1')
+        cloud_folder_sub1 =   self.__create_cloud_folder('/Sub/Sub1', '/sub/sub1', 'Sub1', 'Sub1FolderId')
+        cloud_file_sub1 =       self.__create_cloud_file('/Sub/Sub1/File1.pdf', id='idsubf1')
         cloud_folder_target = self.__create_cloud_folder('/Sub/Target', '/sub/target', 'Target', 'TargetFolderId')
-        cloud_file_target = self.__create_cloud_file('/Sub/Target/File2.pdf', 'File2.pdf', 'idsubf2')
-        cloud_folder_sub2 = self.__create_cloud_folder('/Sub/Target/Sub2', '/sub/target/sub2' 'Sub2', 'Sub2FolderId')
-        cloud_file_sub2 = self.__create_cloud_file('/Sub/Target/File2.pdf', 'File2.pdf', 'idsubf2')
+        cloud_file_target =     self.__create_cloud_file('/Sub/Target/File2.pdf', 'File2.pdf', 'idsubf2')
+        cloud_folder_sub2 =   self.__create_cloud_folder('/Sub/Target/Sub2', '/sub/target/sub2' 'Sub2', 'Sub2FolderId')
+        cloud_file_sub2 =       self.__create_cloud_file('/Sub/Target/File2.pdf', 'File2.pdf', 'idsubf2')
 
-        self._store.list_folder = MagicMock(side_effect = lambda *x: {
+        self._store.list_folder = MagicMock(side_effect=lambda *x: {
             ('', ''): ListCloudFolderResult([cloud_file_root], [cloud_folder_sub]),
             ('SubFolderId', '/Sub'): ListCloudFolderResult([cloud_file_sub], [cloud_folder_sub1, cloud_folder_target]),
             ('Sub1FolderId', '/Sub/Sub1'): ListCloudFolderResult([cloud_file_sub1], []),
             ('TargetFolderId', '/Sub/Target'): ListCloudFolderResult([cloud_file_target], [cloud_folder_sub2]),
             ('Sub2FolderId', '/Sub/Target/Sub2'): ListCloudFolderResult([cloud_file_sub2], []),
-        }[x])
+        }[x]) # type: ignore
         # act
         actual = self.sut.list_folder('/Sub/Target')
         # assert

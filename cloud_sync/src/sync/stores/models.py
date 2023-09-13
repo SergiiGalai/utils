@@ -1,15 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-
-@dataclass
-class CloudFolderMetadata:
-    id: str
-    name: str
-    path_lower: str
-    cloud_path: str
-
-
 @dataclass
 class FileMetadata:
     name: str
@@ -26,7 +17,21 @@ class CloudFileMetadata(FileMetadata):
 
 @dataclass
 class LocalFileMetadata(FileMetadata):
-    local_path: str
+    full_path: str
+
+
+@dataclass
+class CloudFolderMetadata:
+    id: str
+    name: str
+    path_lower: str
+    cloud_path: str
+
+@dataclass
+class LocalFolderMetadata:
+    name: str
+    cloud_path: str
+    full_path: str
 
 
 class ListCloudFolderResult:
@@ -36,6 +41,6 @@ class ListCloudFolderResult:
 
 
 class ListLocalFolderResult:
-    def __init__(self, files: list[LocalFileMetadata] = [], folders: list[str] = []):
+    def __init__(self, files: list[LocalFileMetadata] = [], folders: list[LocalFolderMetadata] = []):
         self.files = list[LocalFileMetadata]() if files == [] else files
-        self.folders = list[str]() if folders == [] else folders
+        self.folders = list[LocalFolderMetadata]() if folders == [] else folders

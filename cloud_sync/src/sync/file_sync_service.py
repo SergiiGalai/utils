@@ -43,6 +43,6 @@ class FileSyncronizationService:
     def upload_files(self, local_files: list[LocalFileMetadata]):
         for local_file in local_files:
             cloud_path = local_file.cloud_path
-            self._logger.info('uploading {} => {} ...'.format(local_file.local_path, cloud_path))
+            self._logger.info('uploading {} => {} ...'.format(local_file.full_path, cloud_path))
             content, local_md = self._local_store.read(cloud_path)
             self._cloud_store.save(content, local_md, overwrite=True)

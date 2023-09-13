@@ -1,5 +1,6 @@
 from logging import Logger
 from src.sync.stores.cloud_store import CloudStore
+from src.sync.stores.common.path_helper import PathHelper
 from src.sync.stores.gdrive.file_store_v2 import GdriveStore
 from src.sync.stores.models import CloudFileMetadata, CloudFolderMetadata, ListCloudFolderResult, LocalFileMetadata
 
@@ -19,7 +20,7 @@ class GdriveSubfolderFileStore(CloudStore):
         for folder in self.__split_path(cloud_path):
             if folder == '':
                 continue
-            folder_key += GdriveSubfolderFileStore.__start_with_slash(folder.lower())
+            folder_key += PathHelper.start_with_slash(folder.lower())
             if folder_key in folder_dict:
                 cloud_folder: CloudFolderMetadata = folder_dict[folder_key]
                 self._logger.debug('next folder=`{}` id=`{}`'.format(cloud_folder.cloud_path, cloud_folder.id))
@@ -35,10 +36,6 @@ class GdriveSubfolderFileStore(CloudStore):
         parts = path.split('/')
         self._logger.debug(parts)
         return parts
-
-    @staticmethod
-    def __start_with_slash(path):
-        return path if path.startswith('/') else '/' + path
 
     def read(self, id: str) -> tuple[bytes, CloudFileMetadata]:
         self._logger.debug('id={}'.format(id))
