@@ -13,80 +13,69 @@ class FileSyncActionProviderTests(unittest.TestCase):
         logger = Mock(logging.Logger)
         self._content_comparer = Mock(FileContentComparer)
         self.sut = FileSyncActionProvider(self._content_comparer, logger)
+        self._local_file = self.__create_local_file()
+        self._cloud_file = self.__create_cloud_file()
 
     def test_skip_when_files_equal_by_metadata(self):
-        local_file = self.__create_local_file()
-        cloud_file = self.__create_cloud_file()
-        # act
-        actual = self.sut.get_sync_action(local_file, cloud_file)
+        actual = self.sut.get_sync_action(self._local_file, self._cloud_file)
         self.assertEqual(actual, FileSyncAction.SKIP)
 
     def test_skip_when_files_equal_by_metadata_but_different_by_content(self):
-        local_file = self.__create_local_file()
-        cloud_file = self.__create_cloud_file()
         self.__mock_content_comparer(False)
         # act
-        actual = self.sut.get_sync_action(local_file, cloud_file)
+        actual = self.sut.get_sync_action(self._local_file, self._cloud_file)
         self.assertEqual(actual, FileSyncAction.SKIP)
 
     def test_conflict_when_files_different_by_name(self):
-        local_file = self.__create_local_file()
         cloud_file = self.__create_cloud_file(name='dif_name')
         # act
-        actual = self.sut.get_sync_action(local_file, cloud_file)
+        actual = self.sut.get_sync_action(self._local_file, cloud_file)
         self.assertEqual(actual, FileSyncAction.CONFLICT)
 
     def test_conflict_when_files_different_by_size_but_equal_by_date(self):
-        local_file = self.__create_local_file()
         cloud_file = self.__create_cloud_file(size=1000)
         # act
-        actual = self.sut.get_sync_action(local_file, cloud_file)
+        actual = self.sut.get_sync_action(self._local_file, cloud_file)
         self.assertEqual(actual, FileSyncAction.CONFLICT)
 
     def test_download_when_files_different_by_size_and_cloud_file_is_newer(self):
-        local_file = self.__create_local_file()
         cloud_file = self.__create_cloud_file(modified_day=2, size=1000)
         # act
-        actual = self.sut.get_sync_action(local_file, cloud_file)
+        actual = self.sut.get_sync_action(self._local_file, cloud_file)
         self.assertEqual(actual, FileSyncAction.DOWNLOAD)
 
     def test_upload_when_files_different_by_size_and_local_file_is_newer(self):
         local_file = self.__create_local_file(modified_day=2, size=1000)
-        cloud_file = self.__create_cloud_file()
         # act
-        actual = self.sut.get_sync_action(local_file, cloud_file)
+        actual = self.sut.get_sync_action(local_file, self._cloud_file)
         self.assertEqual(actual, FileSyncAction.UPLOAD)
 
     def test_skip_when_files_equal_by_content_and_cloud_file_is_newer(self):
-        local_file = self.__create_local_file()
         cloud_file = self.__create_cloud_file(modified_day=2)
         self.__mock_content_comparer(True)
         # act
-        actual = self.sut.get_sync_action(local_file, cloud_file)
+        actual = self.sut.get_sync_action(self._local_file, cloud_file)
         self.assertEqual(actual, FileSyncAction.SKIP)
 
     def test_skip_when_files_equal_by_content_and_local_file_is_newer(self):
         local_file = self.__create_local_file(modified_day=2)
-        cloud_file = self.__create_cloud_file()
         self.__mock_content_comparer(True)
         # act
-        actual = self.sut.get_sync_action(local_file, cloud_file)
+        actual = self.sut.get_sync_action(local_file, self._cloud_file)
         self.assertEqual(actual, FileSyncAction.SKIP)
 
     def test_download_when_files_equal_by_content_and_cloud_file_is_newer(self):
-        local_file = self.__create_local_file()
         cloud_file = self.__create_cloud_file(modified_day=2)
         self.__mock_content_comparer(False)
         # act
-        actual = self.sut.get_sync_action(local_file, cloud_file)
+        actual = self.sut.get_sync_action(self._local_file, cloud_file)
         self.assertEqual(actual, FileSyncAction.DOWNLOAD)
 
     def test_upload_when_files_equal_by_content_and_local_file_is_newer(self):
         local_file = self.__create_local_file(modified_day=2)
-        cloud_file = self.__create_cloud_file()
         self.__mock_content_comparer(False)
         # act
-        actual = self.sut.get_sync_action(local_file, cloud_file)
+        actual = self.sut.get_sync_action(local_file, self._cloud_file)
         self.assertEqual(actual, FileSyncAction.UPLOAD)
 
     _LOCAL_FILE_PATH = 'C:\\Path\\CloudRoot\\sub\\f.txt'
