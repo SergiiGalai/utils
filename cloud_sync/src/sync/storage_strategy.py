@@ -6,7 +6,7 @@ from src.sync.comparison.file_store_content_comparer import FileStoreContentComp
 from src.sync.comparison.dropbox_hash_file_comparer import DropboxHashFileComparer
 from src.sync.stores.cloud_store import CloudStore
 from src.sync.stores.dropbox.file_store import DropboxStore
-from src.sync.stores.gdrive.file_store_v2 import GdriveStore
+from src.sync.stores.gdrive.file_store_api_v2 import GdriveApiV2FileStore
 from src.sync.stores.gdrive.subfolder_file_store import GdriveSubfolderFileStore
 from src.sync.stores.local.file_store import LocalFileStore
 
@@ -38,7 +38,7 @@ class GdriveStorageStrategy(StorageStrategy):
         self._config = config
         self._logger = logger
         self._localStore = localStore
-        store = GdriveStore(config, logger)
+        store = GdriveApiV2FileStore(config, logger)
         self._cloudStore = GdriveSubfolderFileStore(store, logger)
 
     def create_file_content_comparer(self) -> FileContentComparer:

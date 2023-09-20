@@ -3,7 +3,7 @@ import unittest
 from unittest.mock import MagicMock, Mock
 import logging
 
-from src.sync.stores.gdrive.file_store_v2 import GdriveStore
+from src.sync.stores.gdrive.file_store_api_v2 import GdriveApiV2FileStore
 from src.sync.stores.gdrive.subfolder_file_store import GdriveSubfolderFileStore
 from src.sync.stores.models import CloudFileMetadata, CloudFolderMetadata, ListCloudFolderResult
 
@@ -12,7 +12,7 @@ class GdriveSubfolderFileStoreTests(unittest.TestCase):
 
     def setUp(self):
         logger = Mock(logging.Logger)
-        self._store = Mock(GdriveStore)
+        self._store = Mock(GdriveApiV2FileStore)
         self.sut = GdriveSubfolderFileStore(self._store, logger)
 
     def test_file_when_list_sub_folder_which_does_not_exist_in_cloud(self):

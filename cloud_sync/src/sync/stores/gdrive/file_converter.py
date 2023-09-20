@@ -38,8 +38,7 @@ class GoogleDriveFileConverter:
         # self.logger.debug('file: {}'.format(gFile))
         parent_folder_path = PathHelper.start_with_slash(parent_folder_path)
         file_size = 0 if gFile['mimeType'] == 'application/vnd.google-apps.shortcut' else int(gFile['fileSize'])
-        modified = datetime.datetime.strptime(
-            gFile['modifiedDate'], '%Y-%m-%dT%H:%M:%S.%fZ')
+        modified = datetime.datetime.strptime(gFile['modifiedDate'], '%Y-%m-%dT%H:%M:%S.%fZ')
         file_name = gFile['title']
         file_cloud_path = posixpath.join(parent_folder_path, gFile['title'])
         return CloudFileMetadata(file_name, file_cloud_path, modified, file_size, gFile['id'], '0')

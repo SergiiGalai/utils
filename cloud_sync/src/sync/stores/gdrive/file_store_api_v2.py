@@ -1,4 +1,4 @@
-from pydrive.drive import GoogleDrive
+from pydrive.drive import GoogleDrive, GoogleDriveFile
 from pydrive.auth import GoogleAuth
 from logging import Logger
 from src.configs.config import StorageConfig
@@ -8,7 +8,7 @@ from src.sync.stores.models import CloudFileMetadata, CloudFolderMetadata, ListC
 
 # https://pythonhosted.org/PyDrive/pydrive.html#pydrive.files.GoogleDriveFile
 # https://developers.google.com/drive/api/guides/search-files
-class GdriveStore:
+class GdriveApiV2FileStore:
     def __init__(self, conf: StorageConfig, logger: Logger):
         self._dry_run = conf.dry_run
         self._logger = logger
@@ -19,8 +19,9 @@ class GdriveStore:
     def list_folder(self, folder_id: str, cloud_path: str) -> ListCloudFolderResult:
         self._logger.debug('cloud_path={}'.format(cloud_path))
         drive = self.__get_gdrive()
-        query = "'root' in parents and trashed=false" if folder_id == '' else "parents in '{}' and trashed=false".format(
-            folder_id)
+        _ROOT_QUERY = "'root' in parents and trashed=false"
+        _SUBFOLDER_QUERY = "parents in '{}' and trashed=false".format(folder_id)
+        query = _ROOT_QUERY if folder_id == '' else _SUBFOLDER_QUERY
         file_list = drive.ListFile({'q': query}).GetList()
         return self._converter.convert_GoogleDriveFiles_to_FileMetadatas(file_list, cloud_path)
 
@@ -38,11 +39,15 @@ class GdriveStore:
         drive = self.__get_gdrive()
         metadata = dict(id=id)
         google_file = drive.CreateFile(metadata)
-        google_file.GetContentFile(filename=id)
-        content_bytes = google_file.content    # BytesIO
-        bytes = content_bytes.read()
-        # TODO add cloud path
+        google_file.FetchMetadata()
+        bytes = self.__get_file_content(google_file)
         return bytes, self._converter.convert_GoogleDriveFile_to_CloudFile(google_file)
+
+    def __get_file_content(self, file: GoogleDriveFile) -> bytes:
+        file.FetchContent()
+        content_bytes = file.content    # BytesIO
+        bytes = content_bytes.read()
+        return bytes
 
     def save(self, content: bytes, local_md: LocalFileMetadata, overwrite: bool):
         self._logger.debug('cloud_path={}'.format(local_md.cloud_path))
