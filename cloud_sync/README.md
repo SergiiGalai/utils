@@ -22,17 +22,18 @@ Normally we install the Google Drive client on our system which takes care of al
 1. Copy the content of this folder to your local disk
 1. Create `config.ini` or other file. Check its content below.
 1. Install python3. E.g. using Chocolatey `choco install -y python`
-1. Run unit tests `python -m unittest`
+1. Install pytest `pip install -U pytest`
+1. Run unit tests `pytest` in the root project folder
 
 ### Google Drive
 1. You have to have a Dropbox account
-1. Install python dropbox dependency module `pip install pydrive`
+1. Install python dropbox dependency module `pip install -U pydrive`
 1. Perform [Authentication steps](https://pythonhosted.org/PyDrive/quickstart.html#authentication)	allowing to access google drive in the scopes
 1. run `python d:\path\cloud_sync\main.py`
 
 ### Dropbox
 1. You have to have a Dropbox account
-1. Install python dropbox dependency module `pip3 install dropbox`
+1. Install python dropbox dependency module `pip3 install -U dropbox`
 1. Create the app on the [Dropbox website](https://docs.gravityforms.com/creating-a-custom-dropbox-app/).
 1. Open [created Dropbox app](https://www.dropbox.com/developers/apps)
 1. Scroll down to ‘OAuth 2’ block and hit `Generate` button near `Generated access token` text

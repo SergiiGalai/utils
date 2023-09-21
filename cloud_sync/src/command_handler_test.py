@@ -1,5 +1,5 @@
 import datetime
-import unittest
+from unittest import TestCase
 from unittest.mock import Mock
 import logging
 from src.clients.command_ui import CommandHandlerUi
@@ -22,25 +22,26 @@ class UiMock(ConsoleUi):
         print(message)
 
 
-class CommandHandlerTests(unittest.TestCase):
+class TestCommandHandler(TestCase):
 
     def setUp(self):
         logger = Mock(logging.Logger)
         sync_service = Mock(FileSyncronizationService)
         sync_service.download_files = Mock()
         sync_service.upload_files = Mock()
-        sync_service.local_root = Mock(return_value='C:\\Path\\CloudRoot')
+        sync_service.local_root.return_value = 'C:\\Path\\CloudRoot'
         ui = CommandHandlerUi(UiMock(logger), logger)
         self._sync_service = sync_service
         self._sut = CommandHandler(self._sync_service, ui, logger)
 
     def test_ui_output_using_debugger_and_debug_console(self):
-        local1 = CommandHandlerTests.__createLocalFile('f1.pdf', '/f1.pdf', 'c:\\root\\f1.pdf')
-        local2 = CommandHandlerTests.__createLocalFile('f2.pdf', '/sub/f2.pdf', 'c:\\root\\f2.pdf')
-        cloud1 = CommandHandlerTests.__createCloudFile('f3.pdf', '/f3.pdf')
-        cloud2 = CommandHandlerTests.__createCloudFile('f4.pdf', '/sub/f4.pdf')
+        local1 = TestCommandHandler.__createLocalFile('f1.pdf', '/f1.pdf', 'c:\\root\\f1.pdf')
+        local2 = TestCommandHandler.__createLocalFile('f2.pdf', '/sub/f2.pdf', 'c:\\root\\f2.pdf')
+        cloud1 = TestCommandHandler.__createCloudFile('f3.pdf', '/f3.pdf')
+        cloud2 = TestCommandHandler.__createCloudFile('f4.pdf', '/sub/f4.pdf')
         self.__set_map_files([cloud1, cloud2], [local1, local2])
         self._sut.handle('sync', '/path')
+        pass
 
     def test_run_throws_when_unknown_command_passed(self):
         self.assertRaises(NotImplementedError, self._sut.handle, 'unknownCommand', '')
@@ -50,7 +51,7 @@ class CommandHandlerTests(unittest.TestCase):
 
     def __set_map_files(self, download=[], upload=[]):
         map_folder_result = MapFolderResult(download, upload)
-        self._sync_service.map_folder = Mock(return_value=map_folder_result)
+        self._sync_service.map_folder.return_value = map_folder_result
 
     @staticmethod
     def __createLocalFile(file_name, cloud_file_path, local_file_path,

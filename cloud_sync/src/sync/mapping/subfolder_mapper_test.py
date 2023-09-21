@@ -1,29 +1,26 @@
-import unittest
+from unittest import TestCase
 from unittest.mock import Mock
 import logging
 from src.sync.mapping.subfolder_mapper import SubfolderMapper
 from src.sync.stores.models import CloudFolderMetadata, LocalFolderMetadata
 
 
-class SubfolderMapperTests(unittest.TestCase):
+class TestSubfolderMapper(TestCase):
 
     def setUp(self):
         logger = Mock(logging.Logger)
         self._sut = SubfolderMapper(logger)
 
     def test_empty_when_no_subfolders(self):
-        # act
         actual = self._sut.map_cloud_to_local([], [])
-        # assert
-        self.assertSetEqual(actual, set())
+        assert actual == set()
 
     def test_one_item_when_local_and_cloud_folders_match(self):
         local_folder = self.__create_local_folder()
         cloud_folder = self.__create_cloud_folder()
         # act
         actual = self._sut.map_cloud_to_local([cloud_folder], [local_folder])
-        # assert
-        self.assertSetEqual(actual, set(['/Target/Sub']))
+        assert actual == set(['/Target/Sub'])
 
     def test_merged_items_when_local_and_cloud_have_differnt_folders(self):
         local_folder1 = self.__create_local_folder('/Target/dir1', name='dir1')
@@ -31,8 +28,7 @@ class SubfolderMapperTests(unittest.TestCase):
         cloud_folder = self.__create_cloud_folder()
         # act
         actual = self._sut.map_cloud_to_local([cloud_folder], [local_folder1, local_folder2])
-        # assert
-        self.assertSetEqual(actual, set(['/Target/Sub', '/Target/dir1', '/Target/Dir2']))
+        assert actual == set(['/Target/Sub', '/Target/dir1', '/Target/Dir2'])
 
     _FOLDER_NAME = 'Sub'
     _CLOUD_FOLDER_PATH = '/Target/Sub'

@@ -1,5 +1,5 @@
 import datetime
-import unittest
+from unittest import TestCase
 from unittest.mock import Mock
 import logging
 from pydrive.drive import GoogleDriveFile
@@ -8,7 +8,7 @@ from src.sync.stores.gdrive.file_converter import GoogleDriveFileConverter
 from src.sync.stores.models import CloudFileMetadata, CloudFolderMetadata
 
 
-class GoogleDriveFileConverterTests(unittest.TestCase):
+class TestGoogleDriveFileConverter(TestCase):
 
     def setUp(self):
         logger = Mock(logging.Logger)
@@ -21,9 +21,8 @@ class GoogleDriveFileConverterTests(unittest.TestCase):
         expected2 = self.__create_cloud_file('/F2.pdf', 'F2.pdf', '2')
         # act
         actual = self._sut.convert_GoogleDriveFiles_to_FileMetadatas([gFile1, gFile2])
-        # assert
-        self.assertEqual(actual.folders, [])
-        self.assertEqual(actual.files, [expected1, expected2])
+        assert actual.folders == []
+        assert actual.files == [expected1, expected2]
 
     def test_2_files_when_converterd_gfiles_with_2_files_in_the_subfolder(self):
         gFile1 = self.__create_drive_file(id='1', name='f1.pdf')
@@ -32,56 +31,49 @@ class GoogleDriveFileConverterTests(unittest.TestCase):
         expected2 = self.__create_cloud_file('/Root/Subpath/F2.pdf', 'F2.pdf', '2')
         # act
         actual = self._sut.convert_GoogleDriveFiles_to_FileMetadatas([gFile1, gFile2], '/Root/Subpath')
-        # assert
-        self.assertEqual(actual.folders, [])
-        self.assertEqual(actual.files, [expected1, expected2])
+        assert actual.folders == []
+        assert actual.files == [expected1, expected2]
 
     def test_CloudFileMetadata_when_converted_gfile_with_empty_cloud_path(self):
         gFile = self.__create_drive_file()
         expected = self.__create_cloud_file('/File1.pdf')
         # act
         actual = self._sut.convert_GoogleDriveFile_to_CloudFile(gFile)
-        # assert
-        self.assertEqual(actual, expected)
+        assert actual == expected
 
     def test_CloudFileMetadata_when_converted_gfile_with_slash_as_cloud_path(self):
         gFile = self.__create_drive_file()
         expected = self.__create_cloud_file('/File1.pdf')
         # act
         actual = self._sut.convert_GoogleDriveFile_to_CloudFile(gFile, '/')
-        # assert
-        self.assertEqual(actual, expected)
+        assert actual == expected
 
     def test_CloudFileMetadata_when_converted_gfile_with_subpath(self):
         gFile = self.__create_drive_file()
         expected = self.__create_cloud_file('/Root/File1.pdf')
         # act
         actual = self._sut.convert_GoogleDriveFile_to_CloudFile(gFile, '/Root')
-        # assert
-        self.assertEqual(actual, expected)
+        assert actual == expected
 
     def test_CloudFileMetadata_when_converted_gfile_with_level3_subpath(self):
         gFile = self.__create_drive_file()
         expected = self.__create_cloud_file('/Root/sub2/sub3/File1.pdf')
         # act
         actual = self._sut.convert_GoogleDriveFile_to_CloudFile(gFile, '/Root/sub2/sub3')
-        # assert
-        self.assertEqual(actual, expected)
+        assert actual == expected
 
     def test_CloudFileMetadata_with_null_file_size_when_gfile_is_a_shortcut(self):
         gFile = self.__create_drive_file('application/vnd.google-apps.shortcut')
         # act
         actual = self._sut.convert_GoogleDriveFile_to_CloudFile(gFile)
-        # assert
-        self.assertEqual(actual.size, 0)
+        assert actual.size == 0
 
     def test_CloudFolderMetadata_when_gFolder_passed(self):
         gFile = self.__create_drive_folder()
         expected = self.__create_cloud_folder()
         # act
         actual = self._sut.convert_GoogleDriveFile_to_CloudFolderMetadata(gFile, '/Root')
-        # assert
-        self.assertEqual(actual, expected)
+        assert actual == expected
 
     DEFAULT_ID = '1C7Vb'
 

@@ -34,25 +34,23 @@ class StorageConfigProvider:
         parser.add_argument('--no', '-n', action='store_true', help='Answer no to all questions')
         parser.add_argument('--default', '-d', action='store_true',
                             help='Take default answer on all questions')
-        parser.add_argument('--dryrun', help='Do not change files if True')
+        parser.add_argument('--dry_run', help='Do not change files if True')
         parser.add_argument('--recursive', help='Process subfolders if True')
         namespace = parser.parse_args()
         self.__validate_args_defaults(namespace)
         return namespace
 
     def get_config(self, args: Namespace):
-        self._logger.debug('args={}')
+        self._logger.debug('args={}'.format(args))
         configFilePaths = self.__get_config_file_locations(args.config)
 
         defaultConfigParser = self.__get_config_parser(configFilePaths)
         activeStorageName = self.__get_active_storage_name(args, defaultConfigParser)
         defaultConfig = self.__get_storage_config(activeStorageName, args, defaultConfigParser)
 
-        overrideFilePaths = [location + '.secret.ini'
-                             for location in configFilePaths]
+        overrideFilePaths = [location + '.secret.ini' for location in configFilePaths]
         overrideConfigParser = self.__get_config_parser(overrideFilePaths)
-        overrideConfig = self.__get_storage_config(
-            activeStorageName, args, overrideConfigParser)
+        overrideConfig = self.__get_storage_config(activeStorageName, args, overrideConfigParser)
 
         resultConfig = self.__merge_configs(defaultConfig, overrideConfig)
         return resultConfig
@@ -86,8 +84,7 @@ class StorageConfigProvider:
         if not configParser.has_section(storageName):
             configParser[storageName] = {}
         storageConfig = configParser[storageName]
-        config = self.__get_config_from_args_or_file(
-            storageName, args, storageConfig)
+        config = self.__get_config_from_args_or_file(storageName, args, storageConfig)
         return config
 
     def __get_config_from_args_or_file(self, storageName: str, args: Namespace, config: SectionProxy) -> StorageConfig:
@@ -97,7 +94,7 @@ class StorageConfigProvider:
         token = args.token or config.get('TOKEN')
         local_dir = args.local_dir or config.get('LOCAL_DIR')
         cloud_dir = args.cloud_dir or config.get('CLOUD_DIR')
-        dry_run = args.dryrun or (args.dryrun is None and config.getboolean('DRY_RUN'))
+        dry_run = args.dry_run or (args.dry_run is None and config.getboolean('DRY_RUN'))
         recursive = args.recursive or (args.recursive is None and config.getboolean('RECURSIVE'))
 
         if local_dir is not None and local_dir.startswith('.'):

@@ -1,5 +1,5 @@
 import datetime
-import unittest
+from unittest import TestCase
 from unittest.mock import MagicMock, Mock
 import logging
 
@@ -8,7 +8,7 @@ from src.sync.stores.gdrive.subfolder_file_store import GdriveSubfolderFileStore
 from src.sync.stores.models import CloudFileMetadata, CloudFolderMetadata, ListCloudFolderResult
 
 
-class GdriveSubfolderFileStoreTests(unittest.TestCase):
+class TestGdriveSubfolderFileStore(TestCase):
 
     def setUp(self):
         logger = Mock(logging.Logger)
@@ -20,9 +20,8 @@ class GdriveSubfolderFileStoreTests(unittest.TestCase):
         self.__mock_store_list_folder([cloud_file])
         # act
         actual = self._sut.list_folder(self._CLOUD_ROOT)
-        # assert
-        self.assertEqual(actual.files, [cloud_file])
-        self.assertEqual(actual.folders, [])
+        assert actual.files == [cloud_file]
+        assert actual.folders == []
 
     def test_file_and_subfolder_when_list_root_cloud_folder(self):
         cloud_folder = self.__create_cloud_folder()
@@ -30,9 +29,8 @@ class GdriveSubfolderFileStoreTests(unittest.TestCase):
         self.__mock_store_list_folder([cloud_file], [cloud_folder])
         # act
         actual = self._sut.list_folder(self._CLOUD_ROOT)
-        # assert
-        self.assertEqual(actual.files, [cloud_file])
-        self.assertEqual(actual.folders, [cloud_folder])
+        assert actual.files == [cloud_file]
+        assert actual.folders == [cloud_folder]
 
     def test_files_and_folders_when_list_target_non_root_folder(self):
         # arrange
@@ -55,9 +53,8 @@ class GdriveSubfolderFileStoreTests(unittest.TestCase):
         }[x]) # type: ignore
         # act
         actual = self._sut.list_folder('/Sub/Target')
-        # assert
-        self.assertEqual(actual.files, [cloud_file_target])
-        self.assertEqual(actual.folders, [cloud_folder_sub2])
+        assert actual.files == [cloud_file_target]
+        assert actual.folders == [cloud_folder_sub2]
 
     _FILE_ID = '1C7Vb'
     _CLOUD_ROOT = '/Target'
@@ -79,4 +76,4 @@ class GdriveSubfolderFileStoreTests(unittest.TestCase):
         result = ListCloudFolderResult()
         result.files = files
         result.folders = folders
-        self._store.list_folder = Mock(return_value=result)
+        self._store.list_folder.return_value = result

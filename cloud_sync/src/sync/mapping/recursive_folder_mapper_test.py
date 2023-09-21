@@ -1,5 +1,5 @@
 import datetime
-import unittest
+from unittest import TestCase
 from unittest.mock import Mock
 import logging
 from src.configs.config import StorageConfig
@@ -12,7 +12,7 @@ from src.sync.stores.local.local_file_store import LocalFileStore
 from src.sync.stores.models import CloudFileMetadata, CloudFolderMetadata, ListCloudFolderResult, ListLocalFolderResult, LocalFileMetadata, LocalFolderMetadata
 
 
-class RecursiveFolderMapperTests(unittest.TestCase):
+class TestRecursiveFolderMapper(TestCase):
 
     def setUp(self):
         logger = Mock(logging.Logger)
@@ -27,19 +27,16 @@ class RecursiveFolderMapperTests(unittest.TestCase):
                                          self._config, logger)
 
     def test_files_from_mapper_When_recursively_list_target_folder_but_without_subfolders(self):
-        # arrange
         cloud_files_target, _ = self.__create_target_cloud_folder()
         self.__mock_local_store()
         self._cloud_store.list_folder.return_value = ListCloudFolderResult(cloud_files_target)
         self._file_mapper.map_cloud_to_local.return_value = MapFolderResult(cloud_files_target)
         # act
         actual = self._sut.map_folder('/Target')
-        # assert
-        self.assertEqual(actual.download, cloud_files_target)
-        self.assertEqual(actual.upload, [])
+        assert actual.download == cloud_files_target
+        assert actual.upload == []
 
     def test_files_from_mapper_When_non_resursively_list_target_folder_with_subfolders(self):
-        # arrange
         self._config.recursive = False
         cloud_files_target, cloud_folders_target = self.__create_target_cloud_folder()
         self.__mock_local_store()
@@ -47,12 +44,10 @@ class RecursiveFolderMapperTests(unittest.TestCase):
         self._file_mapper.map_cloud_to_local.return_value = MapFolderResult(cloud_files_target)
         # act
         actual = self._sut.map_folder('/Target')
-        # assert
-        self.assertEqual(actual.download, cloud_files_target)
-        self.assertEqual(actual.upload, [])
+        assert actual.download == cloud_files_target
+        assert actual.upload == []
 
     def test_files_and_subfolders_from_mapper_When_recursively_list_target_folder(self):
-        # arrange
         cloud_files_target, cloud_folders_target = self.__create_target_cloud_folder()
         cloud_file_sub1 = self.__create_cloud_file('/Target/Sub1/File1.pdf', 'File1.pdf', 'idsubf1')
         cloud_file_sub2 = self.__create_cloud_file('/Target/Sub2/File2.pdf', 'File2.pdf', 'idsubf2')
@@ -67,8 +62,7 @@ class RecursiveFolderMapperTests(unittest.TestCase):
                                                                  set()]
         # act
         actual = self._sut.map_folder('/Target')
-        # assert
-        self.assertEqual(actual.download, cloud_files_target + [cloud_file_sub1, cloud_file_sub2])
+        assert actual.download == cloud_files_target + [cloud_file_sub1, cloud_file_sub2]
 
     def __create_target_cloud_folder(self):
         file = self.__create_cloud_file('/Target/File1.pdf', 'File1.pdf', id='idf1')
