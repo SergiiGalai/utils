@@ -12,7 +12,7 @@ class DropboxFileConverterTests(unittest.TestCase):
 
     def setUp(self):
         logger = Mock(logging.Logger)
-        self.sut = DropboxFileConverter(logger)
+        self._sut = DropboxFileConverter(logger)
 
     def test_2_files_when_converterd_gfiles_with_2_files_in_the_root(self):
         dbx_file1 = self.__create_DropboxFile('f1.pdf', '/f1.pdf', '/f1.pdf')
@@ -20,7 +20,7 @@ class DropboxFileConverterTests(unittest.TestCase):
         expected1 = self.__create_CloudFile('f1.pdf', '/f1.pdf', '/f1.pdf')
         expected2 = self.__create_CloudFile('F2.pdf', '/F2.pdf', '/f2.pdf')
         # act
-        actual = self.sut.convert_dropbox_entries_to_cloud([dbx_file1, dbx_file2])
+        actual = self._sut.convert_dropbox_entries_to_cloud([dbx_file1, dbx_file2])
         # assert
         self.assertEqual(actual.folders, [])
         self.assertEqual(actual.files, [expected1, expected2])
@@ -31,7 +31,7 @@ class DropboxFileConverterTests(unittest.TestCase):
         expected1 = self.__create_CloudFile('f1.pdf', '/Root/f1.pdf', '/root/f1.pdf')
         expected2 = self.__create_CloudFile('F2.pdf', '/Root/F2.pdf', '/root/f2.pdf')
         # act
-        actual = self.sut.convert_dropbox_entries_to_cloud([dbx_file1, dbx_file2])
+        actual = self._sut.convert_dropbox_entries_to_cloud([dbx_file1, dbx_file2])
         # assert
         self.assertEqual(actual.folders, [])
         self.assertEqual(actual.files, [expected1, expected2])
@@ -40,7 +40,7 @@ class DropboxFileConverterTests(unittest.TestCase):
         dbx_md = self.__create_DropboxFile()
         expected = self.__create_CloudFile()
         # act
-        actual = self.sut.convert_DropboxFile_to_CloudFile(dbx_md)
+        actual = self._sut.convert_DropboxFile_to_CloudFile(dbx_md)
         # assert
         self.assertEqual(actual, expected)
 
@@ -48,7 +48,7 @@ class DropboxFileConverterTests(unittest.TestCase):
         dbx_dir = self.__create_DropboxFolder()
         expected = self.__create_CloudFolder()
         # act
-        actual = self.sut.convert_DropboxFolder_to_CloudFolder(dbx_dir)
+        actual = self._sut.convert_DropboxFolder_to_CloudFolder(dbx_dir)
         # assert
         self.assertEqual(actual, expected)
 

@@ -9,11 +9,11 @@ class SubfolderMapperTests(unittest.TestCase):
 
     def setUp(self):
         logger = Mock(logging.Logger)
-        self.sut = SubfolderMapper(logger)
+        self._sut = SubfolderMapper(logger)
 
     def test_empty_when_no_subfolders(self):
         # act
-        actual = self.sut.map_cloud_to_local([], [])
+        actual = self._sut.map_cloud_to_local([], [])
         # assert
         self.assertSetEqual(actual, set())
 
@@ -21,7 +21,7 @@ class SubfolderMapperTests(unittest.TestCase):
         local_folder = self.__create_local_folder()
         cloud_folder = self.__create_cloud_folder()
         # act
-        actual = self.sut.map_cloud_to_local([cloud_folder], [local_folder])
+        actual = self._sut.map_cloud_to_local([cloud_folder], [local_folder])
         # assert
         self.assertSetEqual(actual, set(['/Target/Sub']))
 
@@ -30,7 +30,7 @@ class SubfolderMapperTests(unittest.TestCase):
         local_folder2 = self.__create_local_folder('/Target/Dir2', name='Dir2')
         cloud_folder = self.__create_cloud_folder()
         # act
-        actual = self.sut.map_cloud_to_local([cloud_folder], [local_folder1, local_folder2])
+        actual = self._sut.map_cloud_to_local([cloud_folder], [local_folder1, local_folder2])
         # assert
         self.assertSetEqual(actual, set(['/Target/Sub', '/Target/dir1', '/Target/Dir2']))
 

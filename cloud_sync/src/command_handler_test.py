@@ -31,7 +31,7 @@ class CommandHandlerTests(unittest.TestCase):
         sync_service.local_root = Mock(return_value='C:\\Path\\CloudRoot')
         ui = UiMock(logger)
         self._sync_service = sync_service
-        self.sut = CommandHandler(self._sync_service, ui, logger)
+        self._sut = CommandHandler(self._sync_service, ui, logger)
 
     def test_ui_output_using_debugger_and_debug_console(self):
         local1 = self._createLocalFile('f1.pdf', '/f1.pdf', 'c:\\root\\f1.pdf')
@@ -39,14 +39,14 @@ class CommandHandlerTests(unittest.TestCase):
         cloud1 = self._createCloudFile('f3.pdf', '/f3.pdf')
         cloud2 = self._createCloudFile('f4.pdf', '/sub/f4.pdf')
         self._set_map_files([cloud1, cloud2], [local1, local2])
-        self.sut.handle('sync', '/path')
+        self._sut.handle('sync', '/path')
         pass
 
     def test_run_throws_when_unknown_command_passed(self):
-        self.assertRaises(NotImplementedError, self.sut.handle, 'unknownCommand', '')
-        self.assertRaises(NotImplementedError, self.sut.handle, 'DOWNLOAD', '')
-        self.assertRaises(NotImplementedError, self.sut.handle, 'Upload', '')
-        self.assertRaises(NotImplementedError, self.sut.handle, 'sYnc', '')
+        self.assertRaises(NotImplementedError, self._sut.handle, 'unknownCommand', '')
+        self.assertRaises(NotImplementedError, self._sut.handle, 'DOWNLOAD', '')
+        self.assertRaises(NotImplementedError, self._sut.handle, 'Upload', '')
+        self.assertRaises(NotImplementedError, self._sut.handle, 'sYnc', '')
 
     def _set_map_files(self, download=[], upload=[]):
         map_folder_result = MapFolderResult(download, upload)

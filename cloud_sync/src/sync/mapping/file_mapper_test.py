@@ -13,13 +13,13 @@ class FileMapperTests(unittest.TestCase):
     def setUp(self):
         logger = Mock(logging.Logger)
         self._sync_action_provider = Mock(FileSyncActionProvider)
-        self.sut = FileMapper(self._sync_action_provider, logger)
+        self._sut = FileMapper(self._sync_action_provider, logger)
 
     def test_empty_lists_when_files_match(self):
         local_file = self.__create_local_file()
         cloud_file = self.__create_cloud_file()
         # act
-        actual = self.sut.map_cloud_to_local([cloud_file], [local_file])
+        actual = self._sut.map_cloud_to_local([cloud_file], [local_file])
         # assert
         self.assertListEqual(actual.download, [])
         self.assertListEqual(actual.upload, [])
@@ -27,7 +27,7 @@ class FileMapperTests(unittest.TestCase):
     def test_file_to_upload_when_no_file_in_the_cloud(self):
         local_file = self.__create_local_file()
         # act
-        actual = self.sut.map_cloud_to_local([], [local_file])
+        actual = self._sut.map_cloud_to_local([], [local_file])
         # assert
         self.assertListEqual(actual.download, [])
         self.assertListEqual(actual.upload, [local_file])
@@ -35,7 +35,7 @@ class FileMapperTests(unittest.TestCase):
     def test_file_to_download_when_no_file_locally(self):
         cloud_file = self.__create_cloud_file()
         # act
-        actual = self.sut.map_cloud_to_local([cloud_file], [])
+        actual = self._sut.map_cloud_to_local([cloud_file], [])
         # assert
         self.assertListEqual(actual.download, [cloud_file])
         self.assertListEqual(actual.upload, [])
@@ -45,7 +45,7 @@ class FileMapperTests(unittest.TestCase):
         cloud_file = self.__create_cloud_file(3)
         self._sync_action_provider.get_sync_action = Mock(return_value=FileSyncAction.SKIP)
         # act
-        actual = self.sut.map_cloud_to_local([cloud_file], [local_file])
+        actual = self._sut.map_cloud_to_local([cloud_file], [local_file])
         # assert
         self.assertListEqual(actual.download, [])
         self.assertListEqual(actual.upload, [])
@@ -55,7 +55,7 @@ class FileMapperTests(unittest.TestCase):
         cloud_file = self.__create_cloud_file(3)
         self._sync_action_provider.get_sync_action = Mock(return_value=FileSyncAction.CONFLICT)
         # act
-        actual = self.sut.map_cloud_to_local([cloud_file], [local_file])
+        actual = self._sut.map_cloud_to_local([cloud_file], [local_file])
         # assert
         self.assertListEqual(actual.download, [])
         self.assertListEqual(actual.upload, [])
@@ -65,7 +65,7 @@ class FileMapperTests(unittest.TestCase):
         cloud_file = self.__create_cloud_file()
         self._sync_action_provider.get_sync_action = Mock(return_value=FileSyncAction.DOWNLOAD)
         # act
-        actual = self.sut.map_cloud_to_local([cloud_file], [local_file])
+        actual = self._sut.map_cloud_to_local([cloud_file], [local_file])
         # assert
         self.assertListEqual(actual.download, [cloud_file])
         self.assertListEqual(actual.upload, [])
@@ -75,7 +75,7 @@ class FileMapperTests(unittest.TestCase):
         cloud_file = self.__create_cloud_file()
         self._sync_action_provider.get_sync_action = Mock(return_value=FileSyncAction.UPLOAD)
         # act
-        actual = self.sut.map_cloud_to_local([cloud_file], [local_file])
+        actual = self._sut.map_cloud_to_local([cloud_file], [local_file])
         # assert
         self.assertListEqual(actual.download, [])
         self.assertListEqual(actual.upload, [local_file])
@@ -84,7 +84,7 @@ class FileMapperTests(unittest.TestCase):
         cloud_file_root = self.__create_cloud_file()
         cloud_file_subfolder = self.__create_cloud_file(cloud_file_path='/Sub/2/f.txt')
         # act
-        actual = self.sut.map_cloud_to_local([cloud_file_root, cloud_file_subfolder], [])
+        actual = self._sut.map_cloud_to_local([cloud_file_root, cloud_file_subfolder], [])
         # assert
         self.assertListEqual(actual.download, [cloud_file_root, cloud_file_subfolder])
         self.assertListEqual(actual.upload, [])
@@ -95,7 +95,7 @@ class FileMapperTests(unittest.TestCase):
             cloud_file_path='/Sub/2/f.txt',
             local_file_path='c:\\path\\sub\\2\\f.txt')
         # act
-        actual = self.sut.map_cloud_to_local([], [local_file_root, local_file_subfolder])
+        actual = self._sut.map_cloud_to_local([], [local_file_root, local_file_subfolder])
         # assert
         self.assertListEqual(actual.download, [])
         self.assertListEqual(actual.upload, [local_file_root, local_file_subfolder])

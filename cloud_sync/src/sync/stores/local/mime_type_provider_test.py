@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import Mock
 import logging
-from src.sync.stores.local.MimeTypeProvider import MimeTypeProvider
+from src.sync.stores.local.mime_type_provider import MimeTypeProvider
 
 
 class MimeTypeProviderTests(unittest.TestCase):

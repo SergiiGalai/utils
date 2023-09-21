@@ -22,7 +22,7 @@ class RecursiveFolderMapperTests(unittest.TestCase):
         self._subfolder_mapper = Mock(SubfolderMapper)
         self._config = Mock(StorageConfig)
         self._config.recursive = True
-        self.sut = RecursiveFolderMapper(self._local_store, self._cloud_store,
+        self._sut = RecursiveFolderMapper(self._local_store, self._cloud_store,
                                          self._file_mapper, self._subfolder_mapper,
                                          self._config, logger)
 
@@ -33,7 +33,7 @@ class RecursiveFolderMapperTests(unittest.TestCase):
         self._cloud_store.list_folder.return_value = ListCloudFolderResult(cloud_files_target)
         self._file_mapper.map_cloud_to_local.return_value = MapFolderResult(cloud_files_target)
         # act
-        actual = self.sut.map_folder('/Target')
+        actual = self._sut.map_folder('/Target')
         # assert
         self.assertEqual(actual.download, cloud_files_target)
         self.assertEqual(actual.upload, [])
@@ -46,7 +46,7 @@ class RecursiveFolderMapperTests(unittest.TestCase):
         self._cloud_store.list_folder.return_value = ListCloudFolderResult(cloud_files_target, cloud_folders_target)
         self._file_mapper.map_cloud_to_local.return_value = MapFolderResult(cloud_files_target)
         # act
-        actual = self.sut.map_folder('/Target')
+        actual = self._sut.map_folder('/Target')
         # assert
         self.assertEqual(actual.download, cloud_files_target)
         self.assertEqual(actual.upload, [])
@@ -66,7 +66,7 @@ class RecursiveFolderMapperTests(unittest.TestCase):
         self._subfolder_mapper.map_cloud_to_local.side_effect = [set(['Sub1', 'Sub2']),
                                                                  set()]
         # act
-        actual = self.sut.map_folder('/Target')
+        actual = self._sut.map_folder('/Target')
         # assert
         self.assertEqual(actual.download, cloud_files_target + [cloud_file_sub1, cloud_file_sub2])
 

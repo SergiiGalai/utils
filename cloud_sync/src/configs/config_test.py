@@ -9,19 +9,19 @@ class StorageConfigProviderTests(unittest.TestCase):
 
     def setUp(self):
         logger = Mock(logging.Logger)
-        self.sut = StorageConfigProvider(logger)
+        self._sut = StorageConfigProvider(logger)
 
     # def test_gets_dropbox_configuration_by_default(self):
     #     args = self._createArgs()
     #     #act
-    #     actual = self.sut.get_config(args)
+    #     actual = self._sut.get_config(args)
     #     #assert
     #     self.assertEqual(actual.storage_name, 'DROPBOX')
 
     def test_gets_dropbox_configuration_when_passing_dropbox_storage(self):
         args = self.__createArgs(config='config.ini', storage='DROPBOX')
         # act
-        actual = self.sut.get_config(args)
+        actual = self._sut.get_config(args)
         # assert
         self.assertEqual(actual.storage_name, 'DROPBOX')
         self.assertEqual(actual.action, 'sync')
@@ -38,7 +38,7 @@ class StorageConfigProviderTests(unittest.TestCase):
     def test_gets_gdrive_configuration_when_passing_gdrive_storage(self):
         args = self.__createArgs(config='config.ini', storage='GDRIVE')
         # act
-        actual = self.sut.get_config(args)
+        actual = self._sut.get_config(args)
         # assert
         self.assertEqual(actual.storage_name, 'GDRIVE')
         self.assertEqual(actual.action, 'sync')
@@ -53,7 +53,7 @@ class StorageConfigProviderTests(unittest.TestCase):
         args = Mock(config='anotherconfig.ini', storage='DROPBOX', yes=None, no=None, default=None, action='upload',
                     token='12345', local_dir='d:\\another.ini', cloud_dir='/system', dry_run=True, recursive=False)
         # act
-        actual = self.sut.get_config(args)
+        actual = self._sut.get_config(args)
         # assert
         self.assertEqual(actual.action, 'upload')
         self.assertEqual(actual.local_dir, 'd:\\another.ini')
@@ -65,7 +65,7 @@ class StorageConfigProviderTests(unittest.TestCase):
     def test_gets_absolute_local_directory_path_when_passed_relative(self):
         args = self.__createArgs(config='config.ini', storage='GDRIVE', local_dir='.\\another.ini')
         # act
-        actual = self.sut.get_config(args)
+        actual = self._sut.get_config(args)
         # assert
         self.assertFalse(actual.local_dir.startswith('.'))
 

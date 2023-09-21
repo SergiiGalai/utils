@@ -2,10 +2,10 @@ from logging import Logger
 import posixpath
 import os
 import unicodedata
-from src.sync.stores.common.path_helper import PathHelper
+from src.sync.stores.common.PathHelper import PathHelper
 from src.sync.stores.local.mime_type_provider import MimeTypeProvider
 from src.sync.stores.local.system_file_reader import SystemFileReader
-from src.sync.stores.local.path_provider import PathProvider
+from src.sync.stores.local.PathProvider import PathProvider
 from src.sync.stores.models import LocalFileMetadata, LocalFolderMetadata
 
 

@@ -3,8 +3,8 @@ import pathlib
 from datetime import datetime, timezone
 from logging import Logger
 from src.sync.stores.local.system_file_reader import SystemFileReader
-from src.sync.stores.local.file_metadata_provider import FileMetadataProvider
-from src.sync.stores.local.path_provider import PathProvider
+from src.sync.stores.local.FileMetadataProvider import FileMetadataProvider
+from src.sync.stores.local.PathProvider import PathProvider
 from src.sync.stores.models import CloudFileMetadata, ListLocalFolderResult, LocalFileMetadata
 
 

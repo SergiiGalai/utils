@@ -13,13 +13,13 @@ class GdriveSubfolderFileStoreTests(unittest.TestCase):
     def setUp(self):
         logger = Mock(logging.Logger)
         self._store = Mock(GdriveApiV2FileStore)
-        self.sut = GdriveSubfolderFileStore(self._store, logger)
+        self._sut = GdriveSubfolderFileStore(self._store, logger)
 
     def test_file_when_list_sub_folder_which_does_not_exist_in_cloud(self):
         cloud_file = self.__create_cloud_file()
         self.__mock_store_list_folder([cloud_file])
         # act
-        actual = self.sut.list_folder(self._CLOUD_ROOT)
+        actual = self._sut.list_folder(self._CLOUD_ROOT)
         # assert
         self.assertEqual(actual.files, [cloud_file])
         self.assertEqual(actual.folders, [])
@@ -29,7 +29,7 @@ class GdriveSubfolderFileStoreTests(unittest.TestCase):
         cloud_file = self.__create_cloud_file()
         self.__mock_store_list_folder([cloud_file], [cloud_folder])
         # act
-        actual = self.sut.list_folder(self._CLOUD_ROOT)
+        actual = self._sut.list_folder(self._CLOUD_ROOT)
         # assert
         self.assertEqual(actual.files, [cloud_file])
         self.assertEqual(actual.folders, [cloud_folder])
@@ -54,7 +54,7 @@ class GdriveSubfolderFileStoreTests(unittest.TestCase):
             ('Sub2FolderId', '/Sub/Target/Sub2'): ListCloudFolderResult([cloud_file_sub2], []),
         }[x]) # type: ignore
         # act
-        actual = self.sut.list_folder('/Sub/Target')
+        actual = self._sut.list_folder('/Sub/Target')
         # assert
         self.assertEqual(actual.files, [cloud_file_target])
         self.assertEqual(actual.folders, [cloud_folder_sub2])
