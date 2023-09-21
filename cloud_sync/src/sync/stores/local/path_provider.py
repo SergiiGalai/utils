@@ -1,10 +1,7 @@
-from src.configs.config import StorageConfig
-
 import pathlib
 from logging import Logger
-
+from src.configs.config import StorageConfig
 from src.sync.stores.common.path_helper import PathHelper
-
 
 
 class PathProvider:

@@ -1,6 +1,5 @@
 from logging import Logger
 import posixpath
-import os
 import unicodedata
 from src.sync.stores.common.path_helper import PathHelper
 from src.sync.stores.local.mime_type_provider import MimeTypeProvider

@@ -3,7 +3,6 @@ import pathlib
 from datetime import datetime, timezone
 from logging import Logger
 from src.configs.config import StorageConfig
-from src.sync.stores.common.path_helper import PathHelper
 from src.sync.stores.local.system_file_reader import SystemFileReader
 from src.sync.stores.local.file_metadata_provider import FileMetadataProvider
 from src.sync.stores.local.path_provider import PathProvider
@@ -17,7 +16,7 @@ class LocalFileStore:
         self._file_provider = file_provider
 
     def list_folder(self, cloud_path: str) -> ListLocalFolderResult:
-        full_folder_path = self._get_absolute_path(cloud_path)
+        full_folder_path = self._path_provider.get_absolute_path(cloud_path)
         self._logger.debug('path={}'.format(full_folder_path))
         result = ListLocalFolderResult()
 
@@ -30,9 +29,6 @@ class LocalFileStore:
         self._logger.warn('path `{}` does not exist'.format(full_folder_path))
         return result
 
-    def _get_absolute_path(self, cloud_path='') -> str:
-        return self._path_provider.get_absolute_path(cloud_path)
-
     def read(self, cloud_path: str) -> tuple[bytes, LocalFileMetadata]:
         md = self._file_provider.get_file(cloud_path)
         with open(md.full_path, 'rb') as f:
@@ -40,27 +36,27 @@ class LocalFileStore:
         return content, md
 
     def save(self, content: bytes, cloud_md: CloudFileMetadata):
-        file_path = self._get_absolute_path(cloud_md.cloud_path)
+        file_path = self._path_provider.get_absolute_path(cloud_md.cloud_path)
         base_path = os.path.dirname(file_path)
-        self._try_create_local_folder(base_path)
+        self.__try_create_local_folder(base_path)
         with open(file_path, 'wb') as f:
             f.write(content)
-        self._set_modification_time(
-            file_path, self._datetime_utc_to_local(cloud_md.client_modified))
+        local_modified_time = self.__datetime_utc_to_local(cloud_md.client_modified)
+        self.__set_modification_time(file_path, local_modified_time)
         self._logger.debug('saved file {}...'.format(file_path))
 
-    def _try_create_local_folder(self, path: str):
+    def __try_create_local_folder(self, path: str):
         self._logger.info('ensure {} path is exist or create'.format(path))
         pathlib.Path(path).mkdir(parents=True, exist_ok=True)
 
-    def _set_modification_time(self, file_path: str, modified: datetime):
+    def __set_modification_time(self, file_path: str, modified: datetime):
         self._logger.debug('file_path={}, modified={}'.format(file_path, modified))
         atime = os.stat(file_path).st_atime
         mtime = modified.timestamp()
         os.utime(file_path, times=(atime, mtime))
 
     @staticmethod
-    def _datetime_utc_to_local(utc_dt) -> datetime:
+    def __datetime_utc_to_local(utc_dt) -> datetime:
         return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
 
 
@@ -69,16 +65,7 @@ class DryRunLocalFileStore(LocalFileStore):
         self._logger = logger
 
     def save(self, content: bytes, cloud_md: CloudFileMetadata):
-        file_path = self._get_absolute_path(cloud_md.cloud_path)
-        self._logger.warn('Dry run mode. Skip saving file {}'.format(file_path))
-
-    def _try_create_local_folder(self, path: str):
-        self._logger.warn('Dry Run mode. path {}'.format(path))
-
-    def _set_modification_time(self, file_path: str, modified: datetime):
-        self._logger.warn('Dry Run mode. file_path {}, modified={}'.format(
-            PathHelper.get_file_name(file_path),
-            modified))
+        self._logger.warn('Dry run mode. Skip saving file {}'.format(cloud_md.cloud_path))
 
 
 class LocalFileStoreFactory:
