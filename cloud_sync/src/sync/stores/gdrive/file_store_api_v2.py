@@ -34,14 +34,14 @@ class GdriveApiV2FileStore:
             self._gdrive = GoogleDrive(gauth)
         return self._gdrive
 
-    def read(self, id: str) -> tuple[bytes, CloudFileMetadata]:
+    def read(self, id: str, folder_cloud_path: str) -> tuple[bytes, CloudFileMetadata]:
         self._logger.debug('id={}'.format(id))
         drive = self.__get_gdrive()
         metadata = dict(id=id)
         google_file = drive.CreateFile(metadata)
         google_file.FetchMetadata()
         bytes = self.__get_file_content(google_file)
-        return bytes, self._converter.convert_GoogleDriveFile_to_CloudFile(google_file)
+        return bytes, self._converter.convert_GoogleDriveFile_to_CloudFile(google_file, folder_cloud_path)
 
     def __get_file_content(self, file: GoogleDriveFile) -> bytes:
         file.FetchContent()
@@ -52,12 +52,11 @@ class GdriveApiV2FileStore:
     def save(self, content: bytes, local_md: LocalFileMetadata, overwrite: bool):
         self._logger.debug('cloud_path={}'.format(local_md.cloud_path))
         drive = self.__get_gdrive()
-        # TODO use overwrite argument
         # TODO upload to subfolder
+        # TODO use mimeType, see SetContentString
+        # TODO use overwrite argument
 
-        # folder_id = folder['id']
-        # metadata = dict(title = local_md.name, parents = [{'id': folder_id}])
-        metadata = dict(title=local_md.name)
+        metadata = self.__to_gfile_name_metadata(local_md)
         google_file = drive.CreateFile(metadata)
         google_file.SetContentString(content)
         if self._dry_run:
@@ -68,3 +67,13 @@ class GdriveApiV2FileStore:
                 google_file.Upload()
             finally:
                 google_file.content.close()
+
+    def __to_gfile_name_metadata(self, local: LocalFileMetadata) -> dict:
+        return dict(title=local.name)
+
+    def __to_gfile_metadata(self, local: LocalFileMetadata) -> dict:
+        # folder_id = folder['id']
+        folder_id = 'TODO'
+        return dict(title=local.name,
+                    parents=[{'id': folder_id}],
+                    mimeType=local.mime_type)

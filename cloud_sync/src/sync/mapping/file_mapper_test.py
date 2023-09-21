@@ -106,7 +106,8 @@ class FileMapperTests(unittest.TestCase):
         return LocalFileMetadata(
             'f.txt', cloud_file_path,
             datetime.datetime(2023, 8, modified_day, 20, 14, 14),
-            size, local_file_path)
+            size, local_file_path,
+            'application/unknown')
 
     def __create_cloud_file(self, modified_day=1, size=2000,
                             cloud_file_path='/Sub/f.txt'):

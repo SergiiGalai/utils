@@ -40,7 +40,8 @@ class FileStoreContentComparerTests(unittest.TestCase):
         return LocalFileMetadata(
             'f.txt', self._CLOUD_FILE_PATH,
             datetime.datetime(2023, 2, 1, 20, 0, 0),
-            2000, 'C:\\Path\\CloudRoot\\sub\\f.txt')
+            2000, 'C:\\Path\\CloudRoot\\sub\\f.txt',
+            'application/unknown')
 
     def __create_cloud_file(self):
         return CloudFileMetadata(

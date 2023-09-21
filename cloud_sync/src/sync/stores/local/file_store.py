@@ -2,7 +2,8 @@ import os
 import pathlib
 from datetime import datetime, timezone
 from logging import Logger
-from src.sync.stores.local.system_file_provider import SystemFileProvider
+from src.sync.stores.local.SystemFileReader import SystemFileReader
+from src.sync.stores.local.file_metadata_provider import FileMetadataProvider
 from src.sync.stores.local.path_provider import PathProvider
 from src.sync.stores.models import CloudFileMetadata, ListLocalFolderResult, LocalFileMetadata
 
@@ -11,7 +12,7 @@ class LocalFileStore:
     def __init__(self, path_provider: PathProvider, logger: Logger):
         self._path_provider = path_provider
         self._logger = logger
-        self._file_provider = SystemFileProvider(path_provider, logger)
+        self._file_provider = FileMetadataProvider(path_provider, SystemFileReader(logger), logger)
 
     def list_folder(self, cloud_path: str) -> ListLocalFolderResult:
         full_folder_path = self._get_absolute_path(cloud_path)

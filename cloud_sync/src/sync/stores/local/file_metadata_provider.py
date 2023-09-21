@@ -1,19 +1,21 @@
 from logging import Logger
 import posixpath
-import time
 import os
-from datetime import datetime
 import unicodedata
 from src.sync.stores.common.path_helper import PathHelper
+from src.sync.stores.local.MimeTypeProvider import MimeTypeProvider
+from src.sync.stores.local.SystemFileReader import SystemFileReader
 from src.sync.stores.local.path_provider import PathProvider
 from src.sync.stores.models import LocalFileMetadata, LocalFolderMetadata
 
 
-class SystemFileProvider:
+class FileMetadataProvider:
 
-    def __init__(self, path_provider: PathProvider, logger: Logger):
+    def __init__(self, path_provider: PathProvider, file_reader: SystemFileReader, logger: Logger):
         self._path_provider = path_provider
         self._logger = logger
+        self._file_reader = file_reader
+        self._mime_provider = MimeTypeProvider(logger)
 
     def get_files(self, parent_cloud_path: str, file_names: list[str]) -> list[LocalFileMetadata]:
         cloud_paths = list(self.__name_to_cloud_path(f, parent_cloud_path) for f in file_names)
@@ -23,11 +25,12 @@ class SystemFileProvider:
 
     def get_file(self, file_cloud_path: str) -> LocalFileMetadata:
         local_path = self._path_provider.get_absolute_path(file_cloud_path)
-        name = os.path.basename(local_path)
-        size = os.path.getsize(local_path)
-        modified_time = os.path.getmtime(local_path)
-        client_modified = datetime(*time.gmtime(modified_time)[:6])
-        return LocalFileMetadata(name, file_cloud_path, client_modified, size, local_path)
+        size = self._file_reader.get_size(local_path)
+        client_modified = self._file_reader.get_modified_time(local_path)
+        file_name = PathHelper.get_file_name(local_path)
+        file_extension = PathHelper.get_file_extension(local_path)
+        mime_type = self._mime_provider.get_by_extension(file_extension)
+        return LocalFileMetadata(file_name, file_cloud_path, client_modified, size, local_path, mime_type)
 
     def __name_to_cloud_path(self, name: str, parent_cloud_path: str) -> str:
         normalized_name = unicodedata.normalize('NFC', name)

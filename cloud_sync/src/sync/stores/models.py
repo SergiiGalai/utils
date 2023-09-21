@@ -18,6 +18,7 @@ class CloudFileMetadata(FileMetadata):
 @dataclass
 class LocalFileMetadata(FileMetadata):
     full_path: str
+    mime_type: str
 
 
 @dataclass

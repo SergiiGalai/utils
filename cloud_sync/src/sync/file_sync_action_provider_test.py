@@ -86,7 +86,8 @@ class FileSyncActionProviderTests(unittest.TestCase):
         return LocalFileMetadata(
             name, self._CLOUD_FILE_PATH,
             datetime.datetime(2023, 8, modified_day, 20, 14, 14),
-            size, self._LOCAL_FILE_PATH)
+            size, self._LOCAL_FILE_PATH,
+            'application/unknown')
 
     def __create_cloud_file(self, modified_day=1, size=2000, name=_FILE_NAME):
         return CloudFileMetadata(

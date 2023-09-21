@@ -34,8 +34,8 @@ class FileSyncronizationService:
     def download_files(self, cloud_files: list[CloudFileMetadata]):
         for cloud_file in cloud_files:
             cloud_path = cloud_file.cloud_path
-            self._logger.info('downloading {} => {} ...'.format(
-                cloud_path, self._path_provider.get_absolute_path(cloud_path)))
+            local_path = self._path_provider.get_absolute_path(cloud_path)
+            self._logger.info('downloading {} => {} ...'.format(cloud_path, local_path))
             content, cloud_md = self._cloud_store.read(cloud_file.id)
             self._logger.debug('downloaded file: {}'.format(cloud_md))
             self._local_store.save(content, cloud_md)

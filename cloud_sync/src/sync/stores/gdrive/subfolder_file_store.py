@@ -39,7 +39,8 @@ class GdriveSubfolderFileStore(CloudStore):
 
     def read(self, id: str) -> tuple[bytes, CloudFileMetadata]:
         self._logger.debug('id={}'.format(id))
-        return self._store.read(id)
+        #TODO support cloud path
+        return self._store.read(id, '')
 
     def save(self, content: bytes, local_md: LocalFileMetadata, overwrite: bool):
         self._logger.debug('cloud_path={}'.format(local_md.cloud_path))
