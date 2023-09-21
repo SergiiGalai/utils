@@ -50,5 +50,5 @@ class FileMetadataProvider:
 
     def __get_folder(self, cloud_path: str) -> LocalFolderMetadata:
         local_path = self._path_provider.get_absolute_path(cloud_path)
-        name = os.path.basename(local_path)
+        name = PathHelper.get_file_name(local_path)
         return LocalFolderMetadata(name, cloud_path, local_path)

@@ -5,7 +5,7 @@ from logging import Logger
 from src.configs.config import StorageConfig
 from src.sync.stores.cloud_store import CloudStore
 from src.sync.stores.dropbox.file_converter import DropboxFileConverter
-from src.sync.stores.models import CloudFileMetadata, CloudFolderMetadata, ListCloudFolderResult, LocalFileMetadata
+from src.sync.stores.models import CloudFileMetadata, ListCloudFolderResult, LocalFileMetadata
 
 
 # dropbox files https://dropbox-sdk-python.readthedocs.io/en/latest/api/files.html
@@ -21,28 +21,28 @@ class DropboxStore(CloudStore):
         try:
             with stopwatch('list_folder', self._logger):
                 res = self._dbx.files_list_folder(cloud_path)
-        except dropbox.exceptions.ApiError:
+        except dropbox.exceptions.ApiError:  # type: ignore
             self._logger.warning('Folder listing failed for {} -- assumed empty'.format(cloud_path))
         else:
-            return self._converter.convert_dropbox_entries_to_cloud(res.entries)
+            return self._converter.convert_dropbox_entries_to_cloud(res.entries)  # type: ignore
         return ListCloudFolderResult()
 
     def read(self, cloud_path: str) -> tuple[bytes, CloudFileMetadata]:
         self._logger.debug('cloud_path={}'.format(cloud_path))
         with stopwatch('download', self._logger):
             try:
-                dbx_md, response = self._dbx.files_download(cloud_path)
+                dbx_md, response = self._dbx.files_download(cloud_path)  # type: ignore
                 cloud_file_md = self._converter.convert_DropboxFile_to_CloudFile(dbx_md)
                 self._logger.debug('{} bytes; md: {}'.format(len(response.content), cloud_file_md.name))
                 return response.content, cloud_file_md
-            except dropbox.exceptions.HttpError:
+            except dropbox.exceptions.HttpError:  # type: ignore
                 self._logger.exception("*** Dropbox HTTP Error")
                 raise NotImplementedError
 
     def save(self, content: bytes, local_md: LocalFileMetadata, overwrite: bool):
         cloud_path = local_md.cloud_path
         self._logger.debug('cloud_path={}'.format(cloud_path))
-        write_mode = (dropbox.files.WriteMode.overwrite if overwrite else dropbox.files.WriteMode.add)
+        write_mode = (dropbox.files.WriteMode.overwrite if overwrite else dropbox.files.WriteMode.add)  # type: ignore
         with stopwatch('upload %d bytes' % len(content), self._logger):
             if self._dry_run:
                 self._logger.info('Dry run mode. Skip uploading {} (modified:{}) using {}'.format(
@@ -51,8 +51,8 @@ class DropboxStore(CloudStore):
                 try:
                     res = self._dbx.files_upload(content, cloud_path, write_mode,
                                                  client_modified=local_md.client_modified, mute=True)
-                    self._logger.debug('Uploaded as {}'.format(res.name))
-                except dropbox.exceptions.ApiError:
+                    self._logger.debug('Uploaded as {}'.format(res.name))  # type: ignore
+                except dropbox.exceptions.ApiError:  # type: ignore
                     self._logger.exception('*** API error')
 
 

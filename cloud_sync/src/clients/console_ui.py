@@ -1,7 +1,7 @@
 from logging import Logger
 
 
-class LoggerUi:
+class ConsoleUi:
     def __init__(self, logger: Logger):
         self._logger = logger
 
@@ -28,7 +28,7 @@ class LoggerUi:
         else:
             message += ' [N/y] '
         while True:
-            self._logger.debug('--')
+            #self._logger.debug('--')
             user_answer = input(message)
             answer = user_answer.strip().lower() if user_answer else None
 
@@ -44,4 +44,4 @@ class LoggerUi:
             if answer in ('p', 'pdb'):
                 import pdb
                 pdb.set_trace()
-            self._logger.debug('Please answer YES or NO.')
+            self._logger.info('Please answer YES or NO.')

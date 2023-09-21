@@ -23,15 +23,15 @@ class DropboxFileConverter:
 
     @staticmethod
     def __isFolder(entry):
-        return isinstance(entry, dropbox.files.FolderMetadata)
+        return isinstance(entry, dropbox.files.FolderMetadata)  # type: ignore
 
     # dropbox content hash: https://www.dropbox.com/developers/reference/content-hash
-    def convert_DropboxFile_to_CloudFile(self, dbx_md: dropbox.files.FileMetadata) -> CloudFileMetadata:
+    def convert_DropboxFile_to_CloudFile(self, dbx_md: dropbox.files.FileMetadata) -> CloudFileMetadata:  # type: ignore
         # self.logger.debug('file: {}'.format(dbx_md))
         return CloudFileMetadata(dbx_md.name, dbx_md.path_display, dbx_md.client_modified, dbx_md.size,
                                  dbx_md.path_lower, dbx_md.content_hash)
 
-    def convert_DropboxFolder_to_CloudFolder(self, dbx_dir: dropbox.files.FolderMetadata) -> CloudFolderMetadata:
+    def convert_DropboxFolder_to_CloudFolder(self, dbx_dir: dropbox.files.FolderMetadata) -> CloudFolderMetadata:  # type: ignore
         # self.logger.debug('folder: {}'.format(dbx_dir))
-        return CloudFolderMetadata(dbx_dir.path_lower, dbx_dir.name, 
+        return CloudFolderMetadata(dbx_dir.path_lower, dbx_dir.name,
                                    dbx_dir.path_lower, dbx_dir.path_display)

@@ -2,9 +2,9 @@ import datetime
 import unittest
 from unittest.mock import Mock
 import logging
-from src.sync.comparison.file_store_content_comparer import FileStoreContentComparer
+from src.sync.comparison.file_content_comparer import FileStoreContentComparer
 from src.sync.stores.cloud_store import CloudStore
-from src.sync.stores.local.file_store import LocalFileStore
+from src.sync.stores.local.local_file_store import LocalFileStore
 from src.sync.stores.models import CloudFileMetadata, LocalFileMetadata
 
 

@@ -2,6 +2,8 @@ import os
 import pathlib
 from datetime import datetime, timezone
 from logging import Logger
+from src.configs.config import StorageConfig
+from src.sync.stores.common.path_helper import PathHelper
 from src.sync.stores.local.system_file_reader import SystemFileReader
 from src.sync.stores.local.file_metadata_provider import FileMetadataProvider
 from src.sync.stores.local.path_provider import PathProvider
@@ -9,10 +11,10 @@ from src.sync.stores.models import CloudFileMetadata, ListLocalFolderResult, Loc
 
 
 class LocalFileStore:
-    def __init__(self, path_provider: PathProvider, logger: Logger):
+    def __init__(self, path_provider: PathProvider, file_provider: FileMetadataProvider, logger: Logger):
         self._path_provider = path_provider
         self._logger = logger
-        self._file_provider = FileMetadataProvider(path_provider, SystemFileReader(logger), logger)
+        self._file_provider = file_provider
 
     def list_folder(self, cloud_path: str) -> ListLocalFolderResult:
         full_folder_path = self._get_absolute_path(cloud_path)
@@ -60,3 +62,29 @@ class LocalFileStore:
     @staticmethod
     def _datetime_utc_to_local(utc_dt) -> datetime:
         return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
+
+
+class DryRunLocalFileStore(LocalFileStore):
+    def __init__(self, logger: Logger):
+        self._logger = logger
+
+    def save(self, content: bytes, cloud_md: CloudFileMetadata):
+        file_path = self._get_absolute_path(cloud_md.cloud_path)
+        self._logger.warn('Dry run mode. Skip saving file {}'.format(file_path))
+
+    def _try_create_local_folder(self, path: str):
+        self._logger.warn('Dry Run mode. path {}'.format(path))
+
+    def _set_modification_time(self, file_path: str, modified: datetime):
+        self._logger.warn('Dry Run mode. file_path {}, modified={}'.format(
+            PathHelper.get_file_name(file_path),
+            modified))
+
+
+class LocalFileStoreFactory:
+    @staticmethod
+    def create(config: StorageConfig, path_provider: PathProvider, logger: Logger) -> LocalFileStore:
+        if config.dry_run:
+            return DryRunLocalFileStore(logger)
+        file_provider = FileMetadataProvider(path_provider, SystemFileReader(logger), logger)
+        return LocalFileStore(path_provider, file_provider, logger)

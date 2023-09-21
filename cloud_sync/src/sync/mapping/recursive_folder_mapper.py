@@ -4,7 +4,7 @@ from src.sync.mapping.file_mapper import FileMapper
 from src.sync.mapping.subfolder_mapper import SubfolderMapper
 from src.sync.models import MapFolderResult
 from src.sync.stores.cloud_store import CloudStore
-from src.sync.stores.local.file_store import LocalFileStore
+from src.sync.stores.local.local_file_store import LocalFileStore
 from src.sync.stores.models import ListCloudFolderResult, ListLocalFolderResult
 
 

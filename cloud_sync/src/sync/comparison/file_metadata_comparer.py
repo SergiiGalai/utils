@@ -28,3 +28,4 @@ class FileMetadataComparer:
             return FileComparison.ERROR
 
         return FileComparison.EQUAL
+

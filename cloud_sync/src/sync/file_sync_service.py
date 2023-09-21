@@ -3,7 +3,7 @@ from src.configs.config import StorageConfig
 from src.sync.mapping.recursive_folder_mapper import RecursiveFolderMapper
 from src.sync.models import MapFolderResult
 from src.sync.stores.cloud_store import CloudStore
-from src.sync.stores.local.file_store import LocalFileStore
+from src.sync.stores.local.local_file_store import LocalFileStore
 from src.sync.stores.local.path_provider import PathProvider
 from src.sync.stores.models import CloudFileMetadata, LocalFileMetadata
 
@@ -43,6 +43,6 @@ class FileSyncronizationService:
     def upload_files(self, local_files: list[LocalFileMetadata]):
         for local_file in local_files:
             cloud_path = local_file.cloud_path
-            self._logger.info('uploading {} => {} ...'.format(local_file.full_path, cloud_path))
             content, local_md = self._local_store.read(cloud_path)
+            self._logger.info('uploading {} => {} ...'.format(local_file.full_path, cloud_path))
             self._cloud_store.save(content, local_md, overwrite=True)

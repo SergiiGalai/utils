@@ -18,9 +18,11 @@ class FileSyncActionProvider:
                 self._logger.info('file {} has changed since last sync (cloud={} < local={}) => upload list'
                                   .format(local_md.full_path, cloud_md.client_modified, local_md.client_modified))
                 return FileSyncAction.UPLOAD
+
             self._logger.info('file {} has changed since last sync (cloud={} > local={}) => download list'
                               .format(cloud_md.cloud_path, cloud_md.client_modified, local_md.client_modified))
             return FileSyncAction.DOWNLOAD
+
         if comparisonResult == FileComparison.ERROR:
             return FileSyncAction.CONFLICT
         return FileSyncAction.SKIP
@@ -32,8 +34,10 @@ class FileSyncActionProvider:
             case FileComparison.EQUAL:
                 self._logger.info('file {} already the same [by metadata]. Skip'.format(cloud_path))
                 return False, FileComparison.EQUAL
+
             case FileComparison.DIF_BY_SIZE:
                 return True, FileComparison.DIF_BY_SIZE
+
             case FileComparison.DIF_BY_DATE:
                 self._logger.info('file {} exists with different stats. Comparing files by content'.format(cloud_path))
                 if self._content_comparer.are_equal(local_md, cloud_md):
@@ -41,6 +45,7 @@ class FileSyncActionProvider:
                     return False, FileComparison.EQUAL
                 self._logger.info('Local and cloud file {} is different'.format(cloud_path))
                 return True, FileComparison.DIF_BY_DATE
+
             case _:
                 self._logger.info('Cannot compare local file {} and cloud file {}. Skip'.format(
                     cloud_path, local_md.cloud_path))

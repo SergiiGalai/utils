@@ -1,14 +1,12 @@
 from abc import abstractmethod
 from logging import Logger
 from src.configs.config import StorageConfig
-from src.sync.comparison.file_content_comparer import FileContentComparer
-from src.sync.comparison.file_store_content_comparer import FileStoreContentComparer
-from src.sync.comparison.dropbox_hash_file_comparer import DropboxHashFileComparer
+from src.sync.comparison.file_content_comparer import FileContentComparer, FileStoreContentComparer, DropboxHashComparer
 from src.sync.stores.cloud_store import CloudStore
 from src.sync.stores.dropbox.file_store import DropboxStore
 from src.sync.stores.gdrive.file_store_api_v2 import GdriveApiV2FileStore
 from src.sync.stores.gdrive.subfolder_file_store import GdriveSubfolderFileStore
-from src.sync.stores.local.file_store import LocalFileStore
+from src.sync.stores.local.local_file_store import LocalFileStore
 
 
 class StorageStrategy:
@@ -27,7 +25,7 @@ class DropboxStorageStrategy(StorageStrategy):
         self._logger = logger
 
     def create_file_content_comparer(self) -> FileContentComparer:
-        return DropboxHashFileComparer(self._logger)
+        return DropboxHashComparer(self._logger)
 
     def create_cloud_store(self) -> CloudStore:
         return DropboxStore(self._config, self._logger)
