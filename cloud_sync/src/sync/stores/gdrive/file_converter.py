@@ -2,7 +2,7 @@ import datetime
 import posixpath
 from pydrive.drive import GoogleDriveFile
 from logging import Logger
-from src.sync.stores.common.path_helper import PathHelper
+from src.sync.stores.common import path_helper
 
 from src.sync.stores.models import CloudFileMetadata, CloudFolderMetadata, ListCloudFolderResult
 
@@ -36,7 +36,7 @@ class GoogleDriveFileConverter:
                                              gFile: GoogleDriveFile,
                                              parent_folder_path: str = '') -> CloudFileMetadata:
         # self.logger.debug('file: {}'.format(gFile))
-        parent_folder_path = PathHelper.start_with_slash(parent_folder_path)
+        parent_folder_path = path_helper.start_with_slash(parent_folder_path)
         file_size = 0 if gFile['mimeType'] == 'application/vnd.google-apps.shortcut' else int(gFile['fileSize'])
         modified = datetime.datetime.strptime(gFile['modifiedDate'], '%Y-%m-%dT%H:%M:%S.%fZ')
         file_name = gFile['title']
@@ -47,7 +47,7 @@ class GoogleDriveFileConverter:
                                                        gFolder: GoogleDriveFile,
                                                        parent_folder_path: str = '') -> CloudFolderMetadata:
         # self.logger.debug('file: {}'.format(gFile))
-        parent_folder_path = PathHelper.start_with_slash(parent_folder_path)
+        parent_folder_path = path_helper.start_with_slash(parent_folder_path)
         cloud_folder_path = posixpath.join(parent_folder_path, gFolder['title'])
         lower_folder_path = cloud_folder_path.lower()
         return CloudFolderMetadata(gFolder['id'], gFolder['title'], lower_folder_path, cloud_folder_path)
