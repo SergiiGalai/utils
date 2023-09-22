@@ -4,16 +4,16 @@ import dropbox
 from logging import Logger
 from src.configs.storage_config import StorageConfig
 from src.sync.stores.cloud_store import CloudStore
-from src.sync.stores.dropbox.file_converter import DropboxFileConverter
+from src.sync.stores.dropbox.dropbox_file_converter import DropboxFileConverter
 from src.sync.stores.models import CloudFileMetadata, ListCloudFolderResult, LocalFileMetadata
 
 
 # dropbox files https://dropbox-sdk-python.readthedocs.io/en/latest/api/files.html
 class DropboxStore(CloudStore):
     def __init__(self, conf: StorageConfig, logger: Logger):
-        self._dbx = dropbox.Dropbox(conf.token)
         self._config = conf
         self._logger = logger
+        self._dbx = dropbox.Dropbox(conf.token)
         self._converter = DropboxFileConverter(logger)
 
     def list_folder(self, cloud_path: str) -> ListCloudFolderResult:

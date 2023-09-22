@@ -1,12 +1,12 @@
 from logging import Logger
 from src.sync.stores.cloud_store import CloudStore
 from src.sync.stores.common import path_helper
-from src.sync.stores.gdrive.file_store_api_v2 import GdriveApiV2FileStore
+from src.sync.stores.gdrive.gdrive_api_v2_store import GdriveApiV2Store
 from src.sync.stores.models import CloudFileMetadata, CloudFolderMetadata, ListCloudFolderResult, LocalFileMetadata
 
 
 class GdriveSubfolderFileStore(CloudStore):
-    def __init__(self, store: GdriveApiV2FileStore, logger: Logger):
+    def __init__(self, store: GdriveApiV2Store, logger: Logger):
         self._logger = logger
         self._store = store
 

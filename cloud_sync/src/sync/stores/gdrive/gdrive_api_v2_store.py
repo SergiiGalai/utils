@@ -2,13 +2,13 @@ from pydrive.drive import GoogleDrive, GoogleDriveFile
 from pydrive.auth import GoogleAuth
 from logging import Logger
 from src.configs.storage_config import StorageConfig
-from src.sync.stores.gdrive.file_converter import GoogleDriveFileConverter
-from src.sync.stores.models import CloudFileMetadata, CloudFolderMetadata, ListCloudFolderResult, LocalFileMetadata
+from src.sync.stores.gdrive.gdrive_file_converter import GoogleDriveFileConverter
+from src.sync.stores.models import CloudFileMetadata, ListCloudFolderResult, LocalFileMetadata
 
 
 # https://pythonhosted.org/PyDrive/pydrive.html#pydrive.files.GoogleDriveFile
 # https://developers.google.com/drive/api/guides/search-files
-class GdriveApiV2FileStore:
+class GdriveApiV2Store:
     def __init__(self, conf: StorageConfig, logger: Logger):
         self._dry_run = conf.dry_run
         self._logger = logger

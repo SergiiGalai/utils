@@ -2,10 +2,10 @@ import dropbox
 from logging import Logger
 from src.sync.stores.models import CloudFileMetadata, CloudFolderMetadata, ListCloudFolderResult
 
+
 # dropbox files https://dropbox-sdk-python.readthedocs.io/en/latest/api/files.html
-
-
 class DropboxFileConverter:
+
     def __init__(self, logger: Logger):
         self._logger = logger
 
@@ -28,7 +28,8 @@ class DropboxFileConverter:
     # dropbox content hash: https://www.dropbox.com/developers/reference/content-hash
     def convert_DropboxFile_to_CloudFile(self, dbx_md: dropbox.files.FileMetadata) -> CloudFileMetadata:  # type: ignore
         # self.logger.debug('file: {}'.format(dbx_md))
-        return CloudFileMetadata(dbx_md.name, dbx_md.path_display, dbx_md.client_modified, dbx_md.size,
+        return CloudFileMetadata(dbx_md.name, dbx_md.path_display,
+                                 dbx_md.client_modified, dbx_md.size,
                                  dbx_md.path_lower, dbx_md.content_hash)
 
     def convert_DropboxFolder_to_CloudFolder(self, dbx_dir: dropbox.files.FolderMetadata) -> CloudFolderMetadata:  # type: ignore
