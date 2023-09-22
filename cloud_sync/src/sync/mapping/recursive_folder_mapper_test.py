@@ -48,8 +48,8 @@ class TestRecursiveFolderMapper(TestCase):
 
     def test_files_and_subfolders_from_mapper_When_recursively_list_target_folder(self):
         cloud_files_target, cloud_folders_target = self.__create_target_cloud_folder()
-        cloud_file_sub1 = create_cloud_file(cloud_path='/Target/Sub1/File1.pdf', name='File1.pdf', id='idsubf1')
-        cloud_file_sub2 = create_cloud_file(cloud_path='/Target/Sub2/File2.pdf', name='File2.pdf', id='idsubf2')
+        cloud_file_sub1 = create_cloud_file('/Target/Sub1/File1.pdf', 'File1.pdf', id='idsubf1')
+        cloud_file_sub2 = create_cloud_file('/Target/Sub2/File2.pdf', 'File2.pdf', id='idsubf2')
         self.__mock_local_store()
         self._cloud_store.list_folder.side_effect = [ListCloudFolderResult(cloud_files_target, cloud_folders_target),
                                                      ListCloudFolderResult([cloud_file_sub1]),
@@ -64,7 +64,7 @@ class TestRecursiveFolderMapper(TestCase):
         assert actual.download == cloud_files_target + [cloud_file_sub1, cloud_file_sub2]
 
     def __create_target_cloud_folder(self):
-        file = create_cloud_file(cloud_path='/Target/File1.pdf', name='File1.pdf', id='idf1')
+        file = create_cloud_file('/Target/File1.pdf', 'File1.pdf', id='idf1')
         folder_sub1 = CloudFolderMetadata('idsubd1', 'Sub1', '/target/sub1', '/Target/Sub1')
         folder_sub2 = CloudFolderMetadata('idsubd2', 'Sub2', '/target/sub2', '/Target/Sub2')
         return [file], [folder_sub1, folder_sub2]

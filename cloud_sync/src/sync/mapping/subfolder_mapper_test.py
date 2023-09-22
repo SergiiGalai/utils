@@ -4,6 +4,7 @@ import logging
 import pytest
 from src.sync.mapping.subfolder_mapper import SubfolderMapper
 from src.sync.stores.models import CloudFolderMetadata, LocalFolderMetadata
+from tests.file_metadata import create_cloud_folder, create_local_folder
 
 
 @pytest.fixture
@@ -41,10 +42,10 @@ _CLOUD_FOLDER_PATH = '/Target/Sub'
 def __create_cloud_folder(cloud_path=_CLOUD_FOLDER_PATH,
                           lower_path='/target/sub',
                           name=_FOLDER_NAME) -> CloudFolderMetadata:
-    return CloudFolderMetadata(lower_path, name, lower_path, cloud_path)
+    return create_cloud_folder(cloud_path, lower_path, name, lower_path)
 
 
 def __create_local_folder(cloud_path=_CLOUD_FOLDER_PATH,
                           full_path='d:\\sync\\Target\\sub',
                           name=_FOLDER_NAME) -> LocalFolderMetadata:
-    return LocalFolderMetadata(name, cloud_path, full_path)
+    return create_local_folder(cloud_path, full_path, name)

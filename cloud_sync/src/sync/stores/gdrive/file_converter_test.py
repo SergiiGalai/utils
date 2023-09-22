@@ -4,8 +4,7 @@ from unittest.mock import Mock
 from pydrive.drive import GoogleDriveFile
 
 from src.sync.stores.gdrive.file_converter import GoogleDriveFileConverter
-from src.sync.stores.models import CloudFolderMetadata
-from tests.file_metadata import create_cloud_file
+from tests.file_metadata import create_cloud_file, create_cloud_folder
 
 class TestGoogleDriveFileConverter:
 
@@ -86,7 +85,7 @@ class TestGoogleDriveFileConverter:
 
     @staticmethod
     def __create_cloud_file(cloud_path='/Root/File1.pdf', name='File1.pdf', id=DEFAULT_ID):
-        return create_cloud_file(cloud_path=cloud_path, name=name, id=id, hash='0')
+        return create_cloud_file(cloud_path, name, id, hash='0')
 
     @staticmethod
     def __create_drive_folder(name='Subpath', id=DEFAULT_ID):
@@ -96,4 +95,4 @@ class TestGoogleDriveFileConverter:
 
     @staticmethod
     def __create_cloud_folder(name='Subpath', lower_path='/root/subpath', cloud_path='/Root/Subpath', id=DEFAULT_ID):
-        return CloudFolderMetadata(id, name, lower_path, cloud_path)
+        return create_cloud_folder(cloud_path, lower_path, name, id)
