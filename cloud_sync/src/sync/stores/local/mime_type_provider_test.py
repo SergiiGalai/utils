@@ -1,13 +1,10 @@
-import logging
 import pytest
-from unittest.mock import Mock
 from src.sync.stores.local.mime_type_provider import MimeTypeProvider
 
 
 @pytest.fixture
 def sut():
-    logger = Mock(logging.Logger)
-    return MimeTypeProvider(logger)
+    return MimeTypeProvider()
 
 def test_mime_for_known_type(sut: MimeTypeProvider):
     actual = sut.get_by_extension('.xls')

@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from logging import Logger
-from src.configs.config import StorageConfig
+from src.configs.storage_config import StorageConfig
 from src.sync.comparison.file_content_comparer import FileContentComparer, FileStoreContentComparer, DropboxHashComparer
 from src.sync.stores.cloud_store import CloudStore
 from src.sync.stores.dropbox.file_store import DropboxStore

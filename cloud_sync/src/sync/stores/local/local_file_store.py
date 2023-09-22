@@ -2,7 +2,7 @@ import os
 import pathlib
 from datetime import datetime, timezone
 from logging import Logger
-from src.configs.config import StorageConfig
+from src.configs.storage_config import StorageConfig
 from src.sync.stores.local.system_file_reader import SystemFileReader
 from src.sync.stores.local.file_metadata_provider import FileMetadataProvider
 from src.sync.stores.local.path_provider import PathProvider

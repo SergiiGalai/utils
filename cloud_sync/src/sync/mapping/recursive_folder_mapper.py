@@ -1,5 +1,5 @@
 from logging import Logger
-from src.configs.config import StorageConfig
+from src.configs.storage_config import StorageConfig
 from src.sync.mapping.file_mapper import FileMapper
 from src.sync.mapping.subfolder_mapper import SubfolderMapper
 from src.sync.models import MapFolderResult

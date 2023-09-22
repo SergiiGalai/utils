@@ -1,11 +1,9 @@
 import mimetypes
-from logging import Logger
 
 
 class MimeTypeProvider:
 
-    def __init__(self, logger: Logger):
-        self._logger = logger
+    def __init__(self):
         mimetypes.init()
 
     def get_by_extension(self, file_extension: str) -> str:

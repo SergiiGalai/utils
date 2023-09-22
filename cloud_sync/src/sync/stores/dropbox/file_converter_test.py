@@ -1,51 +1,52 @@
 import datetime
-from unittest import TestCase
 from unittest.mock import Mock
 import logging
 import dropbox
+import pytest
 
 from src.sync.stores.dropbox.file_converter import DropboxFileConverter
 from src.sync.stores.models import CloudFileMetadata, CloudFolderMetadata
 
 
-class TestDropboxFileConverter(TestCase):
+class TestDropboxFileConverter:
 
-    def setUp(self):
+    @pytest.fixture
+    def sut(self):
         logger = Mock(logging.Logger)
-        self._sut = DropboxFileConverter(logger)
+        return DropboxFileConverter(logger)
 
-    def test_2_files_when_converterd_gfiles_with_2_files_in_the_root(self):
+    def test_2_files_when_converterd_gfiles_with_2_files_in_the_root(self, sut: DropboxFileConverter):
         dbx_file1 = self.__create_DropboxFile('f1.pdf', '/f1.pdf', '/f1.pdf')
         dbx_file2 = self.__create_DropboxFile('F2.pdf', '/F2.pdf', '/f2.pdf')
         expected1 = self.__create_CloudFile('f1.pdf', '/f1.pdf', '/f1.pdf')
         expected2 = self.__create_CloudFile('F2.pdf', '/F2.pdf', '/f2.pdf')
         # act
-        actual = self._sut.convert_dropbox_entries_to_cloud([dbx_file1, dbx_file2])
+        actual = sut.convert_dropbox_entries_to_cloud([dbx_file1, dbx_file2])
         assert actual.folders == []
         assert actual.files == [expected1, expected2]
 
-    def test_2_files_when_converterd_gfiles_with_2_files_in_the_subfolder(self):
+    def test_2_files_when_converterd_gfiles_with_2_files_in_the_subfolder(self, sut: DropboxFileConverter):
         dbx_file1 = self.__create_DropboxFile('f1.pdf', '/Root/f1.pdf', '/root/f1.pdf')
         dbx_file2 = self.__create_DropboxFile('F2.pdf', '/Root/F2.pdf', '/root/f2.pdf')
         expected1 = self.__create_CloudFile('f1.pdf', '/Root/f1.pdf', '/root/f1.pdf')
         expected2 = self.__create_CloudFile('F2.pdf', '/Root/F2.pdf', '/root/f2.pdf')
         # act
-        actual = self._sut.convert_dropbox_entries_to_cloud([dbx_file1, dbx_file2])
+        actual = sut.convert_dropbox_entries_to_cloud([dbx_file1, dbx_file2])
         assert actual.folders == []
         assert actual.files == [expected1, expected2]
 
-    def test_result_contains_converted_dropbox_file(self):
+    def test_result_contains_converted_dropbox_file(self, sut: DropboxFileConverter):
         dbx_md = self.__create_DropboxFile()
         expected = self.__create_CloudFile()
         # act
-        actual = self._sut.convert_DropboxFile_to_CloudFile(dbx_md)
+        actual = sut.convert_DropboxFile_to_CloudFile(dbx_md)
         assert actual == expected
 
-    def test_result_contains_converted_dropbox_folder(self):
+    def test_result_contains_converted_dropbox_folder(self, sut: DropboxFileConverter):
         dbx_dir = self.__create_DropboxFolder()
         expected = self.__create_CloudFolder()
         # act
-        actual = self._sut.convert_DropboxFolder_to_CloudFolder(dbx_dir)
+        actual = sut.convert_DropboxFolder_to_CloudFolder(dbx_dir)
         assert actual == expected
 
     DEFAULT_NAME = 'File1.pdf'

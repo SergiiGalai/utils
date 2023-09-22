@@ -14,7 +14,7 @@ class FileMetadataProvider:
         self._path_provider = path_provider
         self._logger = logger
         self._file_reader = file_reader
-        self._mime_provider = MimeTypeProvider(logger)
+        self._mime_provider = MimeTypeProvider()
 
     def get_files(self, parent_cloud_path: str, file_names: list[str]) -> list[LocalFileMetadata]:
         cloud_paths = list(self.__name_to_cloud_path(f, parent_cloud_path) for f in file_names)

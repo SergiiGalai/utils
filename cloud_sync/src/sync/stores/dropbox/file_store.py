@@ -2,7 +2,7 @@ import contextlib
 import time
 import dropbox
 from logging import Logger
-from src.configs.config import StorageConfig
+from src.configs.storage_config import StorageConfig
 from src.sync.stores.cloud_store import CloudStore
 from src.sync.stores.dropbox.file_converter import DropboxFileConverter
 from src.sync.stores.models import CloudFileMetadata, ListCloudFolderResult, LocalFileMetadata
@@ -12,7 +12,7 @@ from src.sync.stores.models import CloudFileMetadata, ListCloudFolderResult, Loc
 class DropboxStore(CloudStore):
     def __init__(self, conf: StorageConfig, logger: Logger):
         self._dbx = dropbox.Dropbox(conf.token)
-        self._dry_run = conf.dry_run
+        self._config = conf
         self._logger = logger
         self._converter = DropboxFileConverter(logger)
 
@@ -44,7 +44,7 @@ class DropboxStore(CloudStore):
         self._logger.debug('cloud_path={}'.format(cloud_path))
         write_mode = (dropbox.files.WriteMode.overwrite if overwrite else dropbox.files.WriteMode.add)  # type: ignore
         with stopwatch('upload %d bytes' % len(content), self._logger):
-            if self._dry_run:
+            if self._config.dry_run:
                 self._logger.info('Dry run mode. Skip uploading {} (modified:{}) using {}'.format(
                     cloud_path, local_md.client_modified, write_mode))
             else:

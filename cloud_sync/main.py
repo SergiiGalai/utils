@@ -3,7 +3,7 @@ import src.logs.logger as logger
 import logging
 from src.clients.console_ui import ConsoleUi
 from src.clients.command_ui import CommandHandlerUi
-from src.configs.config import StorageConfigProvider, StorageConfig
+from src.configs.storage_config import StorageConfigProvider, StorageConfig
 from src.command_handler import CommandHandler
 from src.sync.file_sync_service import FileSyncronizationService
 from src.sync.mapping.file_mapper import FileMapper
