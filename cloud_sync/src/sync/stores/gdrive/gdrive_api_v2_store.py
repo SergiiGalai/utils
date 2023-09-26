@@ -3,7 +3,7 @@ from pydrive.auth import GoogleAuth
 from logging import Logger
 from src.configs.storage_config import StorageConfig
 from src.sync.stores.gdrive.gdrive_file_converter import GoogleDriveFileConverter
-from src.sync.stores.models import CloudFileMetadata, ListCloudFolderResult, LocalFileMetadata
+from src.sync.stores.models import ListCloudFolderResult, LocalFileMetadata
 
 
 # https://pythonhosted.org/PyDrive/pydrive.html#pydrive.files.GoogleDriveFile
@@ -34,14 +34,14 @@ class GdriveApiV2Store:
             self._gdrive = GoogleDrive(gauth)
         return self._gdrive
 
-    def read(self, id: str, folder_cloud_path: str) -> tuple[bytes, CloudFileMetadata]:
+    def read_content(self, id: str) -> bytes:
         self._logger.debug('id={}'.format(id))
         drive = self.__get_gdrive()
         metadata = dict(id=id)
         google_file = drive.CreateFile(metadata)
         google_file.FetchMetadata()
         bytes = self.__get_file_content(google_file)
-        return bytes, self._converter.convert_GoogleDriveFile_to_CloudFile(google_file, folder_cloud_path)
+        return bytes
 
     def __get_file_content(self, file: GoogleDriveFile) -> bytes:
         file.FetchContent()
@@ -53,7 +53,6 @@ class GdriveApiV2Store:
         self._logger.debug('cloud_path={}'.format(local_md.cloud_path))
         drive = self.__get_gdrive()
         # TODO upload to subfolder
-        # TODO use mimeType, see SetContentString
         # TODO use overwrite argument
 
         metadata = self.__to_gfile_name_metadata(local_md)

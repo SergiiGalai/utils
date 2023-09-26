@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import Protocol
 
-from src.sync.stores.models import CloudFileMetadata, ListCloudFolderResult, LocalFileMetadata
+from src.sync.stores.models import ListCloudFolderResult, LocalFileMetadata
 
 
 class CloudStore(Protocol):
@@ -10,7 +10,7 @@ class CloudStore(Protocol):
         raise NotImplementedError
 
     @abstractmethod
-    def read(self, id: str) -> tuple[bytes, CloudFileMetadata]:
+    def read_content(self, id: str) -> bytes:
         raise NotImplementedError
 
     @abstractmethod

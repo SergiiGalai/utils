@@ -5,7 +5,7 @@ from logging import Logger
 from src.configs.storage_config import StorageConfig
 from src.sync.stores.cloud_store import CloudStore
 from src.sync.stores.dropbox.dropbox_file_converter import DropboxFileConverter
-from src.sync.stores.models import CloudFileMetadata, ListCloudFolderResult, LocalFileMetadata
+from src.sync.stores.models import ListCloudFolderResult, LocalFileMetadata
 
 
 # dropbox files https://dropbox-sdk-python.readthedocs.io/en/latest/api/files.html
@@ -27,14 +27,13 @@ class DropboxStore(CloudStore):
             return self._converter.convert_dropbox_entries_to_cloud(res.entries)  # type: ignore
         return ListCloudFolderResult()
 
-    def read(self, cloud_path: str) -> tuple[bytes, CloudFileMetadata]:
+    def read_content(self, cloud_path: str) -> bytes:
         self._logger.debug('cloud_path={}'.format(cloud_path))
         with stopwatch('download', self._logger):
             try:
-                dbx_md, response = self._dbx.files_download(cloud_path)  # type: ignore
-                cloud_file_md = self._converter.convert_DropboxFile_to_CloudFile(dbx_md)
-                self._logger.debug('{} bytes; md: {}'.format(len(response.content), cloud_file_md.name))
-                return response.content, cloud_file_md
+                _, response = self._dbx.files_download(cloud_path)  # type: ignore
+                self._logger.debug('{} bytes; path: {}'.format(len(response.content), cloud_path))
+                return response.content
             except dropbox.exceptions.HttpError:  # type: ignore
                 self._logger.exception("*** Dropbox HTTP Error")
                 raise NotImplementedError

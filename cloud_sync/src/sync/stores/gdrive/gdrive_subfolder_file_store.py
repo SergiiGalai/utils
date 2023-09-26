@@ -2,7 +2,7 @@ from logging import Logger
 from src.sync.stores.cloud_store import CloudStore
 from src.sync.stores.common import path_helper
 from src.sync.stores.gdrive.gdrive_api_v2_store import GdriveApiV2Store
-from src.sync.stores.models import CloudFileMetadata, CloudFolderMetadata, ListCloudFolderResult, LocalFileMetadata
+from src.sync.stores.models import CloudFolderMetadata, ListCloudFolderResult, LocalFileMetadata
 
 
 class GdriveSubfolderFileStore(CloudStore):
@@ -37,10 +37,9 @@ class GdriveSubfolderFileStore(CloudStore):
         self._logger.debug(parts)
         return parts
 
-    def read(self, id: str) -> tuple[bytes, CloudFileMetadata]:
+    def read_content(self, id: str) -> bytes:
         self._logger.debug('id={}'.format(id))
-        #TODO support cloud path
-        return self._store.read(id, '')
+        return self._store.read_content(id)
 
     def save(self, content: bytes, local_md: LocalFileMetadata, overwrite: bool):
         self._logger.debug('cloud_path={}'.format(local_md.cloud_path))

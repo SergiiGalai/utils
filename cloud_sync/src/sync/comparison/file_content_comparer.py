@@ -17,8 +17,8 @@ class FileStoreContentComparer(FileContentComparer):
         self._logger = logger
 
     def are_equal(self, local_md: LocalFileMetadata, cloud_md: CloudFileMetadata) -> bool:
-        local_content, _ = self._local_store.read(local_md.cloud_path)
-        cloud_content, _ = self._cloud_store.read(cloud_md.id)
+        local_content = self._local_store.read_content(local_md.cloud_path)
+        cloud_content = self._cloud_store.read_content(cloud_md.id)
         return cloud_content == local_content
 
 
