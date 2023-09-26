@@ -24,7 +24,7 @@ class RecursiveFolderMapper:
         self._subfolder_mapper = subfolder_mapper
 
     def map_folder(self, cloud_path: str) -> MapFolderResult:
-        self._logger.info('cloud_path={}'.format(cloud_path))
+        self._logger.info('cloud_path=%s', cloud_path)
         local_folder, cloud_folder = self.__list_store_folder(cloud_path)
         result = self._file_mapper.map_cloud_to_local(cloud_folder.files, local_folder.files)
         if self._config.recursive:

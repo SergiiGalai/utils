@@ -18,8 +18,8 @@ class GoogleDriveFileConverter:
         result = ListCloudFolderResult()
         for entry in gFiles:
             entry: GoogleDriveFile = entry
-            self._logger.debug("title=`{}` type=`{}` id=`{}`".format(
-                entry['title'], entry['mimeType'], entry['id']))
+            self._logger.debug("title=`%s` type=`%s` id=`%s`",
+                entry['title'], entry['mimeType'], entry['id'])
             if GoogleDriveFileConverter.__isFolder(entry):
                 folder = self.convert_GoogleDriveFile_to_CloudFolderMetadata(entry, folder_cloud_path)
                 result.folders.append(folder)
@@ -35,7 +35,7 @@ class GoogleDriveFileConverter:
     def convert_GoogleDriveFile_to_CloudFile(self,
                                              gFile: GoogleDriveFile,
                                              parent_folder_path: str = '') -> CloudFileMetadata:
-        # self.logger.debug('file: {}'.format(gFile))
+        # self._logger.debug('file: %s', gFile)
         parent_folder_path = path_helper.start_with_slash(parent_folder_path)
         file_size = 0 if gFile['mimeType'] == 'application/vnd.google-apps.shortcut' else int(gFile['fileSize'])
         modified = datetime.datetime.strptime(gFile['modifiedDate'], '%Y-%m-%dT%H:%M:%S.%fZ')
@@ -46,7 +46,7 @@ class GoogleDriveFileConverter:
     def convert_GoogleDriveFile_to_CloudFolderMetadata(self,
                                                        gFolder: GoogleDriveFile,
                                                        parent_folder_path: str = '') -> CloudFolderMetadata:
-        # self.logger.debug('file: {}'.format(gFile))
+        # self._logger.debug('file: %s', gFile)
         parent_folder_path = path_helper.start_with_slash(parent_folder_path)
         cloud_folder_path = posixpath.join(parent_folder_path, gFolder['title'])
         lower_folder_path = cloud_folder_path.lower()

@@ -17,7 +17,7 @@ class GdriveApiV2Store:
         self._converter = GoogleDriveFileConverter(logger)
 
     def list_folder(self, folder_id: str, cloud_path: str) -> ListCloudFolderResult:
-        self._logger.debug('cloud_path={}'.format(cloud_path))
+        self._logger.debug('cloud_path=%s', cloud_path)
         drive = self.__get_gdrive()
         _ROOT_QUERY = "'root' in parents and trashed=false"
         _SUBFOLDER_QUERY = "parents in '{}' and trashed=false".format(folder_id)
@@ -35,7 +35,7 @@ class GdriveApiV2Store:
         return self._gdrive
 
     def read_content(self, id: str) -> bytes:
-        self._logger.debug('id={}'.format(id))
+        self._logger.debug('id=%s', id)
         drive = self.__get_gdrive()
         metadata = dict(id=id)
         google_file = drive.CreateFile(metadata)
@@ -50,7 +50,7 @@ class GdriveApiV2Store:
         return bytes
 
     def save(self, content: bytes, local_md: LocalFileMetadata, overwrite: bool):
-        self._logger.debug('cloud_path={}'.format(local_md.cloud_path))
+        self._logger.debug('cloud_path=%s', local_md.cloud_path)
         drive = self.__get_gdrive()
         # TODO upload to subfolder
         # TODO use overwrite argument
@@ -59,8 +59,8 @@ class GdriveApiV2Store:
         google_file = drive.CreateFile(metadata)
         google_file.SetContentString(content)
         if self._dry_run:
-            self._logger.info('Dry run mode. Skip uploading {} (modified:{})'.format(
-                local_md.cloud_path, local_md.client_modified))
+            self._logger.info('Dry run mode. Skip uploading %s (modified:%s)',
+                local_md.cloud_path, local_md.client_modified)
         else:
             try:
                 google_file.Upload()

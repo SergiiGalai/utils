@@ -28,21 +28,21 @@ class FileSyncronizationService:
         return self._path_provider.get_absolute_path()
 
     def map_folder(self, cloud_path: str) -> MapFolderResult:
-        self._logger.info('cloud_path={}'.format(cloud_path))
+        self._logger.info('cloud_path=%s', cloud_path)
         return self._folder_mapper.map_folder(cloud_path)
 
     def download_files(self, cloud_files: list[CloudFileMetadata]):
         for cloud_file in cloud_files:
             cloud_path = cloud_file.cloud_path
             local_path = self._path_provider.get_absolute_path(cloud_path)
-            self._logger.info('downloading {} => {} ...'.format(cloud_path, local_path))
+            self._logger.info('downloading %s => %s ...', cloud_path, local_path)
             content = self._cloud_store.read_content(cloud_file.id)
-            self._logger.debug('downloaded file: {}'.format(cloud_file))
+            self._logger.debug('downloaded file: %s', cloud_file)
             self._local_store.save(content, cloud_file)
 
     def upload_files(self, local_files: list[LocalFileMetadata]):
         for local_file in local_files:
             cloud_path = local_file.cloud_path
             content = self._local_store.read_content(cloud_path)
-            self._logger.info('uploading {} => {} ...'.format(local_file.full_path, cloud_path))
+            self._logger.info('uploading %s => %s ...', local_file.full_path, cloud_path)
             self._cloud_store.save(content, local_file, overwrite=True)

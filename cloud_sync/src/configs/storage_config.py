@@ -41,7 +41,7 @@ class StorageConfigProvider:
         return namespace
 
     def get_config(self, args: Namespace):
-        self._logger.debug('args={}'.format(args))
+        self._logger.debug('args=%s', args)
         configFilePaths = self.__get_config_file_locations(args.config)
 
         defaultConfigParser = self.__get_config_parser(configFilePaths)
@@ -88,7 +88,7 @@ class StorageConfigProvider:
         return config
 
     def __get_config_from_args_or_file(self, storageName: str, args: Namespace, config: SectionProxy) -> StorageConfig:
-        self._logger.debug('storageName={}, config={}, args={}'.format(storageName, config, args))
+        self._logger.debug('storageName=%s, config=%s, args=%s', storageName, config, args)
 
         action = args.action or config.get('ACTION')
         token = args.token or config.get('TOKEN')

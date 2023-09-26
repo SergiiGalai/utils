@@ -35,18 +35,18 @@ class FileMapper:
         return {md.cloud_path.lower(): md for md in files}
 
     def __add_to_download(self, cloud_md: CloudFileMetadata, result: MapFolderResult):
-        self._logger.info('file does NOT exist locally - {} => download list'.format(cloud_md.cloud_path))
+        self._logger.info('file does NOT exist locally - %s => download list', cloud_md.cloud_path)
         result.add_download(cloud_md)
 
     def __add_to_upload(self, local_md: LocalFileMetadata, result: MapFolderResult):
-        self._logger.info('file does NOT exist in the cloud - {} => upload list'.format(local_md.full_path))
+        self._logger.info('file does NOT exist in the cloud - %s => upload list', local_md.full_path)
         result.add_upload(local_md)
 
     def __add_by_comparison(self,
                             local_md: LocalFileMetadata,
                             cloud_md: CloudFileMetadata,
                             result: MapFolderResult):
-        self._logger.debug('file exists locally - {}'.format(local_md.cloud_path))
+        self._logger.debug('file exists locally - %s', local_md.cloud_path)
         file_action = self._file_sync_action_provider.get_sync_action(local_md, cloud_md)
         match file_action:
             case FileSyncAction.UPLOAD:

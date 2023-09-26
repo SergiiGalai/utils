@@ -17,7 +17,7 @@ class LocalFileStore:
 
     def list_folder(self, cloud_path: str) -> ListLocalFolderResult:
         full_folder_path = self._path_provider.get_absolute_path(cloud_path)
-        self._logger.debug('path={}'.format(full_folder_path))
+        self._logger.debug('path=%s', full_folder_path)
         result = ListLocalFolderResult()
 
         if pathlib.Path(full_folder_path).exists():
@@ -26,7 +26,7 @@ class LocalFileStore:
             result.folders = self._file_provider.get_folders(cloud_path, dir_names)
             return result
 
-        self._logger.warn('path `{}` does not exist'.format(full_folder_path))
+        self._logger.warn('path `%s` does not exist', full_folder_path)
         return result
 
     def read_content(self, cloud_path: str) -> bytes:
@@ -43,14 +43,14 @@ class LocalFileStore:
             f.write(content)
         local_modified_time = self.__datetime_utc_to_local(cloud_md.client_modified)
         self.__set_modification_time(file_path, local_modified_time)
-        self._logger.debug('saved file {}...'.format(file_path))
+        self._logger.debug('saved file %s...', file_path)
 
     def __try_create_local_folder(self, path: str):
-        self._logger.info('ensure {} path is exist or create'.format(path))
+        self._logger.info('ensure %s path is exist or create', path)
         pathlib.Path(path).mkdir(parents=True, exist_ok=True)
 
     def __set_modification_time(self, file_path: str, modified: datetime):
-        self._logger.debug('file_path={}, modified={}'.format(file_path, modified))
+        self._logger.debug('file_path=%s, modified=%s', file_path, modified)
         atime = os.stat(file_path).st_atime
         mtime = modified.timestamp()
         os.utime(file_path, times=(atime, mtime))
@@ -65,7 +65,7 @@ class DryRunLocalFileStore(LocalFileStore):
         self._logger = logger
 
     def save(self, content: bytes, cloud_md: CloudFileMetadata):
-        self._logger.warn('Dry run mode. Skip saving file {}'.format(cloud_md.cloud_path))
+        self._logger.warn('Dry run mode. Skip saving file %s', cloud_md.cloud_path)
 
 
 class LocalFileStoreFactory:

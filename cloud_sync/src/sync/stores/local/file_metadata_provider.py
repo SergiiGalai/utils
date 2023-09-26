@@ -19,7 +19,7 @@ class FileMetadataProvider:
     def get_files(self, parent_cloud_path: str, file_names: list[str]) -> list[LocalFileMetadata]:
         cloud_paths = list(self.__name_to_cloud_path(f, parent_cloud_path) for f in file_names)
         result = list(self.get_file(path) for path in cloud_paths)
-        self._logger.debug('result={}'.format(result))
+        self._logger.debug('result=%s', result)
         return result
 
     def get_file(self, file_cloud_path: str) -> LocalFileMetadata:
@@ -38,13 +38,13 @@ class FileMetadataProvider:
     def __join_path(self, path1: str, path2: str) -> str:
         relative_path = path_helper.strip_starting_slash(path2)
         result = posixpath.join(path1, relative_path)
-        self._logger.debug('result={}'.format(result))
+        self._logger.debug('result=%s', result)
         return result
 
     def get_folders(self, parent_cloud_path: str, folder_names: list[str]) -> list[LocalFolderMetadata]:
         cloud_paths = list(self.__name_to_cloud_path(f, parent_cloud_path) for f in folder_names)
         result = list(self.__get_folder(path) for path in cloud_paths)
-        self._logger.debug('result={}'.format(result))
+        self._logger.debug('result=%s', result)
         return result
 
     def __get_folder(self, cloud_path: str) -> LocalFolderMetadata:

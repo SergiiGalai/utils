@@ -12,5 +12,5 @@ class PathProvider:
     def get_absolute_path(self, cloud_path='') -> str:
         relative_path = path_helper.strip_starting_slash(cloud_path)
         result = pathlib.PurePath(self._root_path).joinpath(relative_path)
-        self._logger.debug('result={}'.format(result))
+        self._logger.debug('result=%s', result)
         return str(result)

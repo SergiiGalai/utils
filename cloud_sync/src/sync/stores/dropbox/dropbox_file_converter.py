@@ -12,7 +12,7 @@ class DropboxFileConverter:
     def convert_dropbox_entries_to_cloud(self, dropbox_entries: list) -> ListCloudFolderResult:
         result = ListCloudFolderResult()
         for entry in dropbox_entries:
-            self._logger.debug("entry path_display=`{}`, name={}".format(entry.path_display, entry.name))
+            self._logger.debug("entry path_display=`%s`, name=%s", entry.path_display, entry.name)
             if DropboxFileConverter.__isFolder(entry):
                 cloud_folder = self.convert_DropboxFolder_to_CloudFolder(entry)
                 result.folders.append(cloud_folder)
@@ -27,12 +27,12 @@ class DropboxFileConverter:
 
     # dropbox content hash: https://www.dropbox.com/developers/reference/content-hash
     def convert_DropboxFile_to_CloudFile(self, dbx_md: dropbox.files.FileMetadata) -> CloudFileMetadata:  # type: ignore
-        # self.logger.debug('file: {}'.format(dbx_md))
+        # self._logger.debug('file: %s', dbx_md)
         return CloudFileMetadata(dbx_md.name, dbx_md.path_display,
                                  dbx_md.client_modified, dbx_md.size,
                                  dbx_md.path_lower, dbx_md.content_hash)
 
     def convert_DropboxFolder_to_CloudFolder(self, dbx_dir: dropbox.files.FolderMetadata) -> CloudFolderMetadata:  # type: ignore
-        # self.logger.debug('folder: {}'.format(dbx_dir))
+        # self._logger.debug('folder: %s', dbx_dir)
         return CloudFolderMetadata(dbx_dir.path_lower, dbx_dir.name,
                                    dbx_dir.path_lower, dbx_dir.path_display)
