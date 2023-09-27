@@ -12,6 +12,7 @@ class FileMetadata:
 @dataclass
 class CloudFileMetadata(FileMetadata):
     id: str
+    folder_id: str
     content_hash: str
 
 

@@ -41,7 +41,7 @@ class GoogleDriveFileConverter:
         modified = datetime.datetime.strptime(gFile['modifiedDate'], '%Y-%m-%dT%H:%M:%S.%fZ')
         file_name = gFile['title']
         file_cloud_path = posixpath.join(parent_folder_path, gFile['title'])
-        return CloudFileMetadata(file_name, file_cloud_path, modified, file_size, gFile['id'], '0')
+        return CloudFileMetadata(file_name, file_cloud_path, modified, file_size, gFile['id'], '', '0')
 
     def convert_GoogleDriveFile_to_CloudFolderMetadata(self,
                                                        gFolder: GoogleDriveFile,

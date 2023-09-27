@@ -16,3 +16,7 @@ def get_file_extension(path: str) -> str:
 
 def get_file_name(path: str) -> str:
     return os.path.basename(path)
+
+
+def get_folder_path(path: str) -> str:
+    return os.path.dirname(path)

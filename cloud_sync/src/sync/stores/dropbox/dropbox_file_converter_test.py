@@ -14,39 +14,48 @@ def sut():
     return DropboxFileConverter(logger)
 
 
-def test_2_files_when_converterd_gfiles_with_2_files_in_the_root(sut: DropboxFileConverter):
-    dbx_file1 = __create_DropboxFile('/f1.pdf', 'f1.pdf', '/f1.pdf')
-    dbx_file2 = __create_DropboxFile('/F2.pdf', 'F2.pdf', '/f2.pdf')
-    expected1 = create_cloud_file('/f1.pdf', 'f1.pdf', '/f1.pdf')
-    expected2 = create_cloud_file('/F2.pdf', 'F2.pdf', '/f2.pdf')
+@pytest.mark.parametrize('display1,name1,lower1,folder1,display2,name2,lower2,folder2', [
+    ('/f1.pdf', 'f1.pdf', '/f1.pdf', '/',
+     '/F2.pdf', 'F2.pdf', '/f2.pdf', '/'),
+    ('/f1.pdf', 'f1.pdf', '/f1.pdf', '/',
+     '/Root/F2.pdf', 'F2.pdf', '/root/f2.pdf', '/Root'),
+])
+def test_2_files_when_converterd_gfiles_with_2_files(sut: DropboxFileConverter,
+                                                     display1, name1, lower1, folder1,
+                                                     display2, name2, lower2, folder2):
+    dbx_file1 = __create_DropboxFile(display1, name1, lower1)
+    dbx_file2 = __create_DropboxFile(display2, name2, lower2)
+    expected1 = create_cloud_file(display1, name1, lower1, folder1)
+    expected2 = create_cloud_file(display2, name2, lower2, folder2)
     # act
     actual = sut.convert_dropbox_entries_to_cloud([dbx_file1, dbx_file2])
     assert actual.folders == []
     assert actual.files == [expected1, expected2]
 
 
-def test_2_files_when_converterd_gfiles_with_2_files_in_the_subfolder(sut: DropboxFileConverter):
-    dbx_file1 = __create_DropboxFile('/Root/f1.pdf', 'f1.pdf', '/root/f1.pdf')
-    dbx_file2 = __create_DropboxFile('/Root/F2.pdf', 'F2.pdf', '/root/f2.pdf')
-    expected1 = create_cloud_file('/Root/f1.pdf', 'f1.pdf', '/root/f1.pdf')
-    expected2 = create_cloud_file('/Root/F2.pdf', 'F2.pdf', '/root/f2.pdf')
-    # act
-    actual = sut.convert_dropbox_entries_to_cloud([dbx_file1, dbx_file2])
-    assert actual.folders == []
-    assert actual.files == [expected1, expected2]
-
-
-def test_result_contains_converted_dropbox_file(sut: DropboxFileConverter):
-    dbx_md = __create_DropboxFile('/Root/f.pdf', 'f.pdf', '/root/f.pdf')
-    expected = create_cloud_file('/Root/f.pdf', 'f.pdf', '/root/f.pdf')
+@pytest.mark.parametrize('display,name,lower,folder', [
+    ('/f.pdf', 'f.pdf', '/f.pdf', '/'),
+    ('/Root/f.pdf', 'f.pdf', '/root/f.pdf', '/Root'),
+    ('/Root/Sub/f.pdf', 'f.pdf', '/root/sub/f.pdf', '/Root/Sub'),
+])
+def test_converted_dropbox_file(sut: DropboxFileConverter,
+                                display, name, lower, folder):
+    dbx_md = __create_DropboxFile(display, name, lower)
+    expected = create_cloud_file(display, name, lower, folder)
     # act
     actual = sut.convert_DropboxFile_to_CloudFile(dbx_md)
     assert actual == expected
 
 
-def test_result_contains_converted_dropbox_folder(sut: DropboxFileConverter):
-    dbx_dir = __create_DropboxFolder('/Root/SubPath', '/root/subpath', 'SubPath')
-    expected = create_cloud_folder('/Root/SubPath', '/root/subpath', 'SubPath', '/root/subpath')
+@pytest.mark.parametrize('display,name,lower', [
+    ('/Root/SubPath', '/root/subpath', 'SubPath'),
+    ('/Root', '/root', 'Root'),
+    ('/', '/', ''),
+])
+def test_converted_dropbox_folder(sut: DropboxFileConverter,
+                                  display, lower, name):
+    dbx_dir = __create_DropboxFolder(display, lower, name)
+    expected = create_cloud_folder(display, lower, name, lower)
     # act
     actual = sut.convert_DropboxFolder_to_CloudFolder(dbx_dir)
     assert actual == expected

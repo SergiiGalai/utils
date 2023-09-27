@@ -1,44 +1,25 @@
+import pytest
 from src.sync.stores.common.path_helper import *
 
 
-def test_starts_with_slash_when_passed_without_slashes():
-    actual = start_with_slash('abc')
-    assert actual == '/abc'
+@pytest.mark.parametrize("path,expected", [
+    ('', '/'),
+    ('abc', '/abc'),
+    ('/abc', '/abc'),
+    ('a/b/c', '/a/b/c'),
+    ('/a/b/c', '/a/b/c')])
+def test_start_with_slash(path, expected):
+    actual = start_with_slash(path)
+    assert actual == expected
 
 
-def test_starts_with_slash_when_passed_with_slash_inside():
-    actual = start_with_slash('a/b/c')
-    assert actual == '/a/b/c'
-
-
-def test_starts_with_slash_when_passed_with_starting_slash_and_multiple_slashes():
-    actual = start_with_slash('/a/b/c')
-    assert actual == '/a/b/c'
-
-
-def test_starts_with_slash_when_passed_with_starting_slash():
-    actual = start_with_slash('/abc')
-    assert actual == '/abc'
-
-
-def test_starts_with_slash_when_passed_empty():
-    actual = start_with_slash('')
-    assert actual == '/'
-
-
-def test_no_starting_slash_when_passed_without_slashes():
-    actual = strip_starting_slash('abc')
-    assert actual == 'abc'
-
-
-def test_no_starting_slash_when_passed_with_starting_slash():
-    actual = strip_starting_slash('/a/b/c')
-    assert actual == 'a/b/c'
-
-
-def test_no_starting_slash_when_passed_empty():
-    actual = strip_starting_slash('')
-    assert actual == ''
+@pytest.mark.parametrize("path,expected", [
+    ('abc', 'abc'),
+    ('/a/b/c', 'a/b/c'),
+    ('', '')])
+def test_strip_starting_slash(path, expected):
+    actual = strip_starting_slash(path)
+    assert actual == expected
 
 
 def test_extension_when_absolute_file_windows_path():
@@ -46,36 +27,37 @@ def test_extension_when_absolute_file_windows_path():
     assert actual == '.txt'
 
 
-def test_extension_when_absolute_file_unix_path():
-    actual = get_file_extension('/usr/local/file.txt')
-    assert actual == '.txt'
-
-
-def test_extension_when_relative_unix_path():
-    actual = get_file_extension('./rel/file.abcdeg')
-    assert actual == '.abcdeg'
-
-
-def test_empty_extension_when_no_extension():
-    actual = get_file_extension('./rel/file')
-    assert actual == ''
-
-
-def test_name_when_absolute_unix_path():
-    actual = get_file_name('/usr/local/file.txt')
-    assert actual == 'file.txt'
-
+@pytest.mark.parametrize("path,expected", [
+    ('./rel/file', ''),
+    ('./rel/file.abcdeg', '.abcdeg'),
+    ('/usr/local/file.txt', '.txt'),
+    ('', '')])
+def test_get_file_extension(path, expected):
+    actual = get_file_extension(path)
+    assert actual == expected
 
 def test_name_when_absolute_windows_path():
     actual = get_file_name('C:\\Docs\\File.txt')
     assert actual == 'File.txt'
 
 
-def test_name_when_file_name():
-    actual = get_file_name('File.txt')
-    assert actual == 'File.txt'
+@pytest.mark.parametrize("path,expected", [
+    ('/usr/local/file.txt', 'file.txt'),
+    ('File.txt', 'File.txt'),
+    ('', '')])
+def test_file_name(path, expected):
+    actual = get_file_name(path)
+    assert actual == expected
 
 
-def test_empty_name_when_empty():
-    actual = get_file_name('')
-    assert actual == ''
+def test_folder_when_absolute_windows_path():
+    actual = get_folder_path('C:\\Docs\\Sub\\File.txt')
+    assert actual == 'C:\\Docs\\Sub'
+
+
+@pytest.mark.parametrize("path,expected", [
+    ('/usr/local/sub/file.txt', '/usr/local/sub'),
+    ('', '')])
+def test_folder_path(path, expected):
+    actual = get_folder_path(path)
+    assert actual == expected

@@ -72,21 +72,22 @@ def test_CloudFolderMetadata_when_gFolder_passed(sut: GoogleDriveFileConverter):
     actual = sut.convert_GoogleDriveFile_to_CloudFolderMetadata(gFile, '/Root')
     assert actual == expected
 
-DEFAULT_ID = 'id1'
 
 @staticmethod
-def __create_drive_file(name='File1.pdf', id=DEFAULT_ID, mimeType='application/pdf'):
+def __create_drive_file(name='File1.pdf', id='fileId1', mimeType='application/pdf'):
     return GoogleDriveFile(metadata={
         'id': id, 'title': name,
         'modifiedDate': '2023-08-01T20:14:14.000Z',
-        'mimeType': mimeType, 'fileSize': '2000'})
+        'mimeType': mimeType, 'fileSize': '2000'
+    })
 
 @staticmethod
-def __create_cloud_file(cloud_path='/Root/File1.pdf', name='File1.pdf', id=DEFAULT_ID):
-    return create_cloud_file(cloud_path, name, id, hash='0')
+def __create_cloud_file(cloud_path='/Root/File1.pdf', name='File1.pdf', fileId='fileId1', folderId=''):
+    return create_cloud_file(cloud_path, name, fileId, folderId, hash='0')
 
 @staticmethod
 def __create_drive_folder(name, id):
     return GoogleDriveFile(metadata={
         'id': id, 'title': name,
-        'mimeType': 'application/vnd.google-apps.folder'})
+        'mimeType': 'application/vnd.google-apps.folder'
+    })
