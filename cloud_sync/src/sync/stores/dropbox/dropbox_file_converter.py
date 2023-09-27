@@ -1,7 +1,7 @@
 import dropbox
 from logging import Logger
 from src.sync.stores.common.path_helper import get_folder_path
-from src.sync.stores.models import CloudFileMetadata, CloudFolderMetadata, ListCloudFolderResult
+from src.sync.stores.models import CloudFileMetadata, CloudFolderMetadata, CloudId, ListCloudFolderResult
 
 
 # dropbox files https://dropbox-sdk-python.readthedocs.io/en/latest/api/files.html
@@ -32,7 +32,9 @@ class DropboxFileConverter:
         folder_path = get_folder_path(dbx_md.path_display)
         return CloudFileMetadata(dbx_md.name, dbx_md.path_display,
                                  dbx_md.client_modified, dbx_md.size,
-                                 dbx_md.path_lower, folder_path, dbx_md.content_hash)
+                                 dbx_md.path_lower,
+                                 CloudId(folder_path, folder_path),
+                                 dbx_md.content_hash)
 
     def convert_DropboxFolder_to_CloudFolder(self, dbx_dir: dropbox.files.FolderMetadata) -> CloudFolderMetadata:  # type: ignore
         # self._logger.debug('folder: %s', dbx_dir)

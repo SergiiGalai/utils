@@ -1,6 +1,6 @@
 
 import datetime
-from src.sync.stores.models import CloudFileMetadata, CloudFolderMetadata, LocalFileMetadata, LocalFolderMetadata
+from src.sync.stores.models import CloudFileMetadata, CloudFolderMetadata, CloudId, LocalFileMetadata, LocalFolderMetadata
 
 
 def create_local_file(cloud_path='/Target/File1.pdf',
@@ -16,12 +16,13 @@ def create_local_file(cloud_path='/Target/File1.pdf',
 def create_cloud_file(cloud_path='/Target/File1.pdf',
                       name='File1.pdf',
                       id='idtargetf1',
-                      folder_id='/Target',
+                      folder=CloudId('TargetId', '/Target'),
                       hash='123',
                       modified_day=1, size=2000,):
     return CloudFileMetadata(name, cloud_path,
                              __get_modified_date(modified_day),
-                             size, id, folder_id, hash)
+                             size, id,
+                             folder, hash)
 
 
 def create_cloud_folder(cloud_path='/Target',

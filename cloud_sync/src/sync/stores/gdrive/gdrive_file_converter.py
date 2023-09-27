@@ -4,7 +4,7 @@ from pydrive.drive import GoogleDriveFile
 from logging import Logger
 from src.sync.stores.common import path_helper
 
-from src.sync.stores.models import CloudFileMetadata, CloudFolderMetadata, ListCloudFolderResult
+from src.sync.stores.models import CloudFileMetadata, CloudFolderMetadata, CloudId, ListCloudFolderResult
 
 
 # ? https://developers.google.com/drive/api/reference/rest/v2/files
@@ -14,17 +14,18 @@ class GoogleDriveFileConverter:
 
     def convert_GoogleDriveFiles_to_FileMetadatas(self,
                                                   gFiles: list[GoogleDriveFile],
-                                                  folder_cloud_path: str = '') -> ListCloudFolderResult:
+                                                  folder_cloud_path: str) -> ListCloudFolderResult:
         result = ListCloudFolderResult()
         for entry in gFiles:
             entry: GoogleDriveFile = entry
-            self._logger.debug("title=`%s` type=`%s` id=`%s`",
-                entry['title'], entry['mimeType'], entry['id'])
+            self._logger.debug("title=`%s` type=%s id=%s folder=%s",
+                entry['title'], entry['mimeType'], entry['id'], folder_cloud_path)
             if GoogleDriveFileConverter.__isFolder(entry):
-                folder = self.convert_GoogleDriveFile_to_CloudFolderMetadata(entry, folder_cloud_path)
-                result.folders.append(folder)
+                gfolder = self.convert_GoogleDriveFile_to_CloudFolderMetadata(entry, folder_cloud_path)
+                result.folders.append(gfolder)
             else:
-                file = self.convert_GoogleDriveFile_to_CloudFile(entry, folder_cloud_path)
+                parent_id = entry['parents'][0]['id']
+                file = self.convert_GoogleDriveFile_to_CloudFile(entry, CloudId(parent_id, folder_cloud_path))
                 result.files.append(file)
         return result
 
@@ -34,18 +35,19 @@ class GoogleDriveFileConverter:
 
     def convert_GoogleDriveFile_to_CloudFile(self,
                                              gFile: GoogleDriveFile,
-                                             parent_folder_path: str = '') -> CloudFileMetadata:
+                                             parent: CloudId) -> CloudFileMetadata:
         # self._logger.debug('file: %s', gFile)
-        parent_folder_path = path_helper.start_with_slash(parent_folder_path)
+        parent_path = path_helper.start_with_slash(parent.cloud_path)
         file_size = 0 if gFile['mimeType'] == 'application/vnd.google-apps.shortcut' else int(gFile['fileSize'])
         modified = datetime.datetime.strptime(gFile['modifiedDate'], '%Y-%m-%dT%H:%M:%S.%fZ')
         file_name = gFile['title']
-        file_cloud_path = posixpath.join(parent_folder_path, gFile['title'])
-        return CloudFileMetadata(file_name, file_cloud_path, modified, file_size, gFile['id'], '', '0')
+        file_cloud_path = posixpath.join(parent_path, gFile['title'])
+        return CloudFileMetadata(file_name, file_cloud_path, modified, file_size, gFile['id'],
+                                 parent, '0')
 
     def convert_GoogleDriveFile_to_CloudFolderMetadata(self,
                                                        gFolder: GoogleDriveFile,
-                                                       parent_folder_path: str = '') -> CloudFolderMetadata:
+                                                       parent_folder_path: str) -> CloudFolderMetadata:
         # self._logger.debug('file: %s', gFile)
         parent_folder_path = path_helper.start_with_slash(parent_folder_path)
         cloud_folder_path = posixpath.join(parent_folder_path, gFolder['title'])

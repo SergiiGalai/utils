@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, Mock
 
 from src.sync.stores.gdrive.gdrive_api_v2_store import GdriveApiV2Store
 from src.sync.stores.gdrive.gdrive_subfolder_file_store import GdriveSubfolderFileStore
-from src.sync.stores.models import CloudFileMetadata, CloudFolderMetadata, ListCloudFolderResult
+from src.sync.stores.models import CloudFileMetadata, CloudFolderMetadata, CloudId, ListCloudFolderResult
 from tests.file_metadata import create_cloud_file, create_cloud_folder
 
 
@@ -40,23 +40,25 @@ def test_file_and_subfolder_when_list_root_cloud_folder(store, sut: GdriveSubfol
 
 def test_files_and_folders_when_list_target_non_root_folder(store, sut: GdriveSubfolderFileStore):
     # arrange
-    cloud_file_root = create_cloud_file('/File1.pdf', id='idrf1')
+    cloud_file_root = create_cloud_file('/File1.pdf', id='idf1',
+                                        folder=CloudId('', '/'))
     cloud_folder_sub = create_cloud_folder('/Sub', '/sub', 'Sub', 'SubFolderId')
-    cloud_file_sub = create_cloud_file('/Sub/File1.pdf', id='idf1')
-    cloud_folder_sub1 = create_cloud_folder('/Sub/Sub1', '/sub/sub1', 'Sub1', 'Sub1FolderId')
-    cloud_file_sub1 = create_cloud_file('/Sub/Sub1/File1.pdf', id='idsubf1')
+    cloud_file_sub = create_cloud_file('/Sub/File1.pdf', id='idSubf1',
+                                       folder=CloudId('SubFolderId', '/Sub'))
+    cloud_folder_bob = create_cloud_folder('/Sub/Bob', '/sub/bob', 'Bob', 'BobFolderId')
     cloud_folder_target = create_cloud_folder('/Sub/Target', '/sub/target', 'Target', 'TargetFolderId')
-    cloud_file_target = create_cloud_file('/Sub/Target/File2.pdf', 'File2.pdf', id='idsubf2')
+    cloud_file_target = create_cloud_file('/Sub/Target/File2.pdf', 'File2.pdf', id='idTargetF2',
+                                          folder=CloudId('TargetFolderId', '/Sub/Target'))
     cloud_folder_sub2 = create_cloud_folder('/Sub/Target/Sub2', '/sub/target/sub2' 'Sub2', 'Sub2FolderId')
-    cloud_file_sub2 = create_cloud_file('/Sub/Target/File2.pdf', 'File2.pdf', id='idsubf2')
+    cloud_file_sub2 = create_cloud_file('/Sub/Target/Sub2/File2.pdf', 'File2.pdf', id='idTargetF2',
+                                        folder=CloudId('Sub2FolderId', '/Sub/Target/Sub2'))
 
-    store.list_folder = MagicMock(side_effect=lambda *x: {
-        ('', ''): ListCloudFolderResult([cloud_file_root], [cloud_folder_sub]),
-        ('SubFolderId', '/Sub'): ListCloudFolderResult([cloud_file_sub], [cloud_folder_sub1, cloud_folder_target]),
-        ('Sub1FolderId', '/Sub/Sub1'): ListCloudFolderResult([cloud_file_sub1], []),
-        ('TargetFolderId', '/Sub/Target'): ListCloudFolderResult([cloud_file_target], [cloud_folder_sub2]),
-        ('Sub2FolderId', '/Sub/Target/Sub2'): ListCloudFolderResult([cloud_file_sub2], []),
-    }[x])  # type: ignore
+    store.list_folder.side_effect = [
+        ListCloudFolderResult([cloud_file_root], [cloud_folder_sub]), #/
+        ListCloudFolderResult([cloud_file_sub], [cloud_folder_bob, cloud_folder_target]), #/Sub
+        ListCloudFolderResult([cloud_file_target], [cloud_folder_sub2]), #/Sub/Target
+        ListCloudFolderResult([cloud_file_sub2], []), #/Sub/Target/Sub2
+    ]
     # act
     actual = sut.list_folder('/Sub/Target')
     assert actual.files == [cloud_file_target]

@@ -2,7 +2,7 @@ from logging import Logger
 from src.sync.stores.cloud_store import CloudStore
 from src.sync.stores.common import path_helper
 from src.sync.stores.gdrive.gdrive_api_v2_store import GdriveApiV2Store
-from src.sync.stores.models import CloudFolderMetadata, ListCloudFolderResult, LocalFileMetadata
+from src.sync.stores.models import CloudFolderMetadata, CloudId, ListCloudFolderResult, LocalFileMetadata
 
 
 class GdriveSubfolderFileStore(CloudStore):
@@ -13,7 +13,7 @@ class GdriveSubfolderFileStore(CloudStore):
     def list_folder(self, cloud_path: str) -> ListCloudFolderResult:
         self._logger.debug('cloud_path=%s', cloud_path)
         folder_key = ''
-        result = self._store.list_folder('', '')
+        result = self._store.list_folder(CloudId('', '/'))
         folder_dict = GdriveSubfolderFileStore.__to_cloud_dict(result.folders)
         self._logger.debug('dictionary=%s', folder_dict)
 
@@ -24,7 +24,7 @@ class GdriveSubfolderFileStore(CloudStore):
             if folder_key in folder_dict:
                 folder: CloudFolderMetadata = folder_dict[folder_key]
                 self._logger.debug('next folder=`%s` id=`%s`', folder.cloud_path, folder.id)
-                result = self._store.list_folder(folder.id, folder.cloud_path)
+                result = self._store.list_folder(CloudId(folder.id, folder.cloud_path))
                 folder_dict = GdriveSubfolderFileStore.__to_cloud_dict(result.folders)
         return result
 

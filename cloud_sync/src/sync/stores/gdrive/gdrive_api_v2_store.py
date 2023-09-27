@@ -3,7 +3,7 @@ from pydrive.auth import GoogleAuth
 from logging import Logger
 from src.configs.storage_config import StorageConfig
 from src.sync.stores.gdrive.gdrive_file_converter import GoogleDriveFileConverter
-from src.sync.stores.models import ListCloudFolderResult, LocalFileMetadata
+from src.sync.stores.models import CloudId, ListCloudFolderResult, LocalFileMetadata
 
 
 # https://pythonhosted.org/PyDrive/pydrive.html#pydrive.files.GoogleDriveFile
@@ -16,14 +16,18 @@ class GdriveApiV2Store:
         self._gdrive: GoogleDrive | None = None
         self._converter = GoogleDriveFileConverter(logger)
 
-    def list_folder(self, folder_id: str, cloud_path: str) -> ListCloudFolderResult:
-        self._logger.debug('cloud_path=%s', cloud_path)
+    def list_folder(self, cloud_folder: CloudId) -> ListCloudFolderResult:
+        self._logger.debug('cloud_folder=%s', cloud_folder)
         drive = self.__get_gdrive()
-        _ROOT_QUERY = "'root' in parents and trashed=false"
-        _SUBFOLDER_QUERY = "parents in '{}' and trashed=false".format(folder_id)
-        query = _ROOT_QUERY if folder_id == '' else _SUBFOLDER_QUERY
+        query = GdriveApiV2Store.__get_query(cloud_folder.id)
         file_list = drive.ListFile({'q': query}).GetList()
-        return self._converter.convert_GoogleDriveFiles_to_FileMetadatas(file_list, cloud_path)
+        return self._converter.convert_GoogleDriveFiles_to_FileMetadatas(file_list, cloud_folder.cloud_path)
+
+    @staticmethod
+    def __get_query(folder_id: str) -> str:
+        _ROOT_QUERY = "'root' in parents and trashed=false"
+        _SUBFOLDER_QUERY = f"parents in '{folder_id}' and trashed=false"
+        return _ROOT_QUERY if folder_id == '' else _SUBFOLDER_QUERY
 
     # https://pythonhosted.org/PyDrive/oauth.html
     def __get_gdrive(self) -> GoogleDrive:
@@ -40,10 +44,11 @@ class GdriveApiV2Store:
         metadata = dict(id=id)
         google_file = drive.CreateFile(metadata)
         google_file.FetchMetadata()
-        bytes = self.__get_file_content(google_file)
+        bytes = GdriveApiV2Store.__get_file_content(google_file)
         return bytes
 
-    def __get_file_content(self, file: GoogleDriveFile) -> bytes:
+    @staticmethod
+    def __get_file_content(file: GoogleDriveFile) -> bytes:
         file.FetchContent()
         content_bytes = file.content    # BytesIO
         bytes = content_bytes.read()
@@ -55,7 +60,7 @@ class GdriveApiV2Store:
         # TODO upload to subfolder
         # TODO use overwrite argument
 
-        metadata = self.__to_gfile_name_metadata(local_md)
+        metadata = GdriveApiV2Store.__to_gfile_name_metadata(local_md)
         google_file = drive.CreateFile(metadata)
         google_file.SetContentString(content)
         if self._dry_run:
@@ -67,10 +72,12 @@ class GdriveApiV2Store:
             finally:
                 google_file.content.close()
 
-    def __to_gfile_name_metadata(self, local: LocalFileMetadata) -> dict:
+    @staticmethod
+    def __to_gfile_name_metadata(local: LocalFileMetadata) -> dict:
         return dict(title=local.name)
 
-    def __to_gfile_metadata(self, local: LocalFileMetadata) -> dict:
+    @staticmethod
+    def __to_gfile_metadata(local: LocalFileMetadata) -> dict:
         # folder_id = folder['id']
         folder_id = 'TODO'
         return dict(title=local.name,

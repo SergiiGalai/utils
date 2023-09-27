@@ -1,6 +1,13 @@
 from dataclasses import dataclass
 from datetime import datetime
 
+
+@dataclass
+class CloudId:
+    id: str
+    cloud_path: str
+
+
 @dataclass
 class FileMetadata:
     name: str
@@ -12,7 +19,7 @@ class FileMetadata:
 @dataclass
 class CloudFileMetadata(FileMetadata):
     id: str
-    folder_id: str
+    parent: CloudId
     content_hash: str
 
 
@@ -28,6 +35,7 @@ class CloudFolderMetadata:
     name: str
     path_lower: str
     cloud_path: str
+
 
 @dataclass
 class LocalFolderMetadata:

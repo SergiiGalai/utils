@@ -5,8 +5,10 @@ import dropbox
 import pytest
 
 from src.sync.stores.dropbox.dropbox_file_converter import DropboxFileConverter
+from src.sync.stores.models import CloudId
 from tests.file_metadata import create_cloud_file, create_cloud_folder
 
+_ROOT_FOLDER = CloudId('/', '/')
 
 @pytest.fixture
 def sut():
@@ -15,10 +17,10 @@ def sut():
 
 
 @pytest.mark.parametrize('display1,name1,lower1,folder1,display2,name2,lower2,folder2', [
-    ('/f1.pdf', 'f1.pdf', '/f1.pdf', '/',
-     '/F2.pdf', 'F2.pdf', '/f2.pdf', '/'),
-    ('/f1.pdf', 'f1.pdf', '/f1.pdf', '/',
-     '/Root/F2.pdf', 'F2.pdf', '/root/f2.pdf', '/Root'),
+    ('/f1.pdf', 'f1.pdf', '/f1.pdf', _ROOT_FOLDER,
+     '/F2.pdf', 'F2.pdf', '/f2.pdf', _ROOT_FOLDER),
+    ('/f1.pdf', 'f1.pdf', '/f1.pdf', _ROOT_FOLDER,
+     '/Root/F2.pdf', 'F2.pdf', '/root/f2.pdf', CloudId('/Root', '/Root')),
 ])
 def test_2_files_when_converterd_gfiles_with_2_files(sut: DropboxFileConverter,
                                                      display1, name1, lower1, folder1,
@@ -34,9 +36,9 @@ def test_2_files_when_converterd_gfiles_with_2_files(sut: DropboxFileConverter,
 
 
 @pytest.mark.parametrize('display,name,lower,folder', [
-    ('/f.pdf', 'f.pdf', '/f.pdf', '/'),
-    ('/Root/f.pdf', 'f.pdf', '/root/f.pdf', '/Root'),
-    ('/Root/Sub/f.pdf', 'f.pdf', '/root/sub/f.pdf', '/Root/Sub'),
+    ('/f.pdf', 'f.pdf', '/f.pdf', _ROOT_FOLDER),
+    ('/Root/f.pdf', 'f.pdf', '/root/f.pdf', CloudId('/Root', '/Root')),
+    ('/Root/Sub/f.pdf', 'f.pdf', '/root/sub/f.pdf', CloudId('/Root/Sub', '/Root/Sub')),
 ])
 def test_converted_dropbox_file(sut: DropboxFileConverter,
                                 display, name, lower, folder):
